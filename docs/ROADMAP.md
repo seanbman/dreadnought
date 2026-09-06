@@ -48,15 +48,21 @@ Squash merge commit: `ce853e50706259b32585e7311b1d74638cb2bda5`.
 
 PR #9 was an accidental no-op draft and was immediately closed without merge; it is retained in history rather than repurposed.
 
-## Milestone 8 — First agent adapter and Project Arm dispatch — in progress
+## Milestone 8 — First agent adapter and Project Arm dispatch — partially implemented
 
-Launch one external agent command from a normalized Order through Dreadnought. The initial provider-neutral adapter serializes the Order into external scratch, executes through Sarcophagus, and records Dreadnought observer evidence into Grapher. A vendor-specific coding-agent adapter and real-workspace run are required before this milestone is considered empirically validated.
+PR #10 established provider-neutral command dispatch: normalized Order packets in external scratch, Sarcophagus execution, observer-side process evidence, Grapher ingestion, and the `dreadnought arm dispatch` CLI.
 
-Working branch: `feature/project-arm-dispatch`.
+Squash merge commit: `6c049f77981917d716722096674976c1ea5c4261`. Verification: GitHub Actions run `34066144031` succeeded.
+
+The current substage adds a typed scratch-resident agent result channel so Project Arms can return claims, artifacts, risks, requirements, actions, and notes without being allowed to author observer/evaluation records. After that passes, Milestone 8 still requires one vendor-specific coding-agent adapter and a bounded real-workspace run before it is considered empirically validated.
+
+Working branch: `feature/agent-result-channel`.
 
 ## Milestone 9 — Closure and audit semantics
 
 Separate claimed completion, deterministic verification, authority acceptance, and closure. Produce human- and machine-readable inspection reports that trace Doctrine → Operation → Order → Project Arm → PR → evidence and discrepancies.
+
+Before implementing closure semantics, correct the early Mission lifecycle so execution state does not conflate `completed`, `accepted`, and `closed`; acceptance and closure belong in distinct protocol records.
 
 ## Deferred until evidence justifies them
 

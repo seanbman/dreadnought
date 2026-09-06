@@ -118,3 +118,15 @@ Architectural decisions are recorded here as decisions, not rewritten later as i
 **Rationale:** A verdict must be reproducible from observable evidence. Separating verifier implementations from agent claims prevents an agent from defining its own proof standard after execution and gives later Grapher records a concrete evidence source.
 
 **Boundary:** Command verification records exit code and captured output but does not yet provide sandboxing or authority isolation. Sarcophagus remains responsible for constraining what a verifier process is allowed to execute.
+
+## D-0012 — Agent results are testimony, never observer authority
+
+**Date:** 2026-09-06  
+**Time:** approximately 17:12 MDT / 23:12 UTC  
+**Status:** current
+
+**Decision:** External agents may return typed protocol records only through a scratch-resident result channel. Records accepted from that channel must use the `agent` perspective and may not use observer- or evaluation-reserved kinds. Dreadnought validates and rebinds them to the dispatched Order before canonical Grapher ingestion.
+
+**Rationale:** Structured output is useful only if its epistemic class remains intact. A compromised or mistaken agent must not be able to emit an `observation` or `verdict` record and thereby promote testimony into evidence or evaluation authority.
+
+**Boundary:** The channel validates protocol identity and Order association. It does not yet prove which operating-system process wrote a result file; stronger process identity and signed/session-bound records remain future hardening work.
