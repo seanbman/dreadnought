@@ -20,6 +20,7 @@ Ledgers are append-oriented research records. They should preserve historical mi
 - [`FAILURE_LEDGER.md`](FAILURE_LEDGER.md) — failures, contamination events, false assumptions, and lessons carried forward.
 - [`PROTOCOL_LEDGER.md`](PROTOCOL_LEDGER.md) — evolution of typed protocol semantics, actor/perspective boundaries, and machine-significant record taxonomy.
 - [`SARCOPHAGUS_LEDGER.md`](SARCOPHAGUS_LEDGER.md) — execution-isolation experiments, enforced boundaries, adversarial findings, and known containment limitations.
+- [`PROJECT_ARM_LEDGER.md`](PROJECT_ARM_LEDGER.md) — Project Arm dispatch, adapter boundaries, execution observations, and compartmentalization experiments.
 
 ## Machine-readable counterparts
 
@@ -45,4 +46,4 @@ When adding a new durable Markdown document under `docs/`, add it to this index 
 
 ## Current milestone boundary
 
-PR #7 is developing the first Sarcophagus execution boundary: canonical workspace read-only, writable external scratch, default network isolation, environment minimization, and fail-closed execution when the supported Linux sandbox backend is unavailable. This remains a prototype until CI and target-host adversarial testing establish what it actually enforces.
+The Sarcophagus prototype has passed CI and merged in PR #8. The current milestone is one-Order/one-Project-Arm dispatch through a provider-neutral command adapter, with execution routed through Sarcophagus and process observations written by Dreadnought into Grapher. A real vendor adapter and real-workspace run remain the next validation step.
