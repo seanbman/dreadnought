@@ -1,0 +1,29 @@
+{
+  "profile": "software",
+  "domain": "agent-control-plane",
+  "kinds": [
+    "knowledge",
+    "implementation",
+    "decision",
+    "design",
+    "requirements",
+    "roadmap",
+    "retrospective"
+  ],
+  "stages": [
+    "ideation",
+    "designing",
+    "planning",
+    "developing",
+    "launching",
+    "maintaining"
+  ],
+  "custom_node_types": [],
+  "custom_relations": {},
+  "custom_kinds": [],
+  "stage_aliases": {},
+  "status_rank_weights": {},
+  "checkpoint_definitions": [],
+  "component_link_rules": [],
+  "relation_aliases": {}
+}
