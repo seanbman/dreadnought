@@ -4,15 +4,17 @@ This sequence is a working experimental plan, not a commitment to preserve bound
 
 ## PR 1 — Bootstrap research substrate — merged
 
-Established repository conventions, ledgers, `.grapher/`, the architectural charter, and research discipline. The original roadmap also placed the mission schema and CLI skeleton here; those were intentionally deferred so the research substrate could be reviewed as its own boundary.
+Established repository conventions, ledgers, `.grapher/`, the architectural charter, and research discipline.
 
 Merge commit: `96725840db44eef1d982b32376c69be3050cba3d`.
 
-## PR 2 — Mission schema and CLI skeleton — in progress
+## PR 2 — Mission schema and CLI skeleton — merged
 
-Establish the first executable contract between human intent and later agent execution: actor identity, natural-language source directive, workspace, source declarations, capability requests, lifecycle state, schema validation, and CLI creation/inspection. No real agent autonomy yet.
+Established the first executable contract between human intent and later agent execution: actor identity, natural-language source directive, workspace, source declarations, capability requests, lifecycle state, schema validation, and CLI creation/inspection. Mission configuration expresses requested state and does not grant authority.
 
-## PR 3 — Doctrine, campaign plan, and orders
+Squash merge commit: `2ddda47a622cc66b90e4a5ec65ea09262e002644`.
+
+## PR 3 — Doctrine, Campaign Plan, and Orders — in progress
 
 Introduce the normalization layer between freeform human input and agent execution. Dreadnought ingests human directives and supporting material, records source provenance in the project `.grapher/`, and compiles accepted intent into a versioned Doctrine document.
 
@@ -22,7 +24,7 @@ Standard hierarchy:
 
 `Dreadnought → Task Group → Project Arm → Agent`
 
-Orders should expose only the project context, source excerpts, graph nodes, dependencies, acceptance predicates, capabilities, and creative latitude required for that Operation. Project-wide strategic context remains with Dreadnought unless explicitly needed.
+Orders expose only the project context, source references, requirements, dependencies, acceptance criteria, requested capabilities, and creative latitude required for that Operation. Project-wide strategic context remains with Dreadnought unless explicitly needed.
 
 ## PR 4 — Typed agent protocol
 
