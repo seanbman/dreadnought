@@ -41,3 +41,14 @@ Architectural decisions are recorded here as decisions, not rewritten later as i
 **Decision:** Begin with a deliberately small protocol taxonomy and expand enums/schema through real runs and failure analysis.
 
 **Rationale:** A large ontology invented before use is likely to encode assumptions that have not earned evidence.
+
+## D-0005 — Mission configuration is not authority
+
+**Date:** 2026-09-06  
+**Status:** current
+
+**Decision:** Mission documents may express requested sources, access modes, and capabilities, but those fields do not themselves grant privileges. Effective authority must later be derived by Dreadnought from mission intent intersected with control-plane and workspace policy.
+
+**Rationale:** A natural-language directive or editable mission file must never be able to weaken the enforcement boundary merely by requesting broader access. Keeping desired configuration separate from effective capabilities also gives the observer layer something concrete to compare against actual execution.
+
+**Implementation reference:** branch `feature/mission-schema-cli`, beginning with commit `11bfb29754008a8756b7d58efcf62a939bd9876d`.
