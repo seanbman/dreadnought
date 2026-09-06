@@ -52,3 +52,35 @@ Architectural decisions are recorded here as decisions, not rewritten later as i
 **Rationale:** A natural-language directive or editable mission file must never be able to weaken the enforcement boundary merely by requesting broader access. Keeping desired configuration separate from effective capabilities also gives the observer layer something concrete to compare against actual execution.
 
 **Implementation reference:** branch `feature/mission-schema-cli`, beginning with commit `11bfb29754008a8756b7d58efcf62a939bd9876d`.
+
+## D-0006 — Doctrine precedes execution orders
+
+**Date:** 2026-09-06  
+**Time:** 07:54 MDT / 13:54 UTC  
+**Status:** current
+
+**Decision:** Freeform human input and supporting artifacts are normalized into a versioned Doctrine document before Dreadnought decomposes work into PR-sized Operations. Doctrine is the authoritative interpretation layer between human intent and execution planning.
+
+**Doctrine responsibilities:** preserve source provenance; distinguish requirements from preferences and unresolved questions; define acceptance conditions; record constraints and priorities; and define where creative agency is encouraged, bounded, approval-gated, or prohibited.
+
+**Rationale:** Agents should not directly consume undifferentiated project-wide human context as their authoritative order. A normalization boundary reduces ambiguity and contamination while retaining traceability back to the original source material.
+
+## D-0007 — Use Task Group and Project Arm nomenclature
+
+**Date:** 2026-09-06  
+**Time:** 07:54 MDT / 13:54 UTC  
+**Status:** current
+
+**Decision:** Use the working hierarchy `Dreadnought → Task Group → Project Arm → Agent`. A Campaign Plan decomposes Doctrine into Operations; a Project Arm receives a compartmentalized Order for an Operation and may contain one agent initially, with subordinate orchestration deferred until evidence justifies it.
+
+**Rationale:** `Project Arm` describes an execution branch extending from the control plane without implying that the subordinate has project-wide strategic authority. `Task Group` provides a future grouping boundary for related Project Arms without requiring multi-agent orchestration in the first implementation.
+
+## D-0008 — Creative agency is explicit and scoped
+
+**Date:** 2026-09-06  
+**Time:** 07:54 MDT / 13:54 UTC  
+**Status:** current
+
+**Decision:** Orders carry a structured creative-authority envelope. Dreadnought should specify dimensions where an agent has high, medium, low, approval-required, or prohibited discretion rather than treating creativity as either unrestricted or absent.
+
+**Rationale:** Development benefits from agent initiative in implementation, naming, design, debugging, and exploration, but freedom should not silently extend into architecture, destructive state changes, security policy, or other authority-sensitive decisions. Explicit scope minimizes context leakage and overreach while preserving useful agency.
