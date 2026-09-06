@@ -14,7 +14,7 @@ Dreadnought is being developed as both software and a research study. Preserve b
 
 ## Grapher
 
-This repository uses Grapher at `.grapher/knowledge.json`. At the start of substantive work, inspect Grapher before re-deriving project knowledge. Record durable discoveries, decisions, evidence, and supersession through Grapher rather than relying on chat history alone. Do not rewrite finalized historical evidence to make later conclusions look cleaner. [Process map](#appendix--process-flow)
+This repository uses Grapher at `.grapher/knowledge.json`. At the start of work, inspect Grapher before re-deriving project knowledge. Every repository change set must update `.grapher/knowledge.json` and append `.grapher/history.jsonl`; CI rejects pull requests and direct `main` changes that do not satisfy both requirements. Grapher maintenance is therefore part of the change path, not optional cleanup. Record durable discoveries, decisions, evidence, and supersession through Grapher rather than relying on chat history alone. Do not rewrite finalized historical evidence to make later conclusions look cleaner. [Process map](#appendix--process-flow)
 
 ## Research ledgers
 
