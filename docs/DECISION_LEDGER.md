@@ -84,3 +84,13 @@ Architectural decisions are recorded here as decisions, not rewritten later as i
 **Decision:** Orders carry a structured creative-authority envelope. Dreadnought should specify dimensions where an agent has high, medium, low, approval-required, or prohibited discretion rather than treating creativity as either unrestricted or absent.
 
 **Rationale:** Development benefits from agent initiative in implementation, naming, design, debugging, and exploration, but freedom should not silently extend into architecture, destructive state changes, security policy, or other authority-sensitive decisions. Explicit scope minimizes context leakage and overreach while preserving useful agency.
+
+## D-0009 — Project Arms receive least necessary strategic context
+
+**Date:** 2026-09-06  
+**Time:** 07:55 MDT / 13:55 UTC  
+**Status:** current
+
+**Decision:** An Order is a compartmentalized execution package, not a copy of the complete project context. Dreadnought retains the strategic picture and supplies a Project Arm only the Doctrine fragments, sources, graph references, dependencies, acceptance criteria, requested capabilities, and creative authority needed for its Operation.
+
+**Rationale:** Context minimization reduces cross-agent contamination, accidental authority expansion, and irrelevant prompt load while preserving enough local information for useful initiative. Additional context may be requested or granted explicitly when an Operation demonstrates that it is needed.
