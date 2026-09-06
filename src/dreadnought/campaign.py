@@ -57,8 +57,9 @@ class CampaignPlan:
 
     @classmethod
     def from_dict(cls, payload: dict[str, Any]) -> "CampaignPlan":
-        operations = [Operation(**item) for item in payload.pop("operations", [])]
-        return cls(operations=operations, **payload)
+        data = dict(payload)
+        operations = [Operation(**item) for item in data.pop("operations", [])]
+        return cls(operations=operations, **data)
 
     @classmethod
     def read(cls, path: Path) -> "CampaignPlan":
