@@ -1,0 +1,29 @@
+{
+  "version": 2,
+  "graph": {
+    "name": "dreadnought",
+    "domain": "agent-control-plane",
+    "kinds": [
+      "knowledge",
+      "implementation",
+      "decision",
+      "design",
+      "requirements",
+      "roadmap",
+      "retrospective"
+    ],
+    "stages": [
+      "ideation",
+      "designing",
+      "planning",
+      "developing",
+      "launching",
+      "maintaining"
+    ],
+    "profile": "software",
+    "created_at": "2026-09-06T13:31:47+00:00",
+    "updated_at": "2026-09-06T13:31:47+00:00"
+  },
+  "nodes": {},
+  "edges": []
+}
