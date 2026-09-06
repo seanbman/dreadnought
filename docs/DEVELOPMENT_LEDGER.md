@@ -54,3 +54,31 @@ This is not yet an agent launcher, natural-language semantic normalizer, policy 
 ### What we are testing
 
 Whether a minimal mission contract is expressive enough to carry real work into the upcoming typed protocol without prematurely inventing a large ontology. Any field that repeatedly fails to represent real missions should become evidence for schema revision rather than being patched with opaque prose.
+
+## 2026-09-06 — Doctrine, Campaign Plan, and Project Arm Orders
+
+**Time:** approximately 07:55 MDT / 13:55 UTC  
+**Branch:** `feature/doctrine-campaign-orders`  
+**Predecessor merge:** PR #2, squash merge commit `2ddda47a622cc66b90e4a5ec65ea09262e002644`
+
+### Hypothesis
+
+A mission record alone is too close to raw human input to serve as an execution order. Dreadnought needs an explicit interpretation layer that preserves source provenance, resolves intent into structured constraints and acceptance conditions, and then exposes only operation-relevant context to subordinate execution arms.
+
+### Implementation under test
+
+The branch introduces three distinct artifacts:
+
+- `Doctrine`: the versioned authoritative interpretation of human intent, including requirements, constraints, priorities, acceptance criteria, unresolved questions, source references, notes, and a bounded creative-authority envelope.
+- `CampaignPlan`: a project-level decomposition of Doctrine into named Operations with dependencies, scope, and required outcomes under a Task Group.
+- `Order`: the compartmentalized package issued to one Project Arm, carrying Doctrine/Campaign/Operation references, bounded scope, acceptance criteria, requested capabilities, relevant sources and requirements, and explicit creative latitude.
+
+Initial implementation commits include `68838280131c15ab0ea3d6e37b7235af4469e9e4`, `d91daef001a241121b1164b3c53812782797d475`, `28e99746581cf6bcd77650f50b78f2ee8c0723da`, `191a8432f9336af8ec7cb87558febabe29725fc5`, and `c6212bc68f250b5c7b5e80ee52034240896a1f53`.
+
+### Deliberate limitations
+
+This PR does not claim to solve semantic normalization from arbitrary human prose, automatic PR creation, source ingestion, or policy enforcement. It establishes the typed boundary those later mechanisms must target. The creative-authority enum is intentionally small and provisional; use in real projects will determine whether its categories survive.
+
+### Research question
+
+Can Doctrine → Campaign Plan → Order provide enough context for useful implementation while materially reducing context leakage and unauthorized strategic decision-making by Project Arms?
