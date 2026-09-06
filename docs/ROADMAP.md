@@ -1,69 +1,67 @@
 # Initial PR Roadmap
 
-This sequence is a working experimental plan, not a commitment to preserve boundaries that evidence shows are wrong. When implementation diverges from the original plan, the roadmap is updated rather than rewriting the development ledgers.
+## Index
 
-## Milestone 1 — Bootstrap research substrate — merged in PR #1
+- [Milestones 1–3 — intent and planning substrate](#milestones-13--intent-and-planning-substrate)
+- [Milestones 4–6 — protocol, evidence, verification](#milestones-46--protocol-evidence-verification)
+- [Milestone 7 — Sarcophagus](#milestone-7--sarcophagus)
+- [Milestone 8 — Project Arm dispatch](#milestone-8--project-arm-dispatch)
+- [Milestone 9 — Closure and audit semantics](#milestone-9--closure-and-audit-semantics)
+- [Deferred](#deferred)
+- [Appendix — Process flow](#appendix--process-flow)
 
-Established repository conventions, ledgers, `.grapher/`, the architectural charter, and research discipline.
+This sequence is a working experimental plan, not a commitment to preserve boundaries that evidence shows are wrong. [Process map](#appendix--process-flow)
 
-Merge commit: `96725840db44eef1d982b32376c69be3050cba3d`.
+## Milestones 1–3 — intent and planning substrate
 
-## Milestone 2 — Mission schema and CLI skeleton — merged in PR #2
+**Milestone 1 / PR #1:** research substrate, ledgers, `.grapher/`, charter. Merge `96725840db44eef1d982b32376c69be3050cba3d`.
 
-Established the first executable contract between human intent and later agent execution: actor identity, natural-language source directive, workspace, source declarations, capability requests, lifecycle state, schema validation, and CLI creation/inspection. Mission configuration expresses requested state and does not grant authority.
+**Milestone 2 / PR #2:** Mission schema and CLI. Merge `2ddda47a622cc66b90e4a5ec65ea09262e002644`.
 
-Squash merge commit: `2ddda47a622cc66b90e4a5ec65ea09262e002644`.
+**Milestone 3 / PR #3:** Doctrine, Campaign Plan, Operations, Project Arm Orders. Merge `db2c89af7ffa2c803020739eec578f20bcf5850c`.
 
-## Milestone 3 — Doctrine, Campaign Plan, and Orders — merged in PR #3
+[Process map](#appendix--process-flow)
 
-Added the normalization and compartmentalization layer between freeform human input and execution. Doctrine captures structured intent; Campaign Plans decompose it into Operations; Project Arms receive compartmentalized Orders under the working hierarchy `Dreadnought → Task Group → Project Arm → Agent`.
+## Milestones 4–6 — protocol, evidence, verification
 
-Squash merge commit: `db2c89af7ffa2c803020739eec578f20bcf5850c`.
+**Milestone 4 / PR #4:** typed claim/observation/action/artifact/requirement/risk/note/verdict protocol. Merge `d6692863d9d43372f3fffc7b5c6fb821b6dafee1`.
 
-## Milestone 4 — Typed agent protocol — merged in PR #4
+**Milestone 5 / PR #5:** Dreadnought-owned Grapher writes and provenance split. Merge `4630ac84da52677b343e7a3737844da683b25202`.
 
-Introduced the small typed protocol taxonomy for claim, observation, action, artifact, requirement, risk, note, and verdict records, with explicit human-source, agent, observer, and evaluation perspectives. Agent testimony cannot self-promote into observer evidence or verdict authority.
+**Milestone 6 / PR #6:** deterministic verifier registry. Merge `07721476c042df38edf6fc6fed1777a3f3c7004b`.
 
-Squash merge commit: `d6692863d9d43372f3fffc7b5c6fb821b6dafee1`.
+Documentation indexing maintenance merged in PR #7 at `b1852eff25b2c8b95924e134792ade74e433f255` and does not consume an architecture milestone. [Process map](#appendix--process-flow)
 
-## Milestone 5 — Grapher control-plane integration — merged in PR #5
+## Milestone 7 — Sarcophagus
 
-Made Dreadnought the software authority for canonical protocol writes into Grapher while preserving the submitting actor's identity and perspective. Added validation-before-mutation, duplicate rejection, reference/evidence edges, history events, and the `protocol ingest` path.
+Merged in PR #8 at `ce853e50706259b32585e7311b1d74638cb2bda5`. Established Bubblewrap execution, canonical workspace read-only, external writable scratch, default network isolation, environment allowlisting, and fail-closed behavior. PR #9 was an accidental no-op draft and was closed without merge. [Process map](#appendix--process-flow)
 
-Squash merge commit: `4630ac84da52677b343e7a3737844da683b25202`.
+## Milestone 8 — Project Arm dispatch
 
-## Milestone 6 — Deterministic verification — merged in PR #6
+PR #10 established provider-neutral dispatch, Order packets in scratch, Sarcophagus execution, observer process evidence, Grapher ingestion, and `dreadnought arm dispatch`. Merge `6c049f77981917d716722096674976c1ea5c4261`; Actions `34066144031` succeeded.
 
-Added the first verifier registry and reproducible checks for filesystem presence/absence, SHA-256 equality, and command exit status. Unsupported semantic claims remain `unverifiable` rather than being guessed.
-
-Squash merge commit: `07721476c042df38edf6fc6fed1777a3f3c7004b`.
-
-A documentation-index maintenance change merged separately in PR #7 at `b1852eff25b2c8b95924e134792ade74e433f255` and does not consume an architecture milestone number.
-
-## Milestone 7 — Sarcophagus prototype — merged in PR #8
-
-Established the first Linux execution boundary using Bubblewrap: canonical workspace read-only, external writable scratch, default network isolation, environment allowlisting, and fail-closed behavior when the sandbox backend is unavailable. This remains a prototype pending target-host adversarial testing and stronger kernel/resource controls.
-
-Squash merge commit: `ce853e50706259b32585e7311b1d74638cb2bda5`.
-
-PR #9 was an accidental no-op draft and was immediately closed without merge; it is retained in history rather than repurposed.
-
-## Milestone 8 — First agent adapter and Project Arm dispatch — partially implemented
-
-PR #10 established provider-neutral command dispatch: normalized Order packets in external scratch, Sarcophagus execution, observer-side process evidence, Grapher ingestion, and the `dreadnought arm dispatch` CLI.
-
-Squash merge commit: `6c049f77981917d716722096674976c1ea5c4261`. Verification: GitHub Actions run `34066144031` succeeded.
-
-The current substage adds a typed scratch-resident agent result channel so Project Arms can return claims, artifacts, risks, requirements, actions, and notes without being allowed to author observer/evaluation records. After that passes, Milestone 8 still requires one vendor-specific coding-agent adapter and a bounded real-workspace run before it is considered empirically validated.
-
-Working branch: `feature/agent-result-channel`.
+PR #11 established the typed scratch-resident agent result channel and merged at `f8f40d1d072d0c37a1ba4d63c430a234339c1a54`; Actions `34066266462` succeeded. Milestone 8 still requires one vendor-specific coding-agent adapter and a bounded real-workspace run before empirical validation. [Process map](#appendix--process-flow)
 
 ## Milestone 9 — Closure and audit semantics
 
-Separate claimed completion, deterministic verification, authority acceptance, and closure. Produce human- and machine-readable inspection reports that trace Doctrine → Operation → Order → Project Arm → PR → evidence and discrepancies.
+Separate claimed completion, deterministic verification, authority acceptance, and closure. Produce inspection reports tracing Doctrine → Operation → Order → Project Arm → PR → evidence/discrepancies. Correct the early Mission lifecycle so execution state does not conflate completion, acceptance, and closure. [Process map](#appendix--process-flow)
 
-Before implementing closure semantics, correct the early Mission lifecycle so execution state does not conflate `completed`, `accepted`, and `closed`; acceptance and closure belong in distinct protocol records.
-
-## Deferred until evidence justifies them
+## Deferred
 
 Multi-Project-Arm orchestration, model training, automatic taxonomy expansion, generalized multi-provider autonomy, sophisticated inference, and broad policy engines.
+
+## Appendix — Process flow
+
+```mermaid
+flowchart LR
+    M1["Research substrate<br/>inception: 96725840db44eef1d982b32376c69be3050cba3d<br/>current: f8f40d1d072d0c37a1ba4d63c430a234339c1a54"] --> M2["Mission<br/>inception: 2ddda47a622cc66b90e4a5ec65ea09262e002644<br/>current: f8f40d1d072d0c37a1ba4d63c430a234339c1a54"]
+    M2 --> M3["Doctrine / Orders<br/>inception: db2c89af7ffa2c803020739eec578f20bcf5850c<br/>current: f8f40d1d072d0c37a1ba4d63c430a234339c1a54"]
+    M3 --> M4["Typed protocol<br/>inception: d6692863d9d43372f3fffc7b5c6fb821b6dafee1<br/>current: f8f40d1d072d0c37a1ba4d63c430a234339c1a54"]
+    M4 --> M5["Grapher control plane<br/>inception: 4630ac84da52677b343e7a3737844da683b25202<br/>current: f8f40d1d072d0c37a1ba4d63c430a234339c1a54"]
+    M5 --> M6["Verification<br/>inception: 07721476c042df38edf6fc6fed1777a3f3c7004b<br/>current: f8f40d1d072d0c37a1ba4d63c430a234339c1a54"]
+    M6 --> M7["Sarcophagus<br/>inception: ce853e50706259b32585e7311b1d74638cb2bda5<br/>current: f8f40d1d072d0c37a1ba4d63c430a234339c1a54"]
+    M7 --> M8["Project Arm + result channel<br/>inception: 6c049f77981917d716722096674976c1ea5c4261<br/>current: f8f40d1d072d0c37a1ba4d63c430a234339c1a54"]
+    M8 --> M9["Closure / audit<br/>inception: f8f40d1d072d0c37a1ba4d63c430a234339c1a54<br/>current: f8f40d1d072d0c37a1ba4d63c430a234339c1a54"]
+```
+
+Commit references are the full hashes embedded in each node; all resolve under `https://github.com/seanbman/dreadnought/commit/<hash>`. The `current` hash is the code snapshot against which this roadmap appendix was authored.
