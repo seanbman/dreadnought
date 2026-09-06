@@ -31,6 +31,7 @@ This is the canonical index for the repository's human-readable record. Every du
 - [`PROTOCOL_LEDGER.md`](PROTOCOL_LEDGER.md) — typed protocol evolution.
 - [`SARCOPHAGUS_LEDGER.md`](SARCOPHAGUS_LEDGER.md) — execution-isolation experiments.
 - [`PROJECT_ARM_LEDGER.md`](PROJECT_ARM_LEDGER.md) — Project Arm dispatch and result-channel experiments.
+- [`DOCUMENTATION_LEDGER.md`](DOCUMENTATION_LEDGER.md) — documentation structure, indexing, diagram, and provenance migrations.
 
 [Process map](#appendix--process-flow)
 
