@@ -19,6 +19,7 @@ Ledgers are append-oriented research records. They should preserve historical mi
 - [`EXPERIMENT_LEDGER.md`](EXPERIMENT_LEDGER.md) — hypotheses, experiments, expected evidence, observed results, and conclusions.
 - [`FAILURE_LEDGER.md`](FAILURE_LEDGER.md) — failures, contamination events, false assumptions, and lessons carried forward.
 - [`PROTOCOL_LEDGER.md`](PROTOCOL_LEDGER.md) — evolution of typed protocol semantics, actor/perspective boundaries, and machine-significant record taxonomy.
+- [`SARCOPHAGUS_LEDGER.md`](SARCOPHAGUS_LEDGER.md) — execution-isolation experiments, enforced boundaries, adversarial findings, and known containment limitations.
 
 ## Machine-readable counterparts
 
@@ -44,4 +45,4 @@ When adding a new durable Markdown document under `docs/`, add it to this index 
 
 ## Current milestone boundary
 
-As of the completion of PR #6, Dreadnought has established mission/Doctrine/Order models, typed protocol records, the Dreadnought-owned Grapher software write boundary, and the first deterministic verifier registry. The next roadmap milestone is the Sarcophagus execution-boundary prototype.
+PR #7 is developing the first Sarcophagus execution boundary: canonical workspace read-only, writable external scratch, default network isolation, environment minimization, and fail-closed execution when the supported Linux sandbox backend is unavailable. This remains a prototype until CI and target-host adversarial testing establish what it actually enforces.
