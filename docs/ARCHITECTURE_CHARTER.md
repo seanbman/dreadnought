@@ -3,7 +3,16 @@
 **Status:** initial working charter  
 **Date:** 2026-09-06
 
-Dreadnought is an experimental agent control plane. Its purpose is not merely to prompt agents but to mediate their authority, normalize missions and machine-significant claims, observe execution independently, preserve provenance, and verify claims against deterministic evidence where possible.
+## Index
+
+- [Purpose](#purpose)
+- [Working principles](#working-principles)
+- [Initial conceptual components](#initial-conceptual-components)
+- [Appendix — Process flow](#appendix--process-flow)
+
+## Purpose
+
+Dreadnought is an experimental agent control plane. Its purpose is not merely to prompt agents but to mediate their authority, normalize missions and machine-significant claims, observe execution independently, preserve provenance, and verify claims against deterministic evidence where possible. [Process map](#appendix--process-flow)
 
 ## Working principles
 
@@ -18,16 +27,22 @@ Dreadnought is an experimental agent control plane. Its purpose is not merely to
 9. **Fail closed on authoritative mutation.** A missing evidence/control path should not silently downgrade into unrecorded mutation.
 10. **The system itself is studied.** Development decisions, experiments, regressions, and failures are versioned as research evidence.
 
+[Process map](#appendix--process-flow)
+
 ## Initial conceptual components
 
-- Mission compiler
-- Agent/control API
-- Capability and policy layer
-- Agent adapter(s)
-- Sarcophagus execution boundary
-- Observer/event recorder
-- Deterministic verifier registry
-- Grapher adapter/evidence store
-- Human-facing inspection and audit interface
+Mission compiler; Agent/control API; capability and policy layer; agent adapters; Sarcophagus execution boundary; observer/event recorder; deterministic verifier registry; Grapher adapter/evidence store; human-facing inspection and audit interface. This charter is intentionally not frozen. Changes should be recorded in the Decision Ledger and, where testable, the Experiment Ledger. [Process map](#appendix--process-flow)
 
-This charter is intentionally not a frozen specification. Changes should be recorded in the Decision Ledger and, where testable, the Experiment Ledger.
+## Appendix — Process flow
+
+```mermaid
+flowchart LR
+    H["Human mission<br/>inception: 2ddda47a622cc66b90e4a5ec65ea09262e002644<br/>current: f8f40d1d072d0c37a1ba4d63c430a234339c1a54"] --> D["Doctrine / Order<br/>inception: db2c89af7ffa2c803020739eec578f20bcf5850c<br/>current: f8f40d1d072d0c37a1ba4d63c430a234339c1a54"]
+    D --> S["Sarcophagus / Project Arm<br/>inception: ce853e50706259b32585e7311b1d74638cb2bda5<br/>current: f8f40d1d072d0c37a1ba4d63c430a234339c1a54"]
+    S --> T["Agent testimony<br/>inception: d6692863d9d43372f3fffc7b5c6fb821b6dafee1<br/>current: f8f40d1d072d0c37a1ba4d63c430a234339c1a54"]
+    S --> O["Observer evidence<br/>inception: 4630ac84da52677b343e7a3737844da683b25202<br/>current: f8f40d1d072d0c37a1ba4d63c430a234339c1a54"]
+    T --> V["Deterministic verification<br/>inception: 07721476c042df38edf6fc6fed1777a3f3c7004b<br/>current: f8f40d1d072d0c37a1ba4d63c430a234339c1a54"]
+    O --> V --> G["Grapher provenance<br/>inception: 4630ac84da52677b343e7a3737844da683b25202<br/>current: f8f40d1d072d0c37a1ba4d63c430a234339c1a54"]
+```
+
+Commit references: [mission](https://github.com/seanbman/dreadnought/commit/2ddda47a622cc66b90e4a5ec65ea09262e002644), [Doctrine/Orders](https://github.com/seanbman/dreadnought/commit/db2c89af7ffa2c803020739eec578f20bcf5850c), [protocol](https://github.com/seanbman/dreadnought/commit/d6692863d9d43372f3fffc7b5c6fb821b6dafee1), [Grapher](https://github.com/seanbman/dreadnought/commit/4630ac84da52677b343e7a3737844da683b25202), [verification](https://github.com/seanbman/dreadnought/commit/07721476c042df38edf6fc6fed1777a3f3c7004b), [Sarcophagus](https://github.com/seanbman/dreadnought/commit/ce853e50706259b32585e7311b1d74638cb2bda5), [current snapshot](https://github.com/seanbman/dreadnought/commit/f8f40d1d072d0c37a1ba4d63c430a234339c1a54).

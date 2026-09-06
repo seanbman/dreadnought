@@ -22,7 +22,7 @@
     ],
     "profile": "software",
     "created_at": "2026-09-06T13:31:47+00:00",
-    "updated_at": "2026-09-06T13:55:00+00:00"
+    "updated_at": "2026-09-06T23:45:00+00:00"
   },
   "nodes": {
     "decision-doctrine-before-orders": {
@@ -36,7 +36,7 @@
       "created_at": "2026-09-06T13:54:00+00:00",
       "updated_at": "2026-09-06T13:54:00+00:00",
       "status": "current",
-      "workflow_state": "accepted",
+      "workflow_state": "not_applicable",
       "verification": "unverified",
       "stage": "designing",
       "evidence": [{"type": "document", "ref": "docs/DECISION_LEDGER.md", "summary": "Human-readable architecture decision D-0006"}],
@@ -56,7 +56,7 @@
       "created_at": "2026-09-06T13:54:00+00:00",
       "updated_at": "2026-09-06T13:54:00+00:00",
       "status": "current",
-      "workflow_state": "accepted",
+      "workflow_state": "not_applicable",
       "verification": "unverified",
       "stage": "designing",
       "evidence": [{"type": "document", "ref": "docs/DECISION_LEDGER.md", "summary": "Human-readable architecture decision D-0007"}],
@@ -76,7 +76,7 @@
       "created_at": "2026-09-06T13:54:00+00:00",
       "updated_at": "2026-09-06T13:54:00+00:00",
       "status": "current",
-      "workflow_state": "accepted",
+      "workflow_state": "not_applicable",
       "verification": "unverified",
       "stage": "designing",
       "evidence": [{"type": "document", "ref": "docs/DECISION_LEDGER.md", "summary": "Human-readable architecture decision D-0008"}],
@@ -94,20 +94,44 @@
       "tags": ["pr3", "doctrine", "campaign", "order", "cli"],
       "meta": {"branch": "feature/doctrine-campaign-orders"},
       "created_at": "2026-09-06T13:55:00+00:00",
-      "updated_at": "2026-09-06T13:55:00+00:00",
+      "updated_at": "2026-09-06T23:45:00+00:00",
       "status": "current",
-      "workflow_state": "in_progress",
+      "workflow_state": "completed",
       "verification": "unverified",
       "stage": "developing",
       "evidence": [
         {"type": "commit", "ref": "68838280131c15ab0ea3d6e37b7235af4469e9e4", "summary": "Doctrine model"},
         {"type": "commit", "ref": "d91daef001a241121b1164b3c53812782797d475", "summary": "Campaign Plan model"},
-        {"type": "commit", "ref": "28e99746581cf6bcd77650f50b78f2ee8c0723da", "summary": "Project Arm Order model"}
+        {"type": "commit", "ref": "28e99746581cf6bcd77650f50b78f2ee8c0723da", "summary": "Project Arm Order model"},
+        {"type": "commit", "ref": "db2c89af7ffa2c803020739eec578f20bcf5850c", "summary": "PR #3 squash merge"}
       ],
       "source_refs": ["docs/DEVELOPMENT_LEDGER.md", "docs/ROADMAP.md"],
       "owners": [],
       "scope": {"project_id": "dreadnought"},
       "provenance": {"actor_id": "chatgpt", "actor_kind": "agent", "source": "github-connector", "integrity": "declared", "recorded_at": "2026-09-06T13:55:00+00:00"}
+    },
+    "decision-grapher-ci-gate": {
+      "id": "decision-grapher-ci-gate",
+      "type": "decision",
+      "title": "Every repository change must update Grapher",
+      "content": "CI rejects any pull request or direct main-branch commit that does not modify both .grapher/knowledge.json and .grapher/history.jsonl. Grapher maintenance is therefore a required property of the change path rather than an optional contributor convention.",
+      "path": ".github/workflows/test.yml",
+      "tags": ["grapher", "ci", "governance", "provenance", "enforcement"],
+      "meta": {"decision_id": "D-0013", "pr": 12},
+      "created_at": "2026-09-06T23:45:00+00:00",
+      "updated_at": "2026-09-06T23:45:00+00:00",
+      "status": "current",
+      "workflow_state": "completed",
+      "verification": "unverified",
+      "stage": "developing",
+      "evidence": [
+        {"type": "commit", "ref": "05ca003b02385472f15a16911350c8f4b9683304", "summary": "CI enforcement implementation"},
+        {"type": "pull_request", "ref": "12", "summary": "Documentation provenance and Grapher CI enforcement"}
+      ],
+      "source_refs": ["docs/DOCUMENTATION_LEDGER.md", "docs/DIAGRAM_STANDARD.md"],
+      "owners": [],
+      "scope": {"project_id": "dreadnought"},
+      "provenance": {"actor_id": "human:user", "actor_kind": "human", "source": "chat", "integrity": "declared", "recorded_at": "2026-09-06T23:45:00+00:00"}
     }
   },
   "edges": [
@@ -115,6 +139,7 @@
     {"from": "design-explicit-creative-authority", "to": "decision-doctrine-before-orders", "rel": "part_of", "created_at": "2026-09-06T13:55:00+00:00"},
     {"from": "implementation-doctrine-campaign-orders", "to": "decision-doctrine-before-orders", "rel": "implements", "created_at": "2026-09-06T13:55:00+00:00"},
     {"from": "implementation-doctrine-campaign-orders", "to": "design-project-arm-hierarchy", "rel": "implements", "created_at": "2026-09-06T13:55:00+00:00"},
-    {"from": "implementation-doctrine-campaign-orders", "to": "design-explicit-creative-authority", "rel": "implements", "created_at": "2026-09-06T13:55:00+00:00"}
+    {"from": "implementation-doctrine-campaign-orders", "to": "design-explicit-creative-authority", "rel": "implements", "created_at": "2026-09-06T13:55:00+00:00"},
+    {"from": "decision-grapher-ci-gate", "to": "decision-doctrine-before-orders", "rel": "supports", "created_at": "2026-09-06T23:45:00+00:00"}
   ]
 }
