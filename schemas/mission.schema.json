@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/seanbman/dreadnought/schemas/mission.schema.json",
+  "title": "Dreadnought Mission",
+  "type": "object",
+  "required": ["id", "created_at", "directive", "workspace", "actor_id", "status", "sources", "capabilities", "requirements", "human_notes", "schema_version"],
+  "properties": {
+    "id": {"type": "string", "pattern": "^mission-[a-z0-9]+$"},
+    "created_at": {"type": "string", "format": "date-time"},
+    "directive": {"type": "string", "minLength": 1},
+    "workspace": {"type": "string", "minLength": 1},
+    "actor_id": {"type": "string", "minLength": 1},
+    "status": {"enum": ["draft", "normalized", "validated", "ready", "running", "blocked", "completed", "accepted", "closed", "failed"]},
+    "objective": {"type": ["string", "null"]},
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "type", "locator", "access"],
+        "properties": {
+          "id": {"type": "string", "minLength": 1},
+          "type": {"enum": ["workspace", "github", "google_drive", "file", "url", "other"]},
+          "locator": {"type": "string", "minLength": 1},
+          "access": {"enum": ["read", "propose_write", "write"]}
+        },
+        "additionalProperties": false
+      }
+    },
+    "capabilities": {
+      "type": "object",
+      "required": ["canonical_workspace", "scratch_write", "git_inspect", "git_propose_commit", "git_push", "network", "shell", "max_minions"],
+      "properties": {
+        "canonical_workspace": {"enum": ["read", "propose_write", "write"]},
+        "scratch_write": {"type": "boolean"},
+        "git_inspect": {"type": "boolean"},
+        "git_propose_commit": {"type": "boolean"},
+        "git_push": {"type": "boolean"},
+        "network": {"enum": ["none", "brokered", "unrestricted"]},
+        "shell": {"enum": ["none", "restricted", "unrestricted"]},
+        "max_minions": {"type": "integer", "minimum": 0}
+      },
+      "additionalProperties": false
+    },
+    "requirements": {"type": "array", "items": {"type": "string"}},
+    "human_notes": {"type": "array", "items": {"type": "string"}},
+    "schema_version": {"const": "0.1"}
+  },
+  "additionalProperties": false
+}
