@@ -5,7 +5,9 @@ import json
 from pathlib import Path
 import sys
 
+from .agent import CommandAgentAdapter
 from .campaign import CampaignPlan
+from .dispatch import ProjectArmDispatcher
 from .doctrine import Doctrine
 from .grapher import GrapherControlPlane
 from .mission import Mission
@@ -97,6 +99,34 @@ def cmd_protocol_ingest(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_arm_dispatch(args: argparse.Namespace) -> int:
+    root = Path(args.root).resolve()
+    scratch = Path(args.scratch).resolve()
+    try:
+        order = Order.read(Path(args.order))
+        adapter = CommandAgentAdapter(
+            id=args.adapter,
+            executable=args.executable,
+            args=tuple(args.agent_arg or []),
+        )
+        result = ProjectArmDispatcher(workspace=root, scratch=scratch).dispatch(
+            order,
+            adapter,
+            timeout=args.timeout,
+        )
+    except (OSError, ValueError, TypeError, KeyError, json.JSONDecodeError, RuntimeError) as exc:
+        print(f"arm dispatch failed: {exc}", file=sys.stderr)
+        return 2
+    print(json.dumps({
+        "order_id": result.order_id,
+        "project_arm": result.project_arm,
+        "adapter_id": result.adapter_id,
+        "exit_code": result.exit_code,
+        "observation_id": result.observation_id,
+    }, indent=2))
+    return 0 if result.exit_code == 0 else 1
+
+
 def _wire_document_commands(parent, label: str, cls) -> None:
     validate = parent.add_parser("validate", help=f"validate a {label} document")
     validate.add_argument("path")
@@ -157,6 +187,18 @@ def build_parser() -> argparse.ArgumentParser:
     ingest.add_argument("path")
     ingest.add_argument("--root", default=".")
     ingest.set_defaults(func=cmd_protocol_ingest)
+
+    arm = sub.add_parser("arm", help="dispatch compartmentalized Orders to Project Arms")
+    arm_sub = arm.add_subparsers(dest="arm_command", required=True)
+    dispatch = arm_sub.add_parser("dispatch", help="execute one Order through Sarcophagus using a command adapter")
+    dispatch.add_argument("order")
+    dispatch.add_argument("--root", default=".")
+    dispatch.add_argument("--scratch", required=True, help="writable scratch directory outside the canonical workspace")
+    dispatch.add_argument("--adapter", required=True, help="stable adapter identifier")
+    dispatch.add_argument("--executable", required=True, help="external agent executable")
+    dispatch.add_argument("--agent-arg", action="append", default=[], help="repeatable adapter argument; supports explicit template tokens")
+    dispatch.add_argument("--timeout", type=int, default=300)
+    dispatch.set_defaults(func=cmd_arm_dispatch)
 
     return parser
 
