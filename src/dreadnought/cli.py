@@ -7,8 +7,10 @@ import sys
 
 from .campaign import CampaignPlan
 from .doctrine import Doctrine
+from .grapher import GrapherControlPlane
 from .mission import Mission
 from .order import Order
+from .protocol import ProtocolRecord
 
 
 def _dn_dir(root: Path, kind: str) -> Path:
@@ -83,6 +85,18 @@ def cmd_order_init(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_protocol_ingest(args: argparse.Namespace) -> int:
+    root = Path(args.root).resolve()
+    try:
+        record = ProtocolRecord.read(Path(args.path))
+        result = GrapherControlPlane(root).write_record(record)
+    except (OSError, ValueError, TypeError, KeyError, json.JSONDecodeError) as exc:
+        print(f"protocol ingest failed: {exc}", file=sys.stderr)
+        return 2
+    print(result.record_id)
+    return 0
+
+
 def _wire_document_commands(parent, label: str, cls) -> None:
     validate = parent.add_parser("validate", help=f"validate a {label} document")
     validate.add_argument("path")
@@ -135,6 +149,14 @@ def build_parser() -> argparse.ArgumentParser:
     oinit.add_argument("--root", default=".")
     oinit.set_defaults(func=cmd_order_init)
     _wire_document_commands(order_sub, "order", Order)
+
+    protocol = sub.add_parser("protocol", help="validate and ingest typed protocol records")
+    protocol_sub = protocol.add_subparsers(dest="protocol_command", required=True)
+    _wire_document_commands(protocol_sub, "protocol", ProtocolRecord)
+    ingest = protocol_sub.add_parser("ingest", help="validate and write a protocol record through Dreadnought into Grapher")
+    ingest.add_argument("path")
+    ingest.add_argument("--root", default=".")
+    ingest.set_defaults(func=cmd_protocol_ingest)
 
     return parser
 

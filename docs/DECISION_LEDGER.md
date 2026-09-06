@@ -94,3 +94,15 @@ Architectural decisions are recorded here as decisions, not rewritten later as i
 **Decision:** An Order is a compartmentalized execution package, not a copy of the complete project context. Dreadnought retains the strategic picture and supplies a Project Arm only the Doctrine fragments, sources, graph references, dependencies, acceptance criteria, requested capabilities, and creative authority needed for its Operation.
 
 **Rationale:** Context minimization reduces cross-agent contamination, accidental authority expansion, and irrelevant prompt load while preserving enough local information for useful initiative. Additional context may be requested or granted explicitly when an Operation demonstrates that it is needed.
+
+## D-0010 — Dreadnought owns canonical Grapher protocol writes
+
+**Date:** 2026-09-06  
+**Time:** approximately 08:26 MDT / 14:26 UTC  
+**Status:** current
+
+**Decision:** Project Arms and agents submit typed `ProtocolRecord` objects to Dreadnought; the control plane validates them and is the only software component that projects those records into canonical `.grapher/knowledge.json` and `.grapher/history.jsonl` state.
+
+**Rationale:** Actor identity and write authority are distinct. An agent-authored claim must remain attributable to that agent while the canonical write itself is attributable to `dreadnought:control-plane`. This prevents an agent from promoting its own testimony into observer/evaluation authority merely by editing Grapher directly.
+
+**Current limitation:** This PR establishes the software boundary, duplicate rejection, validation-before-mutation, and provenance split. The later Sarcophagus milestone must enforce the same boundary at the OS/filesystem level so direct Grapher mutation is not merely discouraged but denied.

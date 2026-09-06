@@ -82,3 +82,25 @@ This PR does not claim to solve semantic normalization from arbitrary human pros
 ### Research question
 
 Can Doctrine → Campaign Plan → Order provide enough context for useful implementation while materially reducing context leakage and unauthorized strategic decision-making by Project Arms?
+
+## 2026-09-06 — Typed protocol verified and Grapher write boundary begun
+
+**Time:** approximately 08:26 MDT / 14:26 UTC  
+**Predecessor merge:** PR #4, squash merge commit `d6692863d9d43372f3fffc7b5c6fb821b6dafee1`  
+**CI evidence:** GitHub Actions run `34039039889`, pytest job `101502308833`, conclusion `success`
+
+PR #4 is the first Dreadnought change with attached CI execution evidence. The typed protocol and authority-boundary tests passed before merge.
+
+### Grapher integration hypothesis
+
+Agent authorship and canonical write authority can be separated cleanly: a Project Arm may author a claim while only Dreadnought writes the canonical Grapher projection. The graph must preserve both identities rather than replacing the submitting actor with the writer.
+
+### Implementation under test
+
+Branch `feature/grapher-control-plane` adds a privileged `GrapherControlPlane` adapter and `dreadnought protocol ingest`. Records are validated before mutation, duplicate record IDs are rejected, writes are projected into `.grapher/knowledge.json`, a compact append event is written to `.grapher/history.jsonl`, and provenance records both `submitted_by` and the canonical writer `dreadnought:control-plane`.
+
+Initial commits: `ac29c56cba711458213e1be6582c69355332e85b`, `df5f1644dc93b838f6731b6d93fa7eaa413d01b7`, and `fecdd45323b8dcfb9746d3becccfdc951d39f1fb`.
+
+### Deliberate limitation
+
+This is a software authority boundary, not yet a kernel-enforced one. Direct filesystem access to `.grapher/` remains possible until the Sarcophagus milestone removes that authority from Project Arms.
