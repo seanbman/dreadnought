@@ -10,7 +10,7 @@ The ledgers are not polished retrospective documentation. They are a contemporan
 
 - [`INDEX.md`](INDEX.md) — canonical map of all human-readable project documents and their authority.
 - [`ARCHITECTURE_CHARTER.md`](ARCHITECTURE_CHARTER.md) — current architectural principles and system boundaries.
-- [`ROADMAP.md`](ROADMAP.md) — active PR sequence, completed milestones, and deferred work.
+- [`ROADMAP.md`](ROADMAP.md) — active milestone sequence, completed work, and deferred work.
 
 ## Ledgers
 
@@ -19,6 +19,8 @@ The ledgers are not polished retrospective documentation. They are a contemporan
 - [`EXPERIMENT_LEDGER.md`](EXPERIMENT_LEDGER.md) — testable hypotheses and results.
 - [`FAILURE_LEDGER.md`](FAILURE_LEDGER.md) — failures and lessons without rewriting history.
 - [`PROTOCOL_LEDGER.md`](PROTOCOL_LEDGER.md) — typed protocol taxonomy, authority boundaries, and protocol evolution.
+- [`SARCOPHAGUS_LEDGER.md`](SARCOPHAGUS_LEDGER.md) — process/filesystem isolation experiments and containment limits.
+- [`PROJECT_ARM_LEDGER.md`](PROJECT_ARM_LEDGER.md) — Order dispatch, adapter boundaries, Project Arm execution, and observations.
 
 ## Entry discipline
 
