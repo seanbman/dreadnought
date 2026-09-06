@@ -1,6 +1,22 @@
 # Decision Ledger
 
-Architectural decisions are recorded here as decisions, not rewritten later as if they were inevitable. Superseded decisions remain in place with links to the replacing decision.
+## Index
+
+- [D-0001 — Dreadnought is a new architecture](#d-0001--dreadnought-is-a-new-architecture)
+- [D-0002 — Separate machine protocol from human notes](#d-0002--separate-machine-protocol-from-human-notes)
+- [D-0003 — Grapher is a subsystem](#d-0003--grapher-is-a-dreadnought-subsystem-not-the-whole-control-plane)
+- [D-0004 — Taxonomy grows through observed use](#d-0004--taxonomy-grows-through-observed-use)
+- [D-0005 — Mission configuration is not authority](#d-0005--mission-configuration-is-not-authority)
+- [D-0006 — Doctrine precedes execution orders](#d-0006--doctrine-precedes-execution-orders)
+- [D-0007 — Task Group and Project Arm nomenclature](#d-0007--use-task-group-and-project-arm-nomenclature)
+- [D-0008 — Creative agency is explicit and scoped](#d-0008--creative-agency-is-explicit-and-scoped)
+- [D-0009 — Least necessary strategic context](#d-0009--project-arms-receive-least-necessary-strategic-context)
+- [D-0010 — Dreadnought owns canonical Grapher writes](#d-0010--dreadnought-owns-canonical-grapher-protocol-writes)
+- [D-0011 — Verification is deterministic](#d-0011--verification-is-deterministic-and-verifier-specific)
+- [D-0012 — Agent result channel is testimony-only](#d-0012--agent-result-channel-is-testimony-only)
+- [Appendix — Process flow](#appendix--process-flow)
+
+Architectural decisions are recorded as decisions, not rewritten later as if inevitable. Superseded decisions remain in history. [Process map](#appendix--process-flow)
 
 ## D-0001 — Dreadnought is a new architecture
 
@@ -9,29 +25,21 @@ Architectural decisions are recorded here as decisions, not rewritten later as i
 
 **Decision:** Build Dreadnought as a new project informed by Agent Hub and Grapher rather than evolving Agent Hub in place.
 
-**Rationale:** The emerging design has a materially different authority model: Dreadnought is intended to be a control plane, observer, verifier, capability broker, and protocol compiler. Keeping a clean repository boundary makes inherited assumptions explicit rather than accidental.
-
-**Alternatives considered:** Rename/refactor Agent Hub; fork Agent Hub wholesale; continue adding governance features to Agent Hub.
+**Rationale:** The emerging design has a materially different authority model: control plane, observer, verifier, capability broker, and protocol compiler.
 
 ## D-0002 — Separate machine protocol from human notes
 
 **Date:** 2026-09-06  
 **Status:** current
 
-**Decision:** Machine-significant claims, observations, actions, requirements, risks, artifacts, and verdicts should become typed/schema-backed protocol records. Freeform natural language remains available for human-facing notes, rationale, handoffs, and review commentary.
-
-**Rationale:** Deterministic verification requires claims whose semantics can be reduced to known predicates. Prose alone is ambiguous and expensive to normalize after the fact.
+**Decision:** Machine-significant claims, observations, actions, requirements, risks, artifacts, and verdicts use typed/schema-backed records. Freeform language remains for human-facing notes, rationale, handoffs, and review commentary.
 
 ## D-0003 — Grapher is a Dreadnought subsystem, not the whole control plane
 
 **Date:** 2026-09-06  
 **Status:** proposed
 
-**Decision:** Preserve Grapher as an independently usable evidence/provenance component while making Dreadnought its privileged control-plane client.
-
-**Rationale:** This allows Dreadnought to record agent testimony and independent observer evidence without coupling orchestration, policy, storage, and graph semantics into one inseparable daemon.
-
-**Open question:** The exact API boundary and write authority remain to be tested.
+**Decision:** Preserve Grapher as independently usable evidence/provenance while Dreadnought is its privileged control-plane client.
 
 ## D-0004 — Taxonomy grows through observed use
 
@@ -40,18 +48,14 @@ Architectural decisions are recorded here as decisions, not rewritten later as i
 
 **Decision:** Begin with a deliberately small protocol taxonomy and expand enums/schema through real runs and failure analysis.
 
-**Rationale:** A large ontology invented before use is likely to encode assumptions that have not earned evidence.
-
 ## D-0005 — Mission configuration is not authority
 
 **Date:** 2026-09-06  
 **Status:** current
 
-**Decision:** Mission documents may express requested sources, access modes, and capabilities, but those fields do not themselves grant privileges. Effective authority must later be derived by Dreadnought from mission intent intersected with control-plane and workspace policy.
+**Decision:** Mission documents may request sources, access modes, and capabilities, but do not themselves grant privileges. Effective authority is derived from mission intent intersected with control-plane/workspace policy.
 
-**Rationale:** A natural-language directive or editable mission file must never be able to weaken the enforcement boundary merely by requesting broader access. Keeping desired configuration separate from effective capabilities also gives the observer layer something concrete to compare against actual execution.
-
-**Implementation reference:** branch `feature/mission-schema-cli`, beginning with commit `11bfb29754008a8756b7d58efcf62a939bd9876d`.
+**Implementation reference:** `11bfb29754008a8756b7d58efcf62a939bd9876d`.
 
 ## D-0006 — Doctrine precedes execution orders
 
@@ -59,11 +63,7 @@ Architectural decisions are recorded here as decisions, not rewritten later as i
 **Time:** 07:54 MDT / 13:54 UTC  
 **Status:** current
 
-**Decision:** Freeform human input and supporting artifacts are normalized into a versioned Doctrine document before Dreadnought decomposes work into PR-sized Operations. Doctrine is the authoritative interpretation layer between human intent and execution planning.
-
-**Doctrine responsibilities:** preserve source provenance; distinguish requirements from preferences and unresolved questions; define acceptance conditions; record constraints and priorities; and define where creative agency is encouraged, bounded, approval-gated, or prohibited.
-
-**Rationale:** Agents should not directly consume undifferentiated project-wide human context as their authoritative order. A normalization boundary reduces ambiguity and contamination while retaining traceability back to the original source material.
+**Decision:** Freeform human input and supporting artifacts are normalized into versioned Doctrine before decomposition into PR-sized Operations. Doctrine preserves provenance, requirements/preferences/unresolved questions, acceptance, constraints, priorities, and creative authority.
 
 ## D-0007 — Use Task Group and Project Arm nomenclature
 
@@ -71,9 +71,7 @@ Architectural decisions are recorded here as decisions, not rewritten later as i
 **Time:** 07:54 MDT / 13:54 UTC  
 **Status:** current
 
-**Decision:** Use the working hierarchy `Dreadnought → Task Group → Project Arm → Agent`. A Campaign Plan decomposes Doctrine into Operations; a Project Arm receives a compartmentalized Order for an Operation and may contain one agent initially, with subordinate orchestration deferred until evidence justifies it.
-
-**Rationale:** `Project Arm` describes an execution branch extending from the control plane without implying that the subordinate has project-wide strategic authority. `Task Group` provides a future grouping boundary for related Project Arms without requiring multi-agent orchestration in the first implementation.
+**Decision:** Use `Dreadnought → Task Group → Project Arm → Agent`. Campaign Plans decompose Doctrine into Operations; a Project Arm receives a compartmentalized Order.
 
 ## D-0008 — Creative agency is explicit and scoped
 
@@ -81,9 +79,7 @@ Architectural decisions are recorded here as decisions, not rewritten later as i
 **Time:** 07:54 MDT / 13:54 UTC  
 **Status:** current
 
-**Decision:** Orders carry a structured creative-authority envelope. Dreadnought should specify dimensions where an agent has high, medium, low, approval-required, or prohibited discretion rather than treating creativity as either unrestricted or absent.
-
-**Rationale:** Development benefits from agent initiative in implementation, naming, design, debugging, and exploration, but freedom should not silently extend into architecture, destructive state changes, security policy, or other authority-sensitive decisions. Explicit scope minimizes context leakage and overreach while preserving useful agency.
+**Decision:** Orders carry a structured creative-authority envelope so initiative is explicitly high, medium, low, approval-required, or prohibited by dimension.
 
 ## D-0009 — Project Arms receive least necessary strategic context
 
@@ -91,9 +87,7 @@ Architectural decisions are recorded here as decisions, not rewritten later as i
 **Time:** 07:55 MDT / 13:55 UTC  
 **Status:** current
 
-**Decision:** An Order is a compartmentalized execution package, not a copy of the complete project context. Dreadnought retains the strategic picture and supplies a Project Arm only the Doctrine fragments, sources, graph references, dependencies, acceptance criteria, requested capabilities, and creative authority needed for its Operation.
-
-**Rationale:** Context minimization reduces cross-agent contamination, accidental authority expansion, and irrelevant prompt load while preserving enough local information for useful initiative. Additional context may be requested or granted explicitly when an Operation demonstrates that it is needed.
+**Decision:** An Order is a compartmentalized execution package, not a copy of complete project context. Dreadnought supplies only the Doctrine fragments, sources, graph references, dependencies, acceptance criteria, capabilities, and creative authority needed for the Operation.
 
 ## D-0010 — Dreadnought owns canonical Grapher protocol writes
 
@@ -101,11 +95,9 @@ Architectural decisions are recorded here as decisions, not rewritten later as i
 **Time:** approximately 08:26 MDT / 14:26 UTC  
 **Status:** current
 
-**Decision:** Project Arms and agents submit typed `ProtocolRecord` objects to Dreadnought; the control plane validates them and is the only software component that projects those records into canonical `.grapher/knowledge.json` and `.grapher/history.jsonl` state.
+**Decision:** Project Arms/agents submit typed `ProtocolRecord`s to Dreadnought; the control plane validates them and is the only software component projecting those records into canonical `.grapher/knowledge.json` and `.grapher/history.jsonl`.
 
-**Rationale:** Actor identity and write authority are distinct. An agent-authored claim must remain attributable to that agent while the canonical write itself is attributable to `dreadnought:control-plane`. This prevents an agent from promoting its own testimony into observer/evaluation authority merely by editing Grapher directly.
-
-**Current limitation:** This PR establishes the software boundary, duplicate rejection, validation-before-mutation, and provenance split. The later Sarcophagus milestone must enforce the same boundary at the OS/filesystem level so direct Grapher mutation is not merely discouraged but denied.
+**Rationale:** Actor identity and write authority are distinct; agent authorship is preserved while canonical writing belongs to `dreadnought:control-plane`.
 
 ## D-0011 — Verification is deterministic and verifier-specific
 
@@ -113,20 +105,28 @@ Architectural decisions are recorded here as decisions, not rewritten later as i
 **Time:** approximately 08:32 MDT / 14:32 UTC  
 **Status:** current
 
-**Decision:** Dreadnought evaluates claims only through named deterministic verifiers whose inputs and observations are explicit. The first registry covers filesystem existence/absence, SHA-256 file hashes, and command exit status. Unknown or unsupported verification requests resolve to `unverifiable` rather than being guessed from prose.
+**Decision:** Dreadnought evaluates claims only through named deterministic verifiers with explicit inputs and observations. Unsupported requests resolve to `unverifiable` rather than guessed truth.
 
-**Rationale:** A verdict must be reproducible from observable evidence. Separating verifier implementations from agent claims prevents an agent from defining its own proof standard after execution and gives later Grapher records a concrete evidence source.
-
-**Boundary:** Command verification records exit code and captured output but does not yet provide sandboxing or authority isolation. Sarcophagus remains responsible for constraining what a verifier process is allowed to execute.
-
-## D-0012 — Agent results are testimony, never observer authority
+## D-0012 — Agent result channel is testimony-only
 
 **Date:** 2026-09-06  
 **Time:** approximately 17:12 MDT / 23:12 UTC  
 **Status:** current
 
-**Decision:** External agents may return typed protocol records only through a scratch-resident result channel. Records accepted from that channel must use the `agent` perspective and may not use observer- or evaluation-reserved kinds. Dreadnought validates and rebinds them to the dispatched Order before canonical Grapher ingestion.
+**Decision:** External agents may return typed machine-significant records through a scratch-resident result channel, but only with agent perspective and testimony-authorized kinds. Observer/evaluation kinds remain reserved to Dreadnought. Dreadnought binds unbound records to the active Order and rejects records claiming another Order.
 
-**Rationale:** Structured output is useful only if its epistemic class remains intact. A compromised or mistaken agent must not be able to emit an `observation` or `verdict` record and thereby promote testimony into evidence or evaluation authority.
+**Rationale:** Structured output must not let an agent self-promote testimony into observation or verdict authority. [Process map](#appendix--process-flow)
 
-**Boundary:** The channel validates protocol identity and Order association. It does not yet prove which operating-system process wrote a result file; stronger process identity and signed/session-bound records remain future hardening work.
+## Appendix — Process flow
+
+```mermaid
+flowchart LR
+    N["New architecture<br/>inception: 3bea73dd2ca73199b86b49998e049fb0f30c454f<br/>current: f8f40d1d072d0c37a1ba4d63c430a234339c1a54"] --> M["Mission is request, not authority<br/>inception: 2ddda47a622cc66b90e4a5ec65ea09262e002644<br/>current: f8f40d1d072d0c37a1ba4d63c430a234339c1a54"]
+    M --> D["Doctrine / bounded Orders<br/>inception: db2c89af7ffa2c803020739eec578f20bcf5850c<br/>current: f8f40d1d072d0c37a1ba4d63c430a234339c1a54"]
+    D --> P["Typed testimony / authority classes<br/>inception: d6692863d9d43372f3fffc7b5c6fb821b6dafee1<br/>current: f8f40d1d072d0c37a1ba4d63c430a234339c1a54"]
+    P --> G["Dreadnought-owned Grapher writes<br/>inception: 4630ac84da52677b343e7a3737844da683b25202<br/>current: f8f40d1d072d0c37a1ba4d63c430a234339c1a54"]
+    G --> V["Deterministic verification<br/>inception: 07721476c042df38edf6fc6fed1777a3f3c7004b<br/>current: f8f40d1d072d0c37a1ba4d63c430a234339c1a54"]
+    V --> S["Kernel boundary / Project Arm result channel<br/>inception: ce853e50706259b32585e7311b1d74638cb2bda5<br/>current: f8f40d1d072d0c37a1ba4d63c430a234339c1a54"]
+```
+
+Commit references are the full hashes embedded in each node; all resolve under `https://github.com/seanbman/dreadnought/commit/<hash>`.
