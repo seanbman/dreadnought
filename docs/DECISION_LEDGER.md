@@ -106,3 +106,15 @@ Architectural decisions are recorded here as decisions, not rewritten later as i
 **Rationale:** Actor identity and write authority are distinct. An agent-authored claim must remain attributable to that agent while the canonical write itself is attributable to `dreadnought:control-plane`. This prevents an agent from promoting its own testimony into observer/evaluation authority merely by editing Grapher directly.
 
 **Current limitation:** This PR establishes the software boundary, duplicate rejection, validation-before-mutation, and provenance split. The later Sarcophagus milestone must enforce the same boundary at the OS/filesystem level so direct Grapher mutation is not merely discouraged but denied.
+
+## D-0011 — Verification is deterministic and verifier-specific
+
+**Date:** 2026-09-06  
+**Time:** approximately 08:32 MDT / 14:32 UTC  
+**Status:** current
+
+**Decision:** Dreadnought evaluates claims only through named deterministic verifiers whose inputs and observations are explicit. The first registry covers filesystem existence/absence, SHA-256 file hashes, and command exit status. Unknown or unsupported verification requests resolve to `unverifiable` rather than being guessed from prose.
+
+**Rationale:** A verdict must be reproducible from observable evidence. Separating verifier implementations from agent claims prevents an agent from defining its own proof standard after execution and gives later Grapher records a concrete evidence source.
+
+**Boundary:** Command verification records exit code and captured output but does not yet provide sandboxing or authority isolation. Sarcophagus remains responsible for constraining what a verifier process is allowed to execute.
