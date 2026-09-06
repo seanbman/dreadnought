@@ -38,11 +38,27 @@ def test_command_adapter_renders_only_explicit_tokens(tmp_path: Path) -> None:
     adapter = CommandAgentAdapter(
         id="fixture",
         executable="agent-bin",
-        args=("--order", "{order}", "--arm", "{project_arm}", "literal"),
+        args=("--order", "{order}", "--result", "{result}", "--arm", "{project_arm}", "literal"),
     )
     order_path = tmp_path / "order.json"
-    command = adapter.command(order=order, order_path=order_path, scratch=tmp_path, workspace=tmp_path)
-    assert command == ["agent-bin", "--order", str(order_path), "--arm", "arm-alpha", "literal"]
+    result_path = tmp_path / "result.jsonl"
+    command = adapter.command(
+        order=order,
+        order_path=order_path,
+        result_path=result_path,
+        scratch=tmp_path,
+        workspace=tmp_path,
+    )
+    assert command == [
+        "agent-bin",
+        "--order",
+        str(order_path),
+        "--result",
+        str(result_path),
+        "--arm",
+        "arm-alpha",
+        "literal",
+    ]
 
 
 def test_dispatch_writes_order_packet_and_observer_record(tmp_path: Path) -> None:
@@ -58,21 +74,24 @@ def test_dispatch_writes_order_packet_and_observer_record(tmp_path: Path) -> Non
         grapher=graph,
     )
     order = make_order()
-    adapter = CommandAgentAdapter(id="fixture", executable="agent-bin", args=("{order}",))
+    adapter = CommandAgentAdapter(id="fixture", executable="agent-bin", args=("{order}", "{result}"))
 
     result = dispatcher.dispatch(order, adapter)
 
     packet = scratch / "orders" / f"{order.id}.json"
+    result_path = scratch / "results" / f"{order.id}.jsonl"
     assert packet.exists()
-    assert runner.commands == [["agent-bin", str(packet)]]
+    assert runner.commands == [["agent-bin", str(packet), str(result_path)]]
     assert result.exit_code == 0
     assert result.stdout == "agent-ok\n"
+    assert result.agent_record_ids == ()
     assert len(graph.records) == 1
     observation = graph.records[0]
     assert observation.actor_id == "dreadnought:observer"
     assert observation.order_ref == order.id
     assert observation.data["result"]["adapter_id"] == "fixture"
     assert observation.data["result"]["exit_code"] == 0
+    assert observation.data["result"]["result_path"] == str(result_path)
 
 
 def test_invalid_order_is_not_dispatched(tmp_path: Path) -> None:
