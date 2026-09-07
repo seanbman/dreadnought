@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any
 
 import grapher as grapher_package
+from grapher.config import load_config, save_config
 from grapher.integrations import embedded as grapher
 
 from .protocol import ProtocolRecord
@@ -55,6 +56,52 @@ class GrapherControlPlane:
         self.graph_path = self.grapher_dir / "knowledge.json"
         self.history_path = self.grapher_dir / "history.jsonl"
         self.config_path = self.grapher_dir / "config.json"
+
+    def initialize(self) -> Path:
+        """Initialize a new Dreadnought-managed Grapher context.
+
+        Initialization is intentionally mediated by Dreadnought so a new workspace
+        starts with the projection types and explicit truth-status policy required by
+        the control plane. Existing graphs are never overwritten.
+        """
+        if self.graph_path.exists():
+            raise ValueError(f"Grapher graph already initialized: {self.graph_path}")
+
+        grapher.init_context(
+            self.graph_path,
+            scope="project",
+            name=self.workspace.name or "dreadnought-project",
+            domain="agent-control-plane",
+        )
+        config = load_config(self.graph_path)
+        config.update(
+            {
+                "profile": "software",
+                "domain": "agent-control-plane",
+                "kinds": [
+                    "knowledge",
+                    "implementation",
+                    "decision",
+                    "design",
+                    "requirements",
+                    "roadmap",
+                    "retrospective",
+                ],
+                "stages": [
+                    "ideation",
+                    "designing",
+                    "planning",
+                    "developing",
+                    "launching",
+                    "maintaining",
+                ],
+                "custom_node_types": sorted(_REQUIRED_NODE_TYPES),
+                "require_explicit_status": True,
+                "truth_status_legacy_allowlist": [],
+            }
+        )
+        save_config(self.graph_path, config)
+        return self.graph_path
 
     def doctor(self) -> dict[str, Any]:
         """Return deterministic compatibility checks for the embedded Grapher brain."""
