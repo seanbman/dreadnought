@@ -88,6 +88,21 @@ def _update_command(argv: list[str]) -> int | None:
     return 0
 
 
+def _print_help() -> int:
+    from dreadnought.cli import build_parser
+
+    build_parser().print_help()
+    print(
+        "\nInteractive controls:\n"
+        "  ↑/↓ or 1..N  select menu items\n"
+        "  q            back / exit a menu\n"
+        "  Esc, Ctrl-C  cancel the current prompt and exit cleanly\n"
+        "\nManual:\n"
+        "  man dreadnought"
+    )
+    return 0
+
+
 def main() -> int:
     actual = list(sys.argv[1:])
     interactive = sys.stdin.isatty() and sys.stdout.isatty()
@@ -97,6 +112,8 @@ def main() -> int:
     if actual == ["--version"]:
         print(__version__)
         return 0
+    if actual == ["help"]:
+        return _print_help()
     if not actual and interactive:
         return run_home_menu()
 
