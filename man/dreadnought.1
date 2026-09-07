@@ -1,0 +1,78 @@
+.TH DREADNOUGHT 1 "September 2026" "Dreadnought 0.2.0b2" "User Commands"
+.SH NAME
+dreadnought \- agent control plane with Grapher-backed project memory
+.SH SYNOPSIS
+.B dreadnought
+.RI [ command ]
+.br
+.B dreadnought help
+.br
+.B dreadnought --help
+.SH DESCRIPTION
+Dreadnought coordinates project missions, agents, Grapher-backed knowledge, usage records, and compartmentalized project-arm work.
+When run without arguments in an interactive terminal, Dreadnought presents an inline command-line menu rather than a full-screen interface.
+.SH INTERACTIVE CONTROLS
+.TP
+.B Up / Down
+Cycle through numbered menu choices.
+.TP
+.B 1..N
+Select a menu item directly by number.
+.TP
+.B Enter
+Accept the current selection.
+.TP
+.B q
+Back out of or exit a menu.
+.TP
+.B Esc
+Cancel the current text/confirmation prompt and exit cleanly.
+.TP
+.B Ctrl-C
+Cancel the current text/confirmation prompt and exit cleanly.
+.SH COMMON COMMANDS
+.TP
+.B dreadnought init
+Guided project, Grapher, and primary-agent setup.
+.TP
+.B dreadnought mission build
+Create a mission through the interactive mission builder.
+.TP
+.B dreadnought mission list
+List known project missions.
+.TP
+.B dreadnought agent init
+Configure a primary or minion agent.
+.TP
+.B dreadnought agent chat
+Open the configured agent's native chat.
+.TP
+.B dreadnought grapher doctor
+Check Dreadnought/Grapher compatibility.
+.TP
+.B dreadnought grapher query TEXT
+Query the Grapher brain through Dreadnought's control plane.
+.TP
+.B dreadnought usage stats
+Show aggregated token usage.
+.TP
+.B dreadnought update
+Install an available Dreadnought release.
+.TP
+.B dreadnought help
+Show top-level command help and interactive key controls.
+.SH FILES
+.TP
+.I .dreadnought/config.json
+Project-local Dreadnought configuration.
+.TP
+.I .dreadnought/missions/
+Normalized mission records.
+.TP
+.I .grapher/
+Project Grapher state controlled through Dreadnought.
+.SH SEE ALSO
+.BR grapher (1),
+.BR git (1)
+.SH AUTHOR
+Dreadnought project contributors.
