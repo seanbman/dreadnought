@@ -1,0 +1,13 @@
+{
+  "id": "dreadnought-interactive-cli-token-usage-2026-09-07",
+  "type": "implementation",
+  "title": "Interactive CLI, primary-agent chat, and token accounting",
+  "status": "current",
+  "content": "Adds guided Dreadnought initialization, an arrow-key human menu, direct native chat launching for configured primary agents, and provider-reported token accounting aggregated by role, agent, project, and task with task-level Grapher projection.",
+  "provenance": {
+    "actor_id": "dreadnought:control-plane",
+    "actor_kind": "system_tool",
+    "source": "interactive-cli-token-accounting-pass",
+    "integrity": "declared"
+  }
+}
