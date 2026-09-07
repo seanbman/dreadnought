@@ -5,6 +5,7 @@ REPO="seanbman/dreadnought"
 APP="dreadnought"
 DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
 BIN_HOME="${HOME}/.local/bin"
+MAN_HOME="$DATA_HOME/man/man1"
 APP_HOME="$DATA_HOME/$APP"
 VENV="$APP_HOME/venv"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -24,7 +25,7 @@ if [[ "$LOCAL_INSTALL" -eq 0 ]]; then
   command -v curl >/dev/null 2>&1 || { echo "curl is required" >&2; exit 1; }
 fi
 
-mkdir -p "$APP_HOME" "$BIN_HOME"
+mkdir -p "$APP_HOME" "$BIN_HOME" "$MAN_HOME"
 python3 -m venv "$VENV"
 "$VENV/bin/python" -m pip install --upgrade pip
 
@@ -56,10 +57,20 @@ fi
 
 ln -sfn "$VENV/bin/dreadnought" "$BIN_HOME/dreadnought"
 
+MAN_SOURCE="$VENV/share/man/man1/dreadnought.1"
+if [[ -f "$MAN_SOURCE" ]]; then
+  install -m 0644 "$MAN_SOURCE" "$MAN_HOME/dreadnought.1"
+elif [[ "$LOCAL_INSTALL" -eq 1 && -f "$SCRIPT_DIR/man/dreadnought.1" ]]; then
+  install -m 0644 "$SCRIPT_DIR/man/dreadnought.1" "$MAN_HOME/dreadnought.1"
+fi
+
 cat <<EOF
 Installed Dreadnought $INSTALLED_LABEL
 Launcher: $BIN_HOME/dreadnought
+Manual: $MAN_HOME/dreadnought.1
 
 Ensure $BIN_HOME is on PATH. Then run:
   dreadnought
+  dreadnought help
+  man dreadnought
 EOF

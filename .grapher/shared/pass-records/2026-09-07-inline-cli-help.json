@@ -1,0 +1,34 @@
+{
+  "id": "dreadnought-inline-cli-help-2026-09-07",
+  "type": "implementation",
+  "title": "Dreadnought inline CLI menus, cancellation, help, and man page",
+  "status": "current",
+  "workflow_state": "active",
+  "verification": "unverified",
+  "scope": {
+    "project_id": "dreadnought",
+    "mission_id": "cli-ux",
+    "generation_id": "inline-menu-help"
+  },
+  "content": {
+    "implementation": "Replaced full-screen prompt-toolkit dialogs with inline command-line menus and prompts; added number and arrow-key selection, reliable q/Escape/Ctrl-C cancellation, top-level Help, `dreadnought help`, and an installable `man dreadnought` page.",
+    "result": "Awaiting CI verification before merge."
+  },
+  "source_refs": [
+    "src/dreadnought/interactive.py",
+    "src/dreadnought/main.py",
+    "man/dreadnought.1",
+    "install.sh",
+    "pyproject.toml",
+    "docs/INLINE_CLI.md",
+    "docs/INDEX.md",
+    "tests/test_interactive.py"
+  ],
+  "provenance": {
+    "actor_id": "chatgpt",
+    "actor_kind": "agent",
+    "actor_role": "implementation-agent",
+    "source": "github",
+    "integrity": "declared"
+  }
+}
