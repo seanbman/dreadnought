@@ -25,9 +25,8 @@ class AgentAdapter(Protocol):
 class CommandAgentAdapter:
     """Adapter for an external agent exposed as a command-line program.
 
-    Arguments are static except for explicit template tokens. This keeps the
-    Dreadnought/agent boundary deterministic while allowing provider-specific
-    wrappers to be introduced later without changing dispatch semantics.
+    Template tokens make provider wrappers deterministic. `{usage}` points to an
+    optional JSON file where an adapter may report exact provider token counts.
     """
 
     id: str
@@ -45,9 +44,11 @@ class CommandAgentAdapter:
     ) -> list[str]:
         if not self.id.strip() or not self.executable.strip():
             raise ValueError("adapter id and executable must not be empty")
+        usage_path = result_path.with_suffix(".usage.json")
         substitutions = {
             "{order}": str(order_path),
             "{result}": str(result_path),
+            "{usage}": str(usage_path),
             "{scratch}": str(scratch),
             "{workspace}": str(workspace),
             "{project_arm}": order.project_arm,
