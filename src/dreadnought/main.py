@@ -16,7 +16,7 @@ from dreadnought.mission_builder import (
     run_home_menu,
     save_mission,
 )
-from dreadnought.update import maybe_notify
+from dreadnought.update import install_release, maybe_notify
 
 
 def _mission_extension(argv: list[str]) -> int | None:
@@ -25,7 +25,8 @@ def _mission_extension(argv: list[str]) -> int | None:
 
     command = argv[1]
     parser = argparse.ArgumentParser(prog=f"dreadnought mission {command}")
-    parser.add_argument("mission", nargs="?" if command in {"build", "list"} else None)
+    if command not in {"build", "list"}:
+        parser.add_argument("mission")
     parser.add_argument("--root", default=".")
     if command == "build":
         parser.add_argument("--actor", default="human:user")
@@ -72,6 +73,21 @@ def _mission_extension(argv: list[str]) -> int | None:
     return None
 
 
+def _update_command(argv: list[str]) -> int | None:
+    if not argv or argv[0] != "update":
+        return None
+    parser = argparse.ArgumentParser(prog="dreadnought update")
+    parser.add_argument("--version", dest="tag")
+    args = parser.parse_args(argv[1:])
+    try:
+        tag = install_release(args.tag)
+    except (RuntimeError, ValueError) as exc:
+        print(f"update failed: {exc}", file=sys.stderr)
+        return 2
+    print(f"Updated Dreadnought to {tag}. Restart the command to use the new version.")
+    return 0
+
+
 def main() -> int:
     actual = list(sys.argv[1:])
     interactive = sys.stdin.isatty() and sys.stdout.isatty()
@@ -84,6 +100,9 @@ def main() -> int:
     if not actual and interactive:
         return run_home_menu()
 
+    updated = _update_command(actual)
+    if updated is not None:
+        return updated
     extended = _mission_extension(actual)
     if extended is not None:
         return extended
