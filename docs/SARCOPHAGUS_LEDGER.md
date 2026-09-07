@@ -4,11 +4,12 @@
 
 - [Purpose](#purpose)
 - [S-0001 — First executable isolation boundary](#2026-09-06--s-0001-first-executable-isolation-boundary)
+- [Architecture diagram](#architecture-diagram)
 - [Appendix — Process flow](#appendix--process-flow)
 
 ## Purpose
 
-Human-readable research record for Dreadnought's execution-isolation boundary. This ledger records what the Sarcophagus actually enforces, what remains aspirational, and what fails during adversarial testing. [Process map](#appendix--process-flow)
+Human-readable research record for Dreadnought's execution-isolation boundary. This ledger records what the Sarcophagus actually enforces, what remains aspirational, and what fails during adversarial testing. Root context: [`ARCHITECTURE.md`](ARCHITECTURE.md). [Process map](#appendix--process-flow)
 
 ## 2026-09-06 — S-0001: First executable isolation boundary
 
@@ -26,15 +27,27 @@ Human-readable research record for Dreadnought's execution-isolation boundary. T
 
 [Process map](#appendix--process-flow)
 
+## Architecture diagram
+
+```mermaid
+flowchart TB
+    DISP["Dispatcher\ncode: src/dreadnought/dispatch.py"] --> POLICY["Sarcophagus policy + plan\ncode: src/dreadnought/sarcophagus.py"]
+    POLICY --> BWRAP["Bubblewrap process namespace\ncode: src/dreadnought/sarcophagus.py"]
+    BWRAP --> WORK["Canonical workspace: RO\ncode: src/dreadnought/sarcophagus.py"]
+    BWRAP --> SCRATCH["External scratch: RW\ncode: src/dreadnought/sarcophagus.py"]
+    BWRAP --> NET["Network namespace: isolated by default\ncode: src/dreadnought/sarcophagus.py"]
+    BWRAP --> AGENT["Agent command\ncode: src/dreadnought/agent.py"]
+```
+
 ## Appendix — Process flow
 
 ```mermaid
 flowchart LR
-    D["Dreadnought dispatch<br/>inception: 6c049f77981917d716722096674976c1ea5c4261<br/>current: f8f40d1d072d0c37a1ba4d63c430a234339c1a54"] --> B["Bubblewrap namespace<br/>inception: ce853e50706259b32585e7311b1d74638cb2bda5<br/>current: f8f40d1d072d0c37a1ba4d63c430a234339c1a54"]
-    B --> W["Canonical workspace: read-only<br/>inception: ce853e50706259b32585e7311b1d74638cb2bda5<br/>current: f8f40d1d072d0c37a1ba4d63c430a234339c1a54"]
-    B --> S["Scratch: read/write<br/>inception: ce853e50706259b32585e7311b1d74638cb2bda5<br/>current: f8f40d1d072d0c37a1ba4d63c430a234339c1a54"]
-    B --> N["Network isolated by default<br/>inception: ce853e50706259b32585e7311b1d74638cb2bda5<br/>current: f8f40d1d072d0c37a1ba4d63c430a234339c1a54"]
-    S --> A["Agent execution<br/>inception: 6c049f77981917d716722096674976c1ea5c4261<br/>current: f8f40d1d072d0c37a1ba4d63c430a234339c1a54"]
+    D["Dreadnought dispatch\ncode: src/dreadnought/dispatch.py\ninception: 6c049f77981917d716722096674976c1ea5c4261\ncurrent: 437b3c512aefbc40d591c3322188c6d2732e31b2"] --> B["Bubblewrap namespace\ncode: src/dreadnought/sarcophagus.py\ninception: ce853e50706259b32585e7311b1d74638cb2bda5\ncurrent: 437b3c512aefbc40d591c3322188c6d2732e31b2"]
+    B --> W["Canonical workspace: read-only\ncode: src/dreadnought/sarcophagus.py\ninception: ce853e50706259b32585e7311b1d74638cb2bda5\ncurrent: 437b3c512aefbc40d591c3322188c6d2732e31b2"]
+    B --> S["Scratch: read/write\ncode: src/dreadnought/sarcophagus.py\ninception: ce853e50706259b32585e7311b1d74638cb2bda5\ncurrent: 437b3c512aefbc40d591c3322188c6d2732e31b2"]
+    B --> N["Network isolated by default\ncode: src/dreadnought/sarcophagus.py\ninception: ce853e50706259b32585e7311b1d74638cb2bda5\ncurrent: 437b3c512aefbc40d591c3322188c6d2732e31b2"]
+    S --> A["Agent execution\ncode: src/dreadnought/agent.py; src/dreadnought/dispatch.py\ninception: 6c049f77981917d716722096674976c1ea5c4261\ncurrent: 437b3c512aefbc40d591c3322188c6d2732e31b2"]
 ```
 
-Commit references: [Sarcophagus](https://github.com/seanbman/dreadnought/commit/ce853e50706259b32585e7311b1d74638cb2bda5), [Project Arm dispatch](https://github.com/seanbman/dreadnought/commit/6c049f77981917d716722096674976c1ea5c4261), [current snapshot](https://github.com/seanbman/dreadnought/commit/f8f40d1d072d0c37a1ba4d63c430a234339c1a54).
+Commit references: [Sarcophagus](https://github.com/seanbman/dreadnought/commit/ce853e50706259b32585e7311b1d74638cb2bda5), [Project Arm dispatch](https://github.com/seanbman/dreadnought/commit/6c049f77981917d716722096674976c1ea5c4261), [documentation baseline](https://github.com/seanbman/dreadnought/commit/437b3c512aefbc40d591c3322188c6d2732e31b2).

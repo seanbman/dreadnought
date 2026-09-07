@@ -22,7 +22,7 @@
     ],
     "profile": "software",
     "created_at": "2026-09-06T13:31:47+00:00",
-    "updated_at": "2026-09-06T23:45:00+00:00"
+    "updated_at": "2026-09-07T00:03:00+00:00"
   },
   "nodes": {
     "decision-doctrine-before-orders": {
@@ -132,6 +132,29 @@
       "owners": [],
       "scope": {"project_id": "dreadnought"},
       "provenance": {"actor_id": "human:user", "actor_kind": "human", "source": "chat", "integrity": "declared", "recorded_at": "2026-09-06T23:45:00+00:00"}
+    },
+    "design-code-linked-architecture-docs": {
+      "id": "design-code-linked-architecture-docs",
+      "type": "design",
+      "title": "Architecture and process diagrams are code-addressable",
+      "content": "Dreadnought documentation now has a root architecture map plus subsystem architecture diagrams. Architecture nodes identify implementation paths, and process nodes in architecture-bearing documents identify code paths together with inception and current commit provenance.",
+      "path": "docs/ARCHITECTURE.md",
+      "tags": ["architecture", "documentation", "mermaid", "code-navigation", "provenance"],
+      "meta": {"standard": "code-linked-architecture-diagrams"},
+      "created_at": "2026-09-07T00:03:00+00:00",
+      "updated_at": "2026-09-07T00:03:00+00:00",
+      "status": "current",
+      "workflow_state": "completed",
+      "verification": "unverified",
+      "stage": "designing",
+      "evidence": [
+        {"type": "commit", "ref": "1f5e48704e8520a949884ca225270eaa1a4d66ce", "summary": "Diagram standard requires code-linked architecture and process diagrams"},
+        {"type": "commit", "ref": "c4149ffe4d6b00d2e9c4e688d063bc39e80ff7d9", "summary": "CI tests enforce architecture document structure and process-node provenance"}
+      ],
+      "source_refs": ["docs/ARCHITECTURE.md", "docs/ARCHITECTURE_CHARTER.md", "docs/PROJECT_ARM_LEDGER.md", "docs/PROTOCOL_LEDGER.md", "docs/SARCOPHAGUS_LEDGER.md", "docs/DIAGRAM_STANDARD.md"],
+      "owners": [],
+      "scope": {"project_id": "dreadnought"},
+      "provenance": {"actor_id": "human:user", "actor_kind": "human", "source": "chat", "integrity": "declared", "recorded_at": "2026-09-07T00:03:00+00:00"}
     }
   },
   "edges": [
@@ -140,6 +163,7 @@
     {"from": "implementation-doctrine-campaign-orders", "to": "decision-doctrine-before-orders", "rel": "implements", "created_at": "2026-09-06T13:55:00+00:00"},
     {"from": "implementation-doctrine-campaign-orders", "to": "design-project-arm-hierarchy", "rel": "implements", "created_at": "2026-09-06T13:55:00+00:00"},
     {"from": "implementation-doctrine-campaign-orders", "to": "design-explicit-creative-authority", "rel": "implements", "created_at": "2026-09-06T13:55:00+00:00"},
-    {"from": "decision-grapher-ci-gate", "to": "decision-doctrine-before-orders", "rel": "supports", "created_at": "2026-09-06T23:45:00+00:00"}
+    {"from": "decision-grapher-ci-gate", "to": "decision-doctrine-before-orders", "rel": "supports", "created_at": "2026-09-06T23:45:00+00:00"},
+    {"from": "design-code-linked-architecture-docs", "to": "decision-grapher-ci-gate", "rel": "supports", "created_at": "2026-09-07T00:03:00+00:00"}
   ]
 }

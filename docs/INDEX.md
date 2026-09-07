@@ -3,6 +3,7 @@
 ## Index
 
 - [Start here](#start-here)
+- [Architecture](#architecture)
 - [Ledgers](#ledgers)
 - [Machine-readable counterparts](#machine-readable-counterparts)
 - [Document authority and update rules](#document-authority-and-update-rules)
@@ -16,9 +17,16 @@ This is the canonical index for the repository's human-readable record. Every du
 - [`README.md`](../README.md) — project overview and entry point.
 - [`AGENTS.md`](../AGENTS.md) — repository operating instructions.
 - [`README.md`](README.md) — research-record conventions.
-- [`DIAGRAM_STANDARD.md`](DIAGRAM_STANDARD.md) — document indexes, Mermaid appendices, and commit-provenance requirements.
-- [`ARCHITECTURE_CHARTER.md`](ARCHITECTURE_CHARTER.md) — architectural principles and system boundaries.
+- [`DIAGRAM_STANDARD.md`](DIAGRAM_STANDARD.md) — document indexes, process diagrams, architecture diagrams, code-path references, and commit provenance requirements.
 - [`ROADMAP.md`](ROADMAP.md) — milestone sequence and deferred work.
+
+## Architecture
+
+- [`ARCHITECTURE.md`](ARCHITECTURE.md) — root component and trust-boundary map for the entire control plane.
+- [`ARCHITECTURE_CHARTER.md`](ARCHITECTURE_CHARTER.md) — architectural principles and authority model.
+- [`PROJECT_ARM_LEDGER.md`](PROJECT_ARM_LEDGER.md) — dispatch/adapters/result-channel architecture.
+- [`SARCOPHAGUS_LEDGER.md`](SARCOPHAGUS_LEDGER.md) — isolation and scratch/canonical workspace architecture.
+- [`PROTOCOL_LEDGER.md`](PROTOCOL_LEDGER.md) — typed epistemic protocol architecture.
 
 [Process map](#appendix--process-flow)
 
@@ -41,7 +49,7 @@ Human-readable Markdown is not the canonical machine evidence store. Machine-rea
 
 ## Document authority and update rules
 
-When documents disagree: current typed schema/code and validated machine state define executable behavior; the Architecture Charter and current decisions define intended architecture; the Roadmap defines active sequence; ledgers preserve contemporaneous beliefs; freeform notes never silently become machine authority. New durable Markdown must be indexed here, contain its own `Index`, and include the required Mermaid provenance appendix. Every repository change set must also carry a Grapher update and append-only history event. [Process map](#appendix--process-flow)
+When documents disagree: current typed schema/code and validated machine state define executable behavior; the Architecture Charter and current decisions define intended architecture; the Roadmap defines active sequence; ledgers preserve contemporaneous beliefs; freeform notes never silently become machine authority. New durable Markdown must be indexed here, contain its own `Index`, and include the required Mermaid provenance appendix. Architecture-bearing documents must also include a code-linked architecture diagram and link back to the root [`ARCHITECTURE.md`](ARCHITECTURE.md). Every repository change set must also carry a Grapher update and append-only history event. [Process map](#appendix--process-flow)
 
 ## Current milestone boundary
 
@@ -51,11 +59,11 @@ Sarcophagus, Project Arm dispatch, and the typed agent result channel are merged
 
 ```mermaid
 flowchart LR
-    R["Repository entry points<br/>inception: 3bea73dd2ca73199b86b49998e049fb0f30c454f<br/>current: f8f40d1d072d0c37a1ba4d63c430a234339c1a54"] --> I["Canonical docs index<br/>inception: b1852eff25b2c8b95924e134792ade74e433f255<br/>current: f8f40d1d072d0c37a1ba4d63c430a234339c1a54"]
-    I --> C["Charter / roadmap<br/>inception: 96725840db44eef1d982b32376c69be3050cba3d<br/>current: f8f40d1d072d0c37a1ba4d63c430a234339c1a54"]
-    I --> L["Research ledgers<br/>inception: 96725840db44eef1d982b32376c69be3050cba3d<br/>current: f8f40d1d072d0c37a1ba4d63c430a234339c1a54"]
-    I --> P["Machine evidence / schemas<br/>inception: 96725840db44eef1d982b32376c69be3050cba3d<br/>current: f8f40d1d072d0c37a1ba4d63c430a234339c1a54"]
-    P --> G["Mandatory Grapher CI gate<br/>inception: 05ca003b02385472f15a16911350c8f4b9683304<br/>current: 96f264430a8981206b35f30a649dbf84e3681840"]
+    R["Repository entry points\ncode: README.md; AGENTS.md\ninception: 3bea73dd2ca73199b86b49998e049fb0f30c454f\ncurrent: 437b3c512aefbc40d591c3322188c6d2732e31b2"] --> I["Canonical docs index\ncode: docs/INDEX.md; tests/test_documentation.py\ninception: b1852eff25b2c8b95924e134792ade74e433f255\ncurrent: 437b3c512aefbc40d591c3322188c6d2732e31b2"]
+    I --> A["Root architecture\ncode: docs/ARCHITECTURE.md; src/dreadnought/cli.py\ninception: 437b3c512aefbc40d591c3322188c6d2732e31b2\ncurrent: 437b3c512aefbc40d591c3322188c6d2732e31b2"]
+    I --> L["Research ledgers\ncode: tests/test_documentation.py\ninception: 96725840db44eef1d982b32376c69be3050cba3d\ncurrent: 437b3c512aefbc40d591c3322188c6d2732e31b2"]
+    I --> P["Machine evidence / schemas\ncode: src/dreadnought/grapher.py; schemas/protocol.schema.json\ninception: 96725840db44eef1d982b32376c69be3050cba3d\ncurrent: 437b3c512aefbc40d591c3322188c6d2732e31b2"]
+    P --> G["Mandatory Grapher CI gate\ncode: .github/workflows/test.yml\ninception: 05ca003b02385472f15a16911350c8f4b9683304\ncurrent: 437b3c512aefbc40d591c3322188c6d2732e31b2"]
 ```
 
-Commit references: [founding](https://github.com/seanbman/dreadnought/commit/3bea73dd2ca73199b86b49998e049fb0f30c454f), [research substrate](https://github.com/seanbman/dreadnought/commit/96725840db44eef1d982b32376c69be3050cba3d), [canonical index inception](https://github.com/seanbman/dreadnought/commit/b1852eff25b2c8b95924e134792ade74e433f255), [Grapher CI gate](https://github.com/seanbman/dreadnought/commit/05ca003b02385472f15a16911350c8f4b9683304), [current snapshot](https://github.com/seanbman/dreadnought/commit/96f264430a8981206b35f30a649dbf84e3681840).
+Commit references: [founding](https://github.com/seanbman/dreadnought/commit/3bea73dd2ca73199b86b49998e049fb0f30c454f), [research substrate](https://github.com/seanbman/dreadnought/commit/96725840db44eef1d982b32376c69be3050cba3d), [canonical index inception](https://github.com/seanbman/dreadnought/commit/b1852eff25b2c8b95924e134792ade74e433f255), [Grapher CI gate](https://github.com/seanbman/dreadnought/commit/05ca003b02385472f15a16911350c8f4b9683304), [documentation baseline](https://github.com/seanbman/dreadnought/commit/437b3c512aefbc40d591c3322188c6d2732e31b2).
