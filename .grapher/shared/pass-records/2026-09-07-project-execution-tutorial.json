@@ -1,0 +1,11 @@
+{
+  "id": "project-execution-tutorial-2026-09-07",
+  "type": "documentation",
+  "title": "Dreadnought project execution tutorial and Grapher broker CLI",
+  "status": "current",
+  "content": "Adds Dreadnought-managed Grapher initialization, brokered query/get commands, Grapher v0.6.1 dependency reference, synchronized integration documentation, and an end-to-end setup-to-execution tutorial.",
+  "provenance": {
+    "actor_id": "openai:chatgpt",
+    "source": "dreadnought-control-plane-maintenance"
+  }
+}
