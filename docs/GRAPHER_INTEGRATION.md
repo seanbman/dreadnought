@@ -5,7 +5,7 @@
 - [Authority model](#authority-model)
 - [Configuration flow](#configuration-flow)
 - [Architecture](#architecture)
-- [Process-flow appendix](#process-flow-appendix)
+- [Appendix — Process flow](#appendix--process-flow)
 
 ## Authority model
 
@@ -36,7 +36,7 @@ flowchart LR
     G --> B[(Durable brain state\ninception: Grapher v0.6\ncurrent: b3729dad)]
 ```
 
-## Process-flow appendix
+## Appendix — Process flow
 
 ```mermaid
 flowchart TD
