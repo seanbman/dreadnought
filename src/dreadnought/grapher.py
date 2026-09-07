@@ -1,15 +1,36 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime, timezone
 import json
 from pathlib import Path
 from typing import Any
+
+import grapher as grapher_package
+from grapher.integrations import embedded as grapher
 
 from .protocol import ProtocolRecord
 
 
 CONTROL_PLANE_ACTOR = "dreadnought:control-plane"
+
+_REQUIRED_NODE_TYPES = {
+    "dreadnought_claim",
+    "dreadnought_observation",
+    "dreadnought_action",
+    "dreadnought_artifact",
+    "dreadnought_requirement",
+    "dreadnought_risk",
+    "dreadnought_note",
+    "dreadnought_verdict",
+}
+
+_RELATION_MAP = {
+    "subject": "references",
+    "mission": "part_of",
+    "doctrine": "derived_from",
+    "order": "part_of",
+    "evidence": "evidenced_by",
+}
 
 
 @dataclass
@@ -20,11 +41,12 @@ class GrapherWriteResult:
 
 
 class GrapherControlPlane:
-    """Privileged adapter that projects validated protocol records into Grapher.
+    """Exclusive Dreadnought write authority for an embedded Grapher brain.
 
-    Agents submit ProtocolRecord objects to Dreadnought. Only this adapter writes the
-    canonical `.grapher` state. OS-level enforcement arrives with the Sarcophagus; this
-    module establishes the software authority boundary first.
+    Project-arm agents submit typed ProtocolRecord testimony to Dreadnought. Dreadnought
+    validates and projects that testimony, and this adapter is the only Dreadnought
+    component permitted to mutate Grapher. Grapher remains responsible for canonical
+    storage, truth policy, semantic integrity, transition handling, and history.
     """
 
     def __init__(self, workspace: Path | str):
@@ -32,109 +54,158 @@ class GrapherControlPlane:
         self.grapher_dir = self.workspace / ".grapher"
         self.graph_path = self.grapher_dir / "knowledge.json"
         self.history_path = self.grapher_dir / "history.jsonl"
+        self.config_path = self.grapher_dir / "config.json"
+
+    def doctor(self) -> dict[str, Any]:
+        """Return deterministic compatibility checks for the embedded Grapher brain."""
+        checks: dict[str, Any] = {
+            "grapher_version": grapher_package.__version__,
+            "embedded_api": callable(getattr(grapher, "contribute_context", None)),
+            "graph_exists": self.graph_path.is_file(),
+            "config_exists": self.config_path.is_file(),
+        }
+        if checks["graph_exists"]:
+            try:
+                graph = json.loads(self.graph_path.read_text(encoding="utf-8"))
+                checks["graph_version"] = graph.get("version")
+                checks["graph_v2"] = graph.get("version") == 2
+            except (OSError, json.JSONDecodeError):
+                checks["graph_v2"] = False
+        else:
+            checks["graph_v2"] = False
+
+        if checks["config_exists"]:
+            try:
+                config = json.loads(self.config_path.read_text(encoding="utf-8"))
+                configured_types = set(config.get("custom_node_types") or [])
+                checks["explicit_truth_status"] = bool(config.get("require_explicit_status"))
+                checks["projection_types"] = _REQUIRED_NODE_TYPES.issubset(configured_types)
+            except (OSError, json.JSONDecodeError):
+                checks["explicit_truth_status"] = False
+                checks["projection_types"] = False
+        else:
+            checks["explicit_truth_status"] = False
+            checks["projection_types"] = False
+
+        required = (
+            "embedded_api",
+            "graph_exists",
+            "config_exists",
+            "graph_v2",
+            "explicit_truth_status",
+            "projection_types",
+        )
+        checks["compatible"] = all(bool(checks.get(key)) for key in required)
+        return checks
 
     def write_record(self, record: ProtocolRecord) -> GrapherWriteResult:
         errors = record.validate()
         if errors:
             raise ValueError("invalid protocol record: " + "; ".join(errors))
-
-        graph = self._load_graph()
-        nodes = graph.setdefault("nodes", {})
-        if record.id in nodes:
-            raise ValueError(f"record already exists: {record.id}")
-
-        node = self._node_from_record(record)
-        nodes[record.id] = node
-        self._append_reference_edges(graph, record)
-
-        now = datetime.now(timezone.utc).isoformat()
-        graph.setdefault("graph", {})["updated_at"] = now
-        self._atomic_write_json(self.graph_path, graph)
-        self._append_history(record, now)
-        return GrapherWriteResult(record.id, self.graph_path, self.history_path)
-
-    def _load_graph(self) -> dict[str, Any]:
         if not self.graph_path.exists():
             raise FileNotFoundError(f"Grapher graph not initialized: {self.graph_path}")
-        graph = json.loads(self.graph_path.read_text())
-        if graph.get("version") != 2:
-            raise ValueError("unsupported Grapher graph version")
-        if not isinstance(graph.get("nodes"), dict) or not isinstance(graph.get("edges"), list):
-            raise ValueError("malformed Grapher graph")
-        return graph
+        if self._record_exists(record.id):
+            raise ValueError(f"record already exists: {record.id}")
 
-    def _node_from_record(self, record: ProtocolRecord) -> dict[str, Any]:
         payload = record.to_dict()
-        title = f"{record.kind.value}: {record.subject_ref or record.id}"
-        content = json.dumps(record.data, sort_keys=True)
-        return {
-            "id": record.id,
-            "type": record.kind.value,
-            "title": title,
-            "content": content,
-            "path": ".grapher/history.jsonl",
-            "tags": ["dreadnought-protocol", record.perspective.value, record.kind.value],
-            "meta": {
+        grapher.contribute_context(
+            self.graph_path,
+            type=f"dreadnought_{record.kind.value}",
+            title=f"{record.kind.value}: {record.subject_ref or record.id}",
+            content=json.dumps(payload, sort_keys=True),
+            node_id=record.id,
+            path="dreadnought://protocol",
+            tags=["dreadnought-protocol", record.perspective.value, record.kind.value],
+            meta={
                 "schema_version": record.schema_version,
-                "mission_ref": record.mission_ref,
-                "doctrine_ref": record.doctrine_ref,
-                "order_ref": record.order_ref,
-                "subject_ref": record.subject_ref,
-                "evidence_refs": record.evidence_refs,
                 "protocol": payload,
-            },
-            "created_at": record.created_at,
-            "updated_at": record.created_at,
-            "status": "current",
-            "workflow_state": "active",
-            "verification": "unverified",
-            "stage": "developing",
-            "evidence": [{"type": "protocol_record", "ref": record.id}],
-            "source_refs": [ref for ref in (record.mission_ref, record.doctrine_ref, record.order_ref) if ref],
-            "owners": [record.actor_id],
-            "scope": {"project_id": "dreadnought"},
-            "provenance": {
-                "actor_id": CONTROL_PLANE_ACTOR,
-                "actor_kind": "control_plane",
-                "source": "dreadnought-protocol",
-                "integrity": "observed-write",
                 "submitted_by": record.actor_id,
                 "submitted_perspective": record.perspective.value,
-                "recorded_at": datetime.now(timezone.utc).isoformat(),
             },
-        }
+            stage="developing",
+            status="current",
+            workflow_state="active",
+            verification="unverified",
+            evidence=[{"type": "protocol_record", "ref": record.id}],
+            source_refs=[
+                ref
+                for ref in (record.mission_ref, record.doctrine_ref, record.order_ref)
+                if ref
+            ],
+            owners=[record.actor_id],
+            scope=self._scope(record),
+            provenance={
+                "actor_id": CONTROL_PLANE_ACTOR,
+                "actor_kind": "system_tool",
+                "actor_role": "control-plane",
+                "source": "dreadnought-protocol",
+                "integrity": "declared",
+            },
+            actor={
+                "id": CONTROL_PLANE_ACTOR,
+                "kind": "system_tool",
+                "role": "control-plane",
+                "source": "dreadnought-protocol",
+            },
+            reason="Dreadnought admitted a validated protocol record",
+            evidence_refs=list(record.evidence_refs),
+            operation_id=record.id,
+            phase="executed",
+            source="dreadnought-control-plane",
+        )
+        self._link_existing_references(record)
+        return GrapherWriteResult(record.id, self.graph_path, self.history_path)
 
-    def _append_reference_edges(self, graph: dict[str, Any], record: ProtocolRecord) -> None:
-        edges = graph["edges"]
-        now = datetime.now(timezone.utc).isoformat()
+    def query(self, text: str, *, limit: int = 10, mission: str | None = None) -> list[dict[str, Any]]:
+        """Read scoped brain context through the Dreadnought control plane."""
+        return grapher.query_context(
+            self.graph_path,
+            text,
+            limit=limit,
+            mission=mission,
+        )
+
+    def get(self, node_id: str) -> dict[str, Any]:
+        """Read a single Grapher node through the Dreadnought control plane."""
+        return grapher.get_context(self.graph_path, node_id)
+
+    def _record_exists(self, record_id: str) -> bool:
+        try:
+            grapher.get_context(self.graph_path, record_id)
+            return True
+        except grapher.IntegrationError:
+            return False
+
+    def _scope(self, record: ProtocolRecord) -> dict[str, Any]:
+        scope: dict[str, Any] = {"project_id": "dreadnought"}
+        if record.mission_ref:
+            scope["mission_id"] = record.mission_ref
+        return scope
+
+    def _link_existing_references(self, record: ProtocolRecord) -> None:
         refs = [
-            (record.subject_ref, "about"),
-            (record.mission_ref, "part_of_mission"),
-            (record.doctrine_ref, "derived_from_doctrine"),
-            (record.order_ref, "part_of_order"),
+            (record.subject_ref, _RELATION_MAP["subject"]),
+            (record.mission_ref, _RELATION_MAP["mission"]),
+            (record.doctrine_ref, _RELATION_MAP["doctrine"]),
+            (record.order_ref, _RELATION_MAP["order"]),
         ]
-        refs.extend((ref, "supported_by") for ref in record.evidence_refs)
+        refs.extend((ref, _RELATION_MAP["evidence"]) for ref in record.evidence_refs)
+
         for target, relation in refs:
-            if target:
-                edges.append({"from": record.id, "to": target, "rel": relation, "created_at": now})
-
-    def _append_history(self, record: ProtocolRecord, recorded_at: str) -> None:
-        self.grapher_dir.mkdir(parents=True, exist_ok=True)
-        event = {
-            "event": "protocol_record_written",
-            "record_id": record.id,
-            "kind": record.kind.value,
-            "perspective": record.perspective.value,
-            "submitted_by": record.actor_id,
-            "writer": CONTROL_PLANE_ACTOR,
-            "recorded_at": recorded_at,
-        }
-        with self.history_path.open("a", encoding="utf-8") as handle:
-            handle.write(json.dumps(event, sort_keys=True) + "\n")
-
-    @staticmethod
-    def _atomic_write_json(path: Path, payload: dict[str, Any]) -> None:
-        path.parent.mkdir(parents=True, exist_ok=True)
-        tmp = path.with_suffix(path.suffix + ".tmp")
-        tmp.write_text(json.dumps(payload, indent=2) + "\n")
-        tmp.replace(path)
+            if not target or not self._record_exists(target):
+                continue
+            grapher.link_context(
+                self.graph_path,
+                record.id,
+                target,
+                relation,
+                actor={
+                    "id": CONTROL_PLANE_ACTOR,
+                    "kind": "system_tool",
+                    "role": "control-plane",
+                    "source": "dreadnought-protocol",
+                },
+                reason="Dreadnought projected a protocol reference",
+                operation_id=f"{record.id}:{relation}:{target}",
+                source="dreadnought-control-plane",
+            )

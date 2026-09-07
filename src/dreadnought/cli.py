@@ -99,6 +99,13 @@ def cmd_protocol_ingest(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_grapher_doctor(args: argparse.Namespace) -> int:
+    root = Path(args.root).resolve()
+    result = GrapherControlPlane(root).doctor()
+    print(json.dumps(result, indent=2, sort_keys=True))
+    return 0 if result.get("compatible") else 1
+
+
 def cmd_arm_dispatch(args: argparse.Namespace) -> int:
     root = Path(args.root).resolve()
     scratch = Path(args.scratch).resolve()
@@ -187,6 +194,12 @@ def build_parser() -> argparse.ArgumentParser:
     ingest.add_argument("path")
     ingest.add_argument("--root", default=".")
     ingest.set_defaults(func=cmd_protocol_ingest)
+
+    grapher_cmd = sub.add_parser("grapher", help="inspect Dreadnought's embedded Grapher brain")
+    grapher_sub = grapher_cmd.add_subparsers(dest="grapher_command", required=True)
+    doctor = grapher_sub.add_parser("doctor", help="check Dreadnought/Grapher compatibility and configuration")
+    doctor.add_argument("--root", default=".")
+    doctor.set_defaults(func=cmd_grapher_doctor)
 
     arm = sub.add_parser("arm", help="dispatch compartmentalized Orders to Project Arms")
     arm_sub = arm.add_subparsers(dest="arm_command", required=True)
