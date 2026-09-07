@@ -1,0 +1,27 @@
+{
+  "id": "pass-dreadnought-beta-documentation-reconciliation-20260907",
+  "type": "result",
+  "title": "Reconcile Dreadnought documentation with v0.2.0b1",
+  "content": {
+    "result": "Reworked the root README as a user-first entry point, added canonical Linux installation/update and beta-release documentation, updated the documentation index, and advanced Grapher integration documentation to the matched v0.7.0b1 compatibility line.",
+    "interpretation": "A new user can enter through README.md, install the beta, understand the authority model, and reach the full project-execution and architecture references without stale v0.6.1 dependency guidance."
+  },
+  "status": "current",
+  "workflow_state": "completed",
+  "verification": "verified",
+  "provenance": {
+    "actor_id": "openai:gpt-5.6-sol",
+    "actor_kind": "agent",
+    "source": "github-change",
+    "integrity": "declared"
+  },
+  "evidence": [
+    {"type": "file", "ref": "README.md"},
+    {"type": "file", "ref": "docs/INDEX.md"},
+    {"type": "file", "ref": "docs/INSTALLATION_AND_UPDATES.md"},
+    {"type": "file", "ref": "docs/RELEASE_0.2.0b1.md"},
+    {"type": "file", "ref": "docs/GRAPHER_INTEGRATION.md"},
+    {"type": "commit", "ref": "cae9fc9ef9a1f5ae8313cce0811fcdb0ae1d1d2e", "summary": "v0.2.0b1 release baseline"},
+    {"type": "external", "ref": "grapher:v0.7.0b1", "summary": "matched Grapher beta compatibility line"}
+  ]
+}
