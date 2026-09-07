@@ -4,91 +4,130 @@
 
 - [Purpose](#purpose)
 - [Install and help](#install-and-help)
-- [Human workflow](#human-workflow)
-- [Agent workflow](#agent-workflow)
-- [Grapher compatibility check](#grapher-compatibility-check)
+- [Grapher brain commands](#grapher-brain-commands)
+- [Mission-to-order commands](#mission-to-order-commands)
+- [Protocol commands](#protocol-commands)
+- [Project Arm dispatch](#project-arm-dispatch)
 - [Command reference](#command-reference)
 - [Exit codes and authority notes](#exit-codes-and-authority-notes)
 - [Appendix — Process flow](#appendix--process-flow)
 
 ## Purpose
 
-This guide is the operational reference for humans and agents using the `dreadnought` command-line interface. The CLI implementation lives in [`src/dreadnought/cli.py`](../src/dreadnought/cli.py). It creates and inspects typed control-plane artifacts, writes protocol records through the Dreadnought Grapher boundary, checks embedded Grapher compatibility, and dispatches compartmentalized Orders through Sarcophagus. [Process map](#appendix--process-flow)
+This is the compact CLI reference for humans and agents. For a complete project walkthrough, use [`PROJECT_EXECUTION_TUTORIAL.md`](PROJECT_EXECUTION_TUTORIAL.md). The executable parser in [`src/dreadnought/cli.py`](../src/dreadnought/cli.py) is authoritative.
 
 ## Install and help
 
-Requires Python 3.11 or newer.
+Requires Python 3.11+.
 
 ```bash
+python3 -m venv .venv
+source .venv/bin/activate
 python -m pip install -e .
 dreadnought --help
 ```
 
-The console entry point is declared in [`pyproject.toml`](../pyproject.toml) as `dreadnought = dreadnought.cli:main`.
+The current Dreadnought dependency targets the Grapher 0.6.1 compatibility ref.
 
-Every command/subcommand supports argparse help, for example:
+## Grapher brain commands
+
+Initialize a new managed project brain:
 
 ```bash
-dreadnought mission --help
-dreadnought mission init --help
-dreadnought grapher doctor --help
-dreadnought arm dispatch --help
+dreadnought grapher init --root /path/to/project
 ```
 
-## Human workflow
+This creates Grapher through the Dreadnought control plane and installs the Dreadnought projection policy. It refuses to overwrite an existing graph.
 
-A typical human-driven flow is:
+Verify compatibility/configuration:
 
 ```bash
-# 1. Preserve the human directive as a typed Mission draft.
-dreadnought mission init "Improve the track editing workflow" --root . --actor human:user
+dreadnought grapher doctor --root /path/to/project
+```
 
-# 2. Create the authoritative Doctrine draft.
-dreadnought doctrine init "Improve track editing without regressions" --root . --actor human:user
+A healthy workspace returns `compatible: true`.
 
-# 3. Create a Campaign Plan associated with a Doctrine ID.
-dreadnought campaign init --doctrine <doctrine-id> --task-group task-group-1 --root .
+Search through the Dreadnought read broker:
 
-# 4. Create a compartmentalized Order for one operation / Project Arm.
-dreadnought order init "Make track clearing deterministic" \
+```bash
+dreadnought grapher query "authentication regression" \
+  --root /path/to/project \
+  --limit 8
+```
+
+Mission-scoped search:
+
+```bash
+dreadnought grapher query "known failures" \
+  --root /path/to/project \
+  --mission mission-123 \
+  --limit 8
+```
+
+Read one node:
+
+```bash
+dreadnought grapher get claim-123 --root /path/to/project
+```
+
+`query` and `get` are brokered reads. There is intentionally no general `dreadnought grapher add` command for Project Arms. Runtime writes enter through typed protocol ingestion and `GrapherControlPlane`.
+
+## Mission-to-order commands
+
+Create the control hierarchy:
+
+```bash
+dreadnought mission init "Fix the regression" --root . --actor human:user
+dreadnought doctrine init "Fix it without breaking existing behavior" --root . --actor human:user
+dreadnought campaign init --doctrine <doctrine-id> --task-group regression-fix --root .
+dreadnought order init "Implement and test the fix" \
   --doctrine <doctrine-id> \
   --campaign <campaign-id> \
-  --operation <operation-id> \
+  --operation regression-op-1 \
   --project-arm project-arm-1 \
   --root .
 ```
 
-`init` commands write drafts beneath `.dreadnought/` in the selected root. They do not by themselves grant runtime authority, accept work, close work, or prove that a requirement has been satisfied.
-
-Use `validate` before relying on an edited typed document:
+Validate or inspect typed documents:
 
 ```bash
-dreadnought mission validate .dreadnought/missions/<mission-id>.json
-dreadnought doctrine validate .dreadnought/doctrine/<doctrine-id>.json
-dreadnought campaign validate .dreadnought/campaigns/<campaign-id>.json
-dreadnought order validate .dreadnought/orders/<order-id>.json
+dreadnought mission validate <mission-path>
+dreadnought doctrine validate <doctrine-path>
+dreadnought campaign validate <campaign-path>
+dreadnought order validate <order-path>
+dreadnought order show <order-path>
 ```
 
-Use `show` for a normalized JSON view:
+Creating these documents does not itself execute work or establish acceptance.
 
-```bash
-dreadnought order show .dreadnought/orders/<order-id>.json
-```
+## Protocol commands
 
-## Agent workflow
-
-Agents should treat the CLI as an authority boundary, not as a conversational convenience layer.
-
-Machine-significant agent testimony should be emitted as a typed `ProtocolRecord` and ingested through Dreadnought:
+Validate agent/human/control-plane testimony:
 
 ```bash
 dreadnought protocol validate /path/to/record.json
+dreadnought protocol show /path/to/record.json
+```
+
+Canonical ingestion:
+
+```bash
 dreadnought protocol ingest /path/to/record.json --root /canonical/workspace
 ```
 
-`protocol ingest` validates the record and writes the canonical projection through [`src/dreadnought/grapher.py`](../src/dreadnought/grapher.py), which is Dreadnought's exclusive Grapher mutation boundary. A Project Arm must not write `.grapher` state directly. An agent-authored claim remains agent testimony; ingesting it does not convert it into observer evidence or an evaluation verdict.
+`protocol ingest` performs Dreadnought validation/admission, projects the record into a `dreadnought_*` Grapher node, and calls Grapher's embedded canonical mutation path. The original protocol payload is preserved in node metadata.
 
-Project Arm execution uses `arm dispatch`:
+An agent-authored claim remains agent testimony. Ingestion does not convert it into observer evidence or an evaluation verdict.
+
+## Project Arm dispatch
+
+Scratch must live outside the canonical workspace:
+
+```bash
+mkdir -p ../dreadnought-scratch/arm-001
+```
+
+Illustrative dispatch:
 
 ```bash
 dreadnought arm dispatch /path/to/order.json \
@@ -103,68 +142,46 @@ dreadnought arm dispatch /path/to/order.json \
   --timeout 300
 ```
 
-The adapter arguments are provider-specific. Supported template tokens are defined by [`src/dreadnought/agent.py`](../src/dreadnought/agent.py), including `{order}`, `{scratch}`, `{workspace}`, `{project_arm}`, `{objective}`, and `{result}`. Do not invent an adapter syntax and assume it is supported; inspect the adapter implementation and the target vendor CLI first.
+Adapter syntax is provider-specific. Supported Dreadnought template tokens are defined in `src/dreadnought/agent.py`, including `{order}`, `{scratch}`, `{workspace}`, `{project_arm}`, `{objective}`, and `{result}`.
 
-The scratch directory must be outside the canonical workspace. Dispatch runs through [`src/dreadnought/dispatch.py`](../src/dreadnought/dispatch.py) and [`src/dreadnought/sarcophagus.py`](../src/dreadnought/sarcophagus.py). The canonical workspace is not intended to become writable merely because an external agent was launched.
-
-## Grapher compatibility check
-
-Before operating a Dreadnought workspace after installation, upgrade, or configuration changes, run:
-
-```bash
-dreadnought grapher doctor --root /canonical/workspace
-```
-
-The command reports the installed Grapher version and verifies that the embedded API exists, the local graph and configuration exist, the graph is version 2, explicit truth status is enabled, and all Dreadnought protocol projection node types are registered. It exits `0` only when the required integration checks pass; otherwise it exits `1` and prints the failed checks as JSON.
-
-This command diagnoses compatibility; it does not mutate Grapher or grant write authority.
+The Project Arm writes newline-delimited typed protocol records to the result channel in scratch. Observer/evaluation kinds are reserved and rejected from the agent channel.
 
 ## Command reference
 
-| Command | Purpose | Primary implementation |
-| --- | --- | --- |
-| `dreadnought mission init <directive>` | Create a Mission draft from human intent | `src/dreadnought/mission.py`, `src/dreadnought/cli.py` |
-| `dreadnought mission validate <path>` | Validate a Mission | `src/dreadnought/mission.py` |
-| `dreadnought mission show <path>` | Print normalized Mission JSON | `src/dreadnought/mission.py` |
-| `dreadnought doctrine init <objective>` | Create a Doctrine draft | `src/dreadnought/doctrine.py` |
-| `dreadnought doctrine validate/show <path>` | Validate or display Doctrine | `src/dreadnought/doctrine.py` |
-| `dreadnought campaign init --doctrine <id>` | Create a Campaign Plan draft | `src/dreadnought/campaign.py` |
-| `dreadnought campaign validate/show <path>` | Validate or display Campaign Plan | `src/dreadnought/campaign.py` |
-| `dreadnought order init <objective> ...` | Create a Project Arm Order | `src/dreadnought/order.py` |
-| `dreadnought order validate/show <path>` | Validate or display an Order | `src/dreadnought/order.py` |
-| `dreadnought protocol validate/show <path>` | Validate or inspect a ProtocolRecord | `src/dreadnought/protocol.py` |
-| `dreadnought protocol ingest <path> --root <workspace>` | Canonically ingest a typed record through Dreadnought into Grapher | `src/dreadnought/grapher.py` |
-| `dreadnought grapher doctor --root <workspace>` | Verify embedded Grapher compatibility/configuration without mutation | `src/dreadnought/grapher.py`, `src/dreadnought/cli.py` |
-| `dreadnought arm dispatch <order> ...` | Dispatch one Order through Sarcophagus | `src/dreadnought/dispatch.py`, `src/dreadnought/sarcophagus.py`, `src/dreadnought/agent.py` |
-
-The CLI source is authoritative for available flags. When this table and `dreadnought --help` disagree, treat the executable parser as current behavior and fix this document in the same change set.
+| Command | Purpose |
+| --- | --- |
+| `dreadnought grapher init --root <project>` | Initialize a Dreadnought-managed Grapher brain and config |
+| `dreadnought grapher doctor --root <project>` | Check embedded API, graph version, and required policy/config |
+| `dreadnought grapher query <text> ...` | Broker a Grapher search through Dreadnought |
+| `dreadnought grapher get <node-id> ...` | Broker a single-node read through Dreadnought |
+| `dreadnought mission init/validate/show` | Create or inspect Mission records |
+| `dreadnought doctrine init/validate/show` | Create or inspect Doctrine records |
+| `dreadnought campaign init/validate/show` | Create or inspect Campaign Plans |
+| `dreadnought order init/validate/show` | Create or inspect Project Arm Orders |
+| `dreadnought protocol validate/show` | Validate or inspect ProtocolRecords |
+| `dreadnought protocol ingest <path>` | Admit a typed record and write it through Dreadnought into Grapher |
+| `dreadnought arm dispatch <order> ...` | Execute one bounded Order through Sarcophagus/Project Arm dispatch |
 
 ## Exit codes and authority notes
 
-For typed-document validation, `0` means valid, `1` means schema/model validation errors, and `2` means the document could not be read/parsed or the command encountered an input/runtime error. `dreadnought grapher doctor` returns `0` when the embedded Grapher compatibility checks pass and `1` when one or more required checks fail. `arm dispatch` returns `0` when the external command exits `0`, `1` for a nonzero external-agent exit, and `2` for dispatch setup/control-plane errors.
+Typed document validation uses `0` for valid, `1` for validation errors, and `2` for unreadable/invalid input or runtime setup errors. `grapher doctor` returns `0` only when the compatibility checks pass. `arm dispatch` returns the external execution status mapping defined by the dispatcher.
 
-Important authority distinctions:
+Authority rules:
 
-- creating a Mission, Doctrine, Campaign, or Order is not equivalent to executing it;
-- an agent claim is not observer evidence;
-- a successful external process exit is evidence about that process, not automatic acceptance or closure;
-- `protocol ingest` is the canonical software write path into Grapher and Project Arms must not bypass it;
-- `grapher doctor` is read-only diagnostic tooling, not a mutation path;
-- scratch is disposable writable space; the canonical workspace remains authoritative;
-- acceptance and closure are separate concerns and are not implied by current CLI draft/dispatch commands.
-
-[Process map](#appendix--process-flow)
+- Dreadnought is the sole Grapher writer in a Dreadnought-controlled workspace.
+- `grapher query` and `grapher get` are read-only broker surfaces.
+- Project Arms return testimony/evidence; they do not gain canonical write authority.
+- successful process exit is evidence, not acceptance;
+- scratch is disposable writable space outside the canonical workspace;
+- Grapher owns durable representation, truth policy, integrity, structured history, transitions, and publication after Dreadnought admits a record.
 
 ## Appendix — Process flow
 
 ```mermaid
 flowchart LR
-    H["Human directive / Mission draft<br/>code: src/dreadnought/mission.py<br/>inception: 2ddda47a622cc66b90e4a5ec65ea09262e002644<br/>current: f395fb7a0a149d901d7db8d73dd63b52f5682185"] --> D["Doctrine / Campaign / Order<br/>code: src/dreadnought/doctrine.py, src/dreadnought/campaign.py, src/dreadnought/order.py<br/>inception: db2c89af7ffa2c803020739eec578f20bcf5850c<br/>current: f395fb7a0a149d901d7db8d73dd63b52f5682185"]
-    D --> X["Project Arm dispatch<br/>code: src/dreadnought/dispatch.py, src/dreadnought/agent.py<br/>inception: 6c049f77981917d716722096674976c1ea5c4261<br/>current: f395fb7a0a149d901d7db8d73dd63b52f5682185"]
-    X --> S["Sarcophagus execution boundary<br/>code: src/dreadnought/sarcophagus.py<br/>inception: ce853e50706259b32585e7311b1d74638cb2bda5<br/>current: f395fb7a0a149d901d7db8d73dd63b52f5682185"]
-    X --> R["Typed result / ProtocolRecord<br/>code: src/dreadnought/result_channel.py, src/dreadnought/protocol.py<br/>inception: f8f40d1d072d0c37a1ba4d63c430a234339c1a54<br/>current: f395fb7a0a149d901d7db8d73dd63b52f5682185"]
-    R --> G["Exclusive Dreadnought → Grapher write<br/>code: src/dreadnought/grapher.py<br/>inception: 4630ac84da52677b343e7a3737844da683b25202<br/>current: 40b413602842e596b29e70509710d4344ed3e1a0"]
-    G --> C["Compatibility diagnosis<br/>code: src/dreadnought/grapher.py, src/dreadnought/cli.py<br/>inception: 40b413602842e596b29e70509710d4344ed3e1a0<br/>current: 63e414b7e7969f210429247db025f3fdc887d5af"]
+    I["Managed brain init / doctor\ncode: src/dreadnought/grapher.py; cli.py\ninception: ee444fb\ncurrent: 33f52e2"] --> M["Mission → Doctrine → Campaign → Order\ncode: src/dreadnought/mission.py; doctrine.py; campaign.py; order.py\ninception: db2c89a\ncurrent: e5f7fd3"]
+    M --> Q["Brokered Grapher reads\ncode: src/dreadnought/grapher.py; cli.py\ninception: e5f7fd3\ncurrent: 33f52e2"]
+    M --> X["Project Arm dispatch\ncode: src/dreadnought/dispatch.py; sarcophagus.py\ninception: 6c049f7\ncurrent: e5f7fd3"]
+    X --> R["Typed result channel\ncode: src/dreadnought/result_channel.py; protocol.py\ninception: f8f40d1\ncurrent: e5f7fd3"]
+    R --> G["Exclusive canonical Grapher write\ncode: src/dreadnought/grapher.py\ninception: 4630ac8\ncurrent: ee444fb"]
 ```
-
-Commit references: [Mission CLI](https://github.com/seanbman/dreadnought/commit/2ddda47a622cc66b90e4a5ec65ea09262e002644), [Doctrine/Campaign/Orders](https://github.com/seanbman/dreadnought/commit/db2c89af7ffa2c803020739eec578f20bcf5850c), [Grapher control plane](https://github.com/seanbman/dreadnought/commit/4630ac84da52677b343e7a3737844da683b25202), [Sarcophagus](https://github.com/seanbman/dreadnought/commit/ce853e50706259b32585e7311b1d74638cb2bda5), [Project Arm dispatch](https://github.com/seanbman/dreadnought/commit/6c049f77981917d716722096674976c1ea5c4261), [typed result channel](https://github.com/seanbman/dreadnought/commit/f8f40d1d072d0c37a1ba4d63c430a234339c1a54).

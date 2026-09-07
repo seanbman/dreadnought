@@ -32,6 +32,24 @@ def configure_dreadnought_projection(workspace: Path) -> None:
     config_path.write_text(json.dumps(config))
 
 
+def test_grapher_initialize_creates_managed_brain(tmp_path: Path) -> None:
+    plane = GrapherControlPlane(tmp_path)
+
+    graph_path = plane.initialize()
+
+    assert graph_path.is_file()
+    config = json.loads((tmp_path / ".grapher" / "config.json").read_text())
+    assert config["require_explicit_status"] is True
+    assert "dreadnought_claim" in config["custom_node_types"]
+    assert plane.doctor()["compatible"] is True
+
+
+def test_grapher_initialize_refuses_existing_graph(tmp_path: Path) -> None:
+    workspace = initialized_workspace(tmp_path)
+    with pytest.raises(ValueError, match="already initialized"):
+        GrapherControlPlane(workspace).initialize()
+
+
 def test_grapher_doctor_reports_compatible_workspace(tmp_path: Path) -> None:
     workspace = initialized_workspace(tmp_path)
     configure_dreadnought_projection(workspace)

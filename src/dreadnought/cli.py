@@ -99,11 +99,44 @@ def cmd_protocol_ingest(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_grapher_init(args: argparse.Namespace) -> int:
+    root = Path(args.root).resolve()
+    try:
+        path = GrapherControlPlane(root).initialize()
+    except (OSError, ValueError) as exc:
+        print(f"grapher init failed: {exc}", file=sys.stderr)
+        return 2
+    print(path)
+    return 0
+
+
 def cmd_grapher_doctor(args: argparse.Namespace) -> int:
     root = Path(args.root).resolve()
     result = GrapherControlPlane(root).doctor()
     print(json.dumps(result, indent=2, sort_keys=True))
     return 0 if result.get("compatible") else 1
+
+
+def cmd_grapher_query(args: argparse.Namespace) -> int:
+    root = Path(args.root).resolve()
+    try:
+        hits = GrapherControlPlane(root).query(args.text, limit=args.limit, mission=args.mission)
+    except (OSError, ValueError) as exc:
+        print(f"grapher query failed: {exc}", file=sys.stderr)
+        return 2
+    print(json.dumps(hits, indent=2, sort_keys=True))
+    return 0
+
+
+def cmd_grapher_get(args: argparse.Namespace) -> int:
+    root = Path(args.root).resolve()
+    try:
+        detail = GrapherControlPlane(root).get(args.node_id)
+    except (OSError, ValueError) as exc:
+        print(f"grapher get failed: {exc}", file=sys.stderr)
+        return 2
+    print(json.dumps(detail, indent=2, sort_keys=True))
+    return 0
 
 
 def cmd_arm_dispatch(args: argparse.Namespace) -> int:
@@ -195,11 +228,24 @@ def build_parser() -> argparse.ArgumentParser:
     ingest.add_argument("--root", default=".")
     ingest.set_defaults(func=cmd_protocol_ingest)
 
-    grapher_cmd = sub.add_parser("grapher", help="inspect Dreadnought's embedded Grapher brain")
+    grapher_cmd = sub.add_parser("grapher", help="initialize and broker access to Dreadnought's embedded Grapher brain")
     grapher_sub = grapher_cmd.add_subparsers(dest="grapher_command", required=True)
+    ginit = grapher_sub.add_parser("init", help="initialize a Dreadnought-managed Grapher brain and policy config")
+    ginit.add_argument("--root", default=".")
+    ginit.set_defaults(func=cmd_grapher_init)
     doctor = grapher_sub.add_parser("doctor", help="check Dreadnought/Grapher compatibility and configuration")
     doctor.add_argument("--root", default=".")
     doctor.set_defaults(func=cmd_grapher_doctor)
+    query = grapher_sub.add_parser("query", help="search Grapher through the Dreadnought read broker")
+    query.add_argument("text")
+    query.add_argument("--root", default=".")
+    query.add_argument("--limit", type=int, default=10)
+    query.add_argument("--mission")
+    query.set_defaults(func=cmd_grapher_query)
+    get = grapher_sub.add_parser("get", help="read one Grapher node through the Dreadnought broker")
+    get.add_argument("node_id")
+    get.add_argument("--root", default=".")
+    get.set_defaults(func=cmd_grapher_get)
 
     arm = sub.add_parser("arm", help="dispatch compartmentalized Orders to Project Arms")
     arm_sub = arm.add_subparsers(dest="arm_command", required=True)
