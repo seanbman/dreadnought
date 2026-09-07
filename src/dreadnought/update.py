@@ -3,12 +3,14 @@ from __future__ import annotations
 import json
 import os
 import re
+import subprocess
 import sys
 import urllib.error
 import urllib.request
 from dataclasses import dataclass
 
 RELEASES_URL = "https://api.github.com/repos/seanbman/dreadnought/releases?per_page=20"
+REPOSITORY = "https://github.com/seanbman/dreadnought.git"
 DISABLE_ENV = "DREADNOUGHT_NO_UPDATE_CHECK"
 
 _VERSION_RE = re.compile(r"^v?(\d+)\.(\d+)\.(\d+)(?:(a|b|rc)(\d+))?$")
@@ -72,6 +74,27 @@ def update_available(current_version: str, release: ReleaseInfo | None) -> bool:
         return False
 
 
+def install_release(tag: str | None = None, *, timeout: float = 8.0) -> str:
+    release = None
+    if tag is None:
+        release = latest_release(timeout=timeout)
+        if release is None:
+            raise RuntimeError("could not resolve a published Dreadnought release")
+        tag = release.tag
+    else:
+        _key(tag)
+        if not tag.startswith("v"):
+            tag = f"v{tag}"
+    spec = f"git+{REPOSITORY}@{tag}"
+    completed = subprocess.run(
+        [sys.executable, "-m", "pip", "install", "--upgrade", spec],
+        check=False,
+    )
+    if completed.returncode != 0:
+        raise RuntimeError(f"pip update failed with exit code {completed.returncode}")
+    return tag
+
+
 def maybe_notify(current_version: str) -> None:
     if os.environ.get(DISABLE_ENV) or not sys.stderr.isatty():
         return
@@ -80,6 +103,6 @@ def maybe_notify(current_version: str) -> None:
         assert release is not None
         print(
             f"Dreadnought {release.tag} is available (installed {current_version}). "
-            "Run the repository install.sh again to update.",
+            "Run `dreadnought update` or rerun install.sh.",
             file=sys.stderr,
         )
