@@ -1,5 +1,14 @@
 # Dreadnought / Grapher Integration
 
+## Index
+
+- [Authority model](#authority-model)
+- [Configuration flow](#configuration-flow)
+- [Architecture](#architecture)
+- [Process-flow appendix](#process-flow-appendix)
+
+## Authority model
+
 Dreadnought encapsulates Grapher as its durable cognitive substrate. Grapher remains independently operable, but inside a Dreadnought-controlled workspace **Dreadnought is the sole Grapher writer**.
 
 Project Arms inside Sarcophagus do not mutate Grapher. They submit typed `ProtocolRecord` testimony to the Dreadnought control plane. Dreadnought validates authority and protocol semantics, projects the record into a Dreadnought-specific Grapher type, and calls `grapher.integrations.embedded`. Grapher then owns canonical persistence, truth policy, semantic integrity, status transitions, provenance history, and rollback.
@@ -20,7 +29,7 @@ Dreadnought may also create its own observations. Agent testimony and Dreadnough
 
 ```mermaid
 flowchart LR
-    A[Project Arm / Sarcophagus\ninception: f395fb7\ncurrent: feat/grapher-embedded-control-plane] -->|ProtocolRecord testimony| D[Dreadnought Control Plane\ninception: 4630ac8\ncurrent: 96fa4ee]
+    A[Project Arm / Sarcophagus\ninception: f395fb7\ncurrent: 48a7855] -->|ProtocolRecord testimony| D[Dreadnought Control Plane\ninception: 4630ac8\ncurrent: 96fa4ee]
     O[Dreadnought Observer\ninception: 4630ac8\ncurrent: 96fa4ee] --> D
     D -->|authorized projection only| E[Grapher embedded API\ninception: b3729dad\ncurrent: b3729dad]
     E --> G[Grapher canonical mutation/history\ninception: b3729dad\ncurrent: b3729dad]
@@ -33,7 +42,7 @@ flowchart LR
 flowchart TD
     P[ProtocolRecord produced\ncode: src/dreadnought/protocol.py\ninception: 4630ac8\ncurrent: f395fb7] --> V[Validate admission\ncode: src/dreadnought/grapher.py\ninception: 4630ac8\ncurrent: 96fa4ee]
     V --> X[Project to dreadnought_* node\ncode: src/dreadnought/grapher.py\ninception: 4630ac8\ncurrent: 96fa4ee]
-    X --> E[Embedded Grapher API\ncode: grapher/integrations/embedded.py\ninception/current: b3729dad]
+    X --> E[Embedded Grapher API\ncode: grapher/integrations/embedded.py\ninception: b3729dad\ncurrent: b3729dad]
     E --> M[Canonical mutation\ncode: grapher/store.py\ninception: Grapher v0.6\ncurrent: b3729dad]
     M --> H[Structured history + graph\ncode: .grapher runtime state\ninception: Grapher v0.6\ncurrent: b3729dad]
     H --> S[Versioned governance evidence\ncode: .grapher/shared/\ninception: ff72dcb\ncurrent: ff72dcb]
