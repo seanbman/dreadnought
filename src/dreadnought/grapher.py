@@ -5,12 +5,24 @@ import json
 from pathlib import Path
 from typing import Any
 
+import grapher as grapher_package
 from grapher.integrations import embedded as grapher
 
 from .protocol import ProtocolRecord
 
 
 CONTROL_PLANE_ACTOR = "dreadnought:control-plane"
+
+_REQUIRED_NODE_TYPES = {
+    "dreadnought_claim",
+    "dreadnought_observation",
+    "dreadnought_action",
+    "dreadnought_artifact",
+    "dreadnought_requirement",
+    "dreadnought_risk",
+    "dreadnought_note",
+    "dreadnought_verdict",
+}
 
 _RELATION_MAP = {
     "subject": "references",
@@ -42,6 +54,49 @@ class GrapherControlPlane:
         self.grapher_dir = self.workspace / ".grapher"
         self.graph_path = self.grapher_dir / "knowledge.json"
         self.history_path = self.grapher_dir / "history.jsonl"
+        self.config_path = self.grapher_dir / "config.json"
+
+    def doctor(self) -> dict[str, Any]:
+        """Return deterministic compatibility checks for the embedded Grapher brain."""
+        checks: dict[str, Any] = {
+            "grapher_version": grapher_package.__version__,
+            "embedded_api": callable(getattr(grapher, "contribute_context", None)),
+            "graph_exists": self.graph_path.is_file(),
+            "config_exists": self.config_path.is_file(),
+        }
+        if checks["graph_exists"]:
+            try:
+                graph = json.loads(self.graph_path.read_text(encoding="utf-8"))
+                checks["graph_version"] = graph.get("version")
+                checks["graph_v2"] = graph.get("version") == 2
+            except (OSError, json.JSONDecodeError):
+                checks["graph_v2"] = False
+        else:
+            checks["graph_v2"] = False
+
+        if checks["config_exists"]:
+            try:
+                config = json.loads(self.config_path.read_text(encoding="utf-8"))
+                configured_types = set(config.get("custom_node_types") or [])
+                checks["explicit_truth_status"] = bool(config.get("require_explicit_status"))
+                checks["projection_types"] = _REQUIRED_NODE_TYPES.issubset(configured_types)
+            except (OSError, json.JSONDecodeError):
+                checks["explicit_truth_status"] = False
+                checks["projection_types"] = False
+        else:
+            checks["explicit_truth_status"] = False
+            checks["projection_types"] = False
+
+        required = (
+            "embedded_api",
+            "graph_exists",
+            "config_exists",
+            "graph_v2",
+            "explicit_truth_status",
+            "projection_types",
+        )
+        checks["compatible"] = all(bool(checks.get(key)) for key in required)
+        return checks
 
     def write_record(self, record: ProtocolRecord) -> GrapherWriteResult:
         errors = record.validate()
