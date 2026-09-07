@@ -15,8 +15,10 @@ This is the canonical durable documentation map. **New users should begin with t
 ## Start here
 
 - [`README.md`](../README.md) — user-friendly overview and Linux quick start.
+- [`MISSION_BUILDER.md`](MISSION_BUILDER.md) — guided mission prompt, source-document, requirement, notes, capability, review, and readiness workflow.
 - [`INSTALLATION_AND_UPDATES.md`](INSTALLATION_AND_UPDATES.md) — Linux installation, updates, release checks, dependency, troubleshooting.
-- [`RELEASE_0.2.0b1.md`](RELEASE_0.2.0b1.md) — current beta baseline and verification.
+- [`RELEASE_0.2.0b2.md`](RELEASE_0.2.0b2.md) — current beta patch baseline and upgrade paths.
+- [`RELEASE_0.2.0b1.md`](RELEASE_0.2.0b1.md) — previous beta baseline and verification.
 - [`PROJECT_EXECUTION_TUTORIAL.md`](PROJECT_EXECUTION_TUTORIAL.md) — canonical setup-to-execution walkthrough.
 - [`INTERACTIVE_CLI_AND_TOKEN_USAGE.md`](INTERACTIVE_CLI_AND_TOKEN_USAGE.md) — menu, primary-agent chat, configuration, token accounting.
 - [`CLI_USAGE.md`](CLI_USAGE.md) — compact command reference and authority boundaries.
@@ -47,22 +49,22 @@ This is the canonical durable documentation map. **New users should begin with t
 
 ## Machine-readable counterparts
 
-Local runtime brain state lives under [`.grapher/`](../.grapher/). Git-versioned governance/publication evidence lives under [`.grapher/shared/`](../.grapher/shared/). Dreadnought project configuration/token accounting live under [`.dreadnought/`](../.dreadnought/). Contracts are under [`schemas/`](../schemas/), executable code under [`src/dreadnought/`](../src/dreadnought/), verification under [`tests/`](../tests/). Dreadnought runtime mutations pass through `GrapherControlPlane`; repository changes carry versioned Grapher evidence.
+Local runtime brain state lives under [`.grapher/`](../.grapher/). Git-versioned governance/publication evidence lives under [`.grapher/shared/`](../.grapher/shared/). Dreadnought project configuration/token accounting and mission documents live under [`.dreadnought/`](../.dreadnought/). Contracts are under [`schemas/`](../schemas/), executable code under [`src/dreadnought/`](../src/dreadnought/), verification under [`tests/`](../tests/). Dreadnought runtime Grapher mutations pass through `GrapherControlPlane`; repository changes carry versioned Grapher evidence.
 
 ## Document authority and update rules
 
-Current typed schema/code and validated machine state define executable behavior; the Architecture Charter/current decisions define intended architecture; Roadmap defines active sequence; ledgers preserve contemporaneous beliefs. CLI parser/help is executable authority. [`INSTALLATION_AND_UPDATES.md`](INSTALLATION_AND_UPDATES.md) is distribution authority and [`PROJECT_EXECUTION_TUTORIAL.md`](PROJECT_EXECUTION_TUTORIAL.md) is the canonical walkthrough. New durable Markdown must be indexed here, contain `## Index`, and include the required Mermaid provenance appendix. Architecture-bearing docs link to [`ARCHITECTURE.md`](ARCHITECTURE.md).
+Current typed schema/code and validated machine state define executable behavior; the Architecture Charter/current decisions define intended architecture; Roadmap defines active sequence; ledgers preserve contemporaneous beliefs. CLI parser/help is executable authority. [`MISSION_BUILDER.md`](MISSION_BUILDER.md) is mission-authoring authority, [`INSTALLATION_AND_UPDATES.md`](INSTALLATION_AND_UPDATES.md) is distribution authority, and [`PROJECT_EXECUTION_TUTORIAL.md`](PROJECT_EXECUTION_TUTORIAL.md) is the canonical execution walkthrough. New durable Markdown must be indexed here, contain `## Index`, and include the required Mermaid provenance appendix. Architecture-bearing docs link to [`ARCHITECTURE.md`](ARCHITECTURE.md).
 
 ## Current milestone boundary
 
-Current public beta: **Dreadnought v0.2.0b1** (`cae9fc9ef9a1f5ae8313cce0811fcdb0ae1d1d2e`) with **Grapher v0.7.0b1**. Implemented: Sarcophagus, Project Arm dispatch infrastructure, typed result channels, exclusive Grapher control-plane integration, guided initialization, primary-agent chat, token accounting, Linux release installation, and release-aware update discovery. Next empirical milestone: real vendor adapter plus bounded real-workspace run.
+Current public beta: **Dreadnought v0.2.0b2** with **Grapher v0.7.0b1**. v0.2.0b2 adds guided Mission Builder, mission review/readiness flows, in-place `dreadnought update`, local-checkout installation, and explicit `--version`. Existing Project Arm/Sarcophagus/typed-protocol/Grapher/token-accounting capabilities remain. Next empirical milestone: real vendor adapter plus bounded real-workspace run.
 
 ## Appendix — Process flow
 
 ```mermaid
 flowchart LR
-    R["User entry point\ncode: README.md; install.sh\ninception: 3bea73dd2ca73199b86b49998e049fb0f30c454f\ncurrent: cae9fc9ef9a1f5ae8313cce0811fcdb0ae1d1d2e"] --> I["Canonical docs index\ncode: docs/INDEX.md; tests/test_documentation.py\ninception: b1852eff25b2c8b95924e134792ade74e433f255\ncurrent: cae9fc9ef9a1f5ae8313cce0811fcdb0ae1d1d2e"]
-    I --> T["Project execution tutorial\ncode: docs/PROJECT_EXECUTION_TUTORIAL.md; src/dreadnought/cli.py\ninception: e4c6cafd7eda0e2e287f462caa756cc8b63d66d5\ncurrent: cae9fc9ef9a1f5ae8313cce0811fcdb0ae1d1d2e"]
-    I --> G["Grapher control plane\ncode: docs/GRAPHER_INTEGRATION.md; src/dreadnought/grapher.py\ninception: e5f7fd3ea981359df97703d8b3ce8fbcdff468cd\ncurrent: cae9fc9ef9a1f5ae8313cce0811fcdb0ae1d1d2e"]
-    I --> B["Beta distribution\ncode: docs/INSTALLATION_AND_UPDATES.md; install.sh; src/dreadnought/update.py\ninception: cae9fc9ef9a1f5ae8313cce0811fcdb0ae1d1d2e\ncurrent: cae9fc9ef9a1f5ae8313cce0811fcdb0ae1d1d2e"]
+    R["User entry point\ncode: README.md; install.sh\ninception: 3bea73dd2ca73199b86b49998e049fb0f30c454f\ncurrent: release/0.2.1b1-mission-builder"] --> I["Canonical docs index\ncode: docs/INDEX.md; tests/test_documentation.py\ninception: b1852eff25b2c8b95924e134792ade74e433f255\ncurrent: release/0.2.1b1-mission-builder"]
+    I --> M["Mission Builder\ncode: docs/MISSION_BUILDER.md; src/dreadnought/mission_builder.py\ninception: 9808bfe5d35beabd950b0fff1487c452494cf597\ncurrent: release/0.2.1b1-mission-builder"]
+    I --> T["Project execution tutorial\ncode: docs/PROJECT_EXECUTION_TUTORIAL.md; src/dreadnought/cli.py\ninception: e4c6cafd7eda0e2e287f462caa756cc8b63d66d5\ncurrent: release/0.2.1b1-mission-builder"]
+    I --> B["Beta distribution/update\ncode: docs/INSTALLATION_AND_UPDATES.md; install.sh; src/dreadnought/update.py\ninception: cae9fc9ef9a1f5ae8313cce0811fcdb0ae1d1d2e\ncurrent: release/0.2.1b1-mission-builder"]
 ```
