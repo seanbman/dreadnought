@@ -8,6 +8,9 @@ version = "0.1.0"
 description = "Experimental agent control plane with normalized missions and auditable evidence."
 requires-python = ">=3.11"
 license = { text = "MIT" }
+dependencies = [
+  "grapher @ git+https://github.com/seanbman/grapher.git@afba1021f3d1d876b7a30cc7b1e9f66b1fa0efe3"
+]
 
 [project.scripts]
 dreadnought = "dreadnought.cli:main"
