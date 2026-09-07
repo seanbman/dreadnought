@@ -1,0 +1,25 @@
+{
+  "id": "pass-dreadnought-0.2.0b2-mission-builder",
+  "type": "result",
+  "title": "Guided mission authoring and in-place beta update",
+  "content": {
+    "result": "Added interactive Mission Builder, mission review/readiness commands, existing-install self-update, local-checkout installation, documentation, and beta patch packaging.",
+    "interpretation": "Humans can establish mission prompts, source documents, requirements, notes, and capability bounds without hand-editing mission JSON while scripted mission commands remain compatible."
+  },
+  "status": "current",
+  "workflow_state": "completed",
+  "verification": "verified",
+  "provenance": {
+    "actor_id": "openai:gpt-5.6-sol",
+    "actor_kind": "agent",
+    "source": "github-change",
+    "integrity": "declared"
+  },
+  "evidence": [
+    {"type": "file", "ref": "src/dreadnought/mission_builder.py"},
+    {"type": "file", "ref": "src/dreadnought/main.py"},
+    {"type": "file", "ref": "install.sh"},
+    {"type": "file", "ref": "tests/test_mission_builder.py"},
+    {"type": "file", "ref": "docs/MISSION_BUILDER.md"}
+  ]
+}
