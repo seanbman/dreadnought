@@ -9,7 +9,8 @@ description = "Experimental agent control plane with normalized missions and aud
 requires-python = ">=3.11"
 license = { text = "MIT" }
 dependencies = [
-  "grapher @ git+https://github.com/seanbman/grapher.git@v0.6.1"
+  "grapher @ git+https://github.com/seanbman/grapher.git@v0.6.1",
+  "prompt-toolkit>=3.0,<4"
 ]
 
 [project.scripts]
