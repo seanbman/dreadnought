@@ -6,11 +6,12 @@
 - [PA-0001 — First dispatcher substrate](#2026-09-06--pa-0001-first-dispatcher-substrate)
 - [PA-0002 — Typed agent result channel](#2026-09-06--pa-0002-typed-agent-result-channel)
 - [Process note — accidental PR #9](#process-note--accidental-pr-9)
+- [Architecture diagram](#architecture-diagram)
 - [Appendix — Process flow](#appendix--process-flow)
 
 ## Purpose
 
-Human-readable research record for dispatching compartmentalized Orders to subordinate execution arms. [Process map](#appendix--process-flow)
+Human-readable research record for dispatching compartmentalized Orders to subordinate execution arms. Root context: [`ARCHITECTURE.md`](ARCHITECTURE.md). [Process map](#appendix--process-flow)
 
 ## 2026-09-06 — PA-0001: First dispatcher substrate
 
@@ -45,17 +46,31 @@ Human-readable research record for dispatching compartmentalized Orders to subor
 
 A no-op draft PR #9 was opened accidentally during transition from the Sarcophagus merge and immediately closed without merge. It carried no new branch state and is retained in GitHub history rather than hidden or repurposed.
 
+## Architecture diagram
+
+```mermaid
+flowchart TB
+    ORD["Order model\ncode: src/dreadnought/order.py"] --> DISP["ProjectArmDispatcher\ncode: src/dreadnought/dispatch.py"]
+    DISP --> AD["AgentAdapter / CommandAgentAdapter\ncode: src/dreadnought/agent.py"]
+    DISP --> SARC["Sarcophagus\ncode: src/dreadnought/sarcophagus.py"]
+    SARC --> EXT["External agent process\ncode: src/dreadnought/agent.py"]
+    EXT --> RESULT["AgentResultChannel\ncode: src/dreadnought/result_channel.py"]
+    DISP --> OBS["Observer ProtocolRecord\ncode: src/dreadnought/dispatch.py; src/dreadnought/protocol.py"]
+    RESULT --> GRAPH["GrapherControlPlane\ncode: src/dreadnought/grapher.py"]
+    OBS --> GRAPH
+```
+
 ## Appendix — Process flow
 
 ```mermaid
 flowchart LR
-    O["Compartmentalized Order<br/>inception: db2c89af7ffa2c803020739eec578f20bcf5850c<br/>current: f8f40d1d072d0c37a1ba4d63c430a234339c1a54"] --> D["Project Arm dispatcher<br/>inception: 6c049f77981917d716722096674976c1ea5c4261<br/>current: f8f40d1d072d0c37a1ba4d63c430a234339c1a54"]
-    D --> S["Sarcophagus + scratch<br/>inception: ce853e50706259b32585e7311b1d74638cb2bda5<br/>current: f8f40d1d072d0c37a1ba4d63c430a234339c1a54"]
-    S --> A["External agent<br/>inception: 6c049f77981917d716722096674976c1ea5c4261<br/>current: f8f40d1d072d0c37a1ba4d63c430a234339c1a54"]
-    A --> R["Typed result channel<br/>inception: f8f40d1d072d0c37a1ba4d63c430a234339c1a54<br/>current: f8f40d1d072d0c37a1ba4d63c430a234339c1a54"]
-    D --> E["Observer evidence<br/>inception: 6c049f77981917d716722096674976c1ea5c4261<br/>current: f8f40d1d072d0c37a1ba4d63c430a234339c1a54"]
-    R --> G["Grapher canonical write<br/>inception: 4630ac84da52677b343e7a3737844da683b25202<br/>current: f8f40d1d072d0c37a1ba4d63c430a234339c1a54"]
+    O["Compartmentalized Order\ncode: src/dreadnought/order.py\ninception: db2c89af7ffa2c803020739eec578f20bcf5850c\ncurrent: 437b3c512aefbc40d591c3322188c6d2732e31b2"] --> D["Project Arm dispatcher\ncode: src/dreadnought/dispatch.py\ninception: 6c049f77981917d716722096674976c1ea5c4261\ncurrent: 437b3c512aefbc40d591c3322188c6d2732e31b2"]
+    D --> S["Sarcophagus + scratch\ncode: src/dreadnought/sarcophagus.py\ninception: ce853e50706259b32585e7311b1d74638cb2bda5\ncurrent: 437b3c512aefbc40d591c3322188c6d2732e31b2"]
+    S --> A["External agent\ncode: src/dreadnought/agent.py\ninception: 6c049f77981917d716722096674976c1ea5c4261\ncurrent: 437b3c512aefbc40d591c3322188c6d2732e31b2"]
+    A --> R["Typed result channel\ncode: src/dreadnought/result_channel.py\ninception: f8f40d1d072d0c37a1ba4d63c430a234339c1a54\ncurrent: 437b3c512aefbc40d591c3322188c6d2732e31b2"]
+    D --> E["Observer evidence\ncode: src/dreadnought/dispatch.py; src/dreadnought/protocol.py\ninception: 6c049f77981917d716722096674976c1ea5c4261\ncurrent: 437b3c512aefbc40d591c3322188c6d2732e31b2"]
+    R --> G["Grapher canonical write\ncode: src/dreadnought/grapher.py\ninception: 4630ac84da52677b343e7a3737844da683b25202\ncurrent: 437b3c512aefbc40d591c3322188c6d2732e31b2"]
     E --> G
 ```
 
-Commit references: [Doctrine/Orders](https://github.com/seanbman/dreadnought/commit/db2c89af7ffa2c803020739eec578f20bcf5850c), [Grapher](https://github.com/seanbman/dreadnought/commit/4630ac84da52677b343e7a3737844da683b25202), [Sarcophagus](https://github.com/seanbman/dreadnought/commit/ce853e50706259b32585e7311b1d74638cb2bda5), [dispatch](https://github.com/seanbman/dreadnought/commit/6c049f77981917d716722096674976c1ea5c4261), [typed result channel/current snapshot](https://github.com/seanbman/dreadnought/commit/f8f40d1d072d0c37a1ba4d63c430a234339c1a54).
+Commit references: [Doctrine/Orders](https://github.com/seanbman/dreadnought/commit/db2c89af7ffa2c803020739eec578f20bcf5850c), [Grapher](https://github.com/seanbman/dreadnought/commit/4630ac84da52677b343e7a3737844da683b25202), [Sarcophagus](https://github.com/seanbman/dreadnought/commit/ce853e50706259b32585e7311b1d74638cb2bda5), [dispatch](https://github.com/seanbman/dreadnought/commit/6c049f77981917d716722096674976c1ea5c4261), [typed result channel](https://github.com/seanbman/dreadnought/commit/f8f40d1d072d0c37a1ba4d63c430a234339c1a54), [documentation baseline](https://github.com/seanbman/dreadnought/commit/437b3c512aefbc40d591c3322188c6d2732e31b2).
