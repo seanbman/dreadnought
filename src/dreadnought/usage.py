@@ -8,6 +8,7 @@ from typing import Any
 from uuid import uuid4
 
 from .grapher import GrapherControlPlane
+from .protocol import Perspective, ProtocolRecord, RecordKind
 
 
 @dataclass(frozen=True)
@@ -31,21 +32,11 @@ class TokenUsage:
         return self.input_tokens + self.output_tokens
 
     @classmethod
-    def create(
-        cls,
-        *,
-        agent_id: str,
-        agent_role: str,
-        project_id: str,
-        task_id: str | None,
-        input_tokens: int,
-        output_tokens: int,
-        cached_tokens: int = 0,
-        reasoning_tokens: int = 0,
-        provider: str | None = None,
-        model: str | None = None,
-        source: str = "reported",
-    ) -> "TokenUsage":
+    def create(cls, *, agent_id: str, agent_role: str, project_id: str,
+               task_id: str | None, input_tokens: int, output_tokens: int,
+               cached_tokens: int = 0, reasoning_tokens: int = 0,
+               provider: str | None = None, model: str | None = None,
+               source: str = "reported") -> "TokenUsage":
         values = [input_tokens, output_tokens, cached_tokens, reasoning_tokens]
         if any(value < 0 for value in values):
             raise ValueError("token counts must be non-negative")
@@ -74,13 +65,22 @@ class TokenUsage:
 
 
 class TokenUsageLedger:
+    """Append-only Dreadnought usage ledger with a Grapher record per task/session."""
+
     def __init__(self, workspace: Path | str):
         self.workspace = Path(workspace).resolve()
         self.path = self.workspace / ".dreadnought" / "token-usage.jsonl"
 
     def record(self, usage: TokenUsage, *, project_to_grapher: bool = True) -> TokenUsage:
         if project_to_grapher:
-            GrapherControlPlane(self.workspace).record_token_usage(usage.to_dict())
+            record = ProtocolRecord.create(
+                kind=RecordKind.NOTE,
+                perspective=Perspective.OBSERVER,
+                actor_id="dreadnought:usage-meter",
+                subject_ref=usage.task_id or f"project:{usage.project_id}",
+                data={"note_type": "token_usage", "usage": usage.to_dict()},
+            )
+            GrapherControlPlane(self.workspace).write_record(record)
         self.path.parent.mkdir(parents=True, exist_ok=True)
         with self.path.open("a", encoding="utf-8") as handle:
             handle.write(json.dumps(usage.to_dict(), sort_keys=True) + "\n")
@@ -89,19 +89,10 @@ class TokenUsageLedger:
     def entries(self) -> list[dict[str, Any]]:
         if not self.path.is_file():
             return []
-        return [
-            json.loads(line)
-            for line in self.path.read_text(encoding="utf-8").splitlines()
-            if line.strip()
-        ]
+        return [json.loads(line) for line in self.path.read_text(encoding="utf-8").splitlines() if line.strip()]
 
-    def stats(
-        self,
-        *,
-        project_id: str | None = None,
-        task_id: str | None = None,
-        agent_role: str | None = None,
-    ) -> dict[str, Any]:
+    def stats(self, *, project_id: str | None = None, task_id: str | None = None,
+              agent_role: str | None = None) -> dict[str, Any]:
         rows = self.entries()
         if project_id is not None:
             rows = [row for row in rows if row.get("project_id") == project_id]
@@ -109,7 +100,6 @@ class TokenUsageLedger:
             rows = [row for row in rows if row.get("task_id") == task_id]
         if agent_role is not None:
             rows = [row for row in rows if row.get("agent_role") == agent_role]
-
         by_agent: dict[str, int] = {}
         by_project: dict[str, int] = {}
         by_task: dict[str, int] = {}
