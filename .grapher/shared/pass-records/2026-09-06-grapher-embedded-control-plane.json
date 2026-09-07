@@ -1,0 +1,14 @@
+{
+  "id": "pass-grapher-embedded-control-plane-2026-09-06",
+  "type": "audit_record",
+  "title": "Dreadnought embedded Grapher control plane",
+  "status": "current",
+  "semantic": {
+    "change": "Dreadnought now routes protocol mutations through Grapher's host-agnostic embedded API while retaining exclusive write authority.",
+    "governance": "Repository CI now requires versioned Grapher evidence under .grapher/shared instead of requiring local runtime graph/history files to change on every commit."
+  },
+  "provenance": {
+    "actor_id": "dreadnought:control-plane",
+    "source": "dreadnought-self-governance"
+  }
+}
