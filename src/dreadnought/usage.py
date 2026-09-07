@@ -72,18 +72,22 @@ class TokenUsageLedger:
         self.path = self.workspace / ".dreadnought" / "token-usage.jsonl"
 
     def record(self, usage: TokenUsage, *, project_to_grapher: bool = True) -> TokenUsage:
+        payload = usage.to_dict()
         if project_to_grapher:
             record = ProtocolRecord.create(
                 kind=RecordKind.NOTE,
                 perspective=Perspective.OBSERVER,
                 actor_id="dreadnought:usage-meter",
                 subject_ref=usage.task_id or f"project:{usage.project_id}",
-                data={"note_type": "token_usage", "usage": usage.to_dict()},
+                data={
+                    "audience": "human",
+                    "text": "token_usage " + json.dumps(payload, sort_keys=True),
+                },
             )
             GrapherControlPlane(self.workspace).write_record(record)
         self.path.parent.mkdir(parents=True, exist_ok=True)
         with self.path.open("a", encoding="utf-8") as handle:
-            handle.write(json.dumps(usage.to_dict(), sort_keys=True) + "\n")
+            handle.write(json.dumps(payload, sort_keys=True) + "\n")
         return usage
 
     def entries(self) -> list[dict[str, Any]]:
