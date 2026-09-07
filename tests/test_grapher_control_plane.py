@@ -15,6 +15,36 @@ def initialized_workspace(tmp_path: Path) -> Path:
     return tmp_path
 
 
+def configure_dreadnought_projection(workspace: Path) -> None:
+    config_path = workspace / ".grapher" / "config.json"
+    config = json.loads(config_path.read_text())
+    config["require_explicit_status"] = True
+    config["custom_node_types"] = [
+        "dreadnought_claim",
+        "dreadnought_observation",
+        "dreadnought_action",
+        "dreadnought_artifact",
+        "dreadnought_requirement",
+        "dreadnought_risk",
+        "dreadnought_note",
+        "dreadnought_verdict",
+    ]
+    config_path.write_text(json.dumps(config))
+
+
+def test_grapher_doctor_reports_compatible_workspace(tmp_path: Path) -> None:
+    workspace = initialized_workspace(tmp_path)
+    configure_dreadnought_projection(workspace)
+
+    checks = GrapherControlPlane(workspace).doctor()
+
+    assert checks["embedded_api"] is True
+    assert checks["graph_v2"] is True
+    assert checks["explicit_truth_status"] is True
+    assert checks["projection_types"] is True
+    assert checks["compatible"] is True
+
+
 def test_agent_claim_is_projected_by_control_plane(tmp_path: Path) -> None:
     workspace = initialized_workspace(tmp_path)
     record = ProtocolRecord.claim(
