@@ -99,6 +99,17 @@ def cmd_protocol_ingest(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_grapher_init(args: argparse.Namespace) -> int:
+    root = Path(args.root).resolve()
+    try:
+        path = GrapherControlPlane(root).initialize()
+    except (OSError, ValueError) as exc:
+        print(f"grapher init failed: {exc}", file=sys.stderr)
+        return 2
+    print(path)
+    return 0
+
+
 def cmd_grapher_doctor(args: argparse.Namespace) -> int:
     root = Path(args.root).resolve()
     result = GrapherControlPlane(root).doctor()
@@ -195,8 +206,11 @@ def build_parser() -> argparse.ArgumentParser:
     ingest.add_argument("--root", default=".")
     ingest.set_defaults(func=cmd_protocol_ingest)
 
-    grapher_cmd = sub.add_parser("grapher", help="inspect Dreadnought's embedded Grapher brain")
+    grapher_cmd = sub.add_parser("grapher", help="initialize and inspect Dreadnought's embedded Grapher brain")
     grapher_sub = grapher_cmd.add_subparsers(dest="grapher_command", required=True)
+    ginit = grapher_sub.add_parser("init", help="initialize a Dreadnought-managed Grapher brain and policy config")
+    ginit.add_argument("--root", default=".")
+    ginit.set_defaults(func=cmd_grapher_init)
     doctor = grapher_sub.add_parser("doctor", help="check Dreadnought/Grapher compatibility and configuration")
     doctor.add_argument("--root", default=".")
     doctor.set_defaults(func=cmd_grapher_doctor)
