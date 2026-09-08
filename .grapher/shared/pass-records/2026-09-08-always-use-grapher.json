@@ -1,0 +1,24 @@
+{
+  "id": "pass-always-use-grapher-2026-09-08",
+  "type": "result",
+  "title": "Mandatory Grapher repository rule",
+  "content": {
+    "result": "Repository governance now requires actual Grapher use for every substantive repository change. Canonical knowledge and history must advance through Grapher; shared pass records alone are insufficient.",
+    "operation_id": "governance-always-use-grapher-2026-09-08",
+    "grapher_node": "decision-always-use-grapher"
+  },
+  "status": "current",
+  "workflow_state": "completed",
+  "verification": "pending_ci",
+  "provenance": {
+    "actor_id": "openai:gpt-5.6-sol",
+    "actor_kind": "agent",
+    "source": "grapher-operation:governance-always-use-grapher-2026-09-08",
+    "integrity": "declared"
+  },
+  "evidence": [
+    {"type": "document", "ref": "AGENTS.md"},
+    {"type": "document", "ref": ".github/workflows/test.yml"},
+    {"type": "grapher_node", "ref": "decision-always-use-grapher"}
+  ]
+}

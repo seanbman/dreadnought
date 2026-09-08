@@ -14,6 +14,8 @@
 - [D-0010 — Dreadnought owns canonical Grapher writes](#d-0010--dreadnought-owns-canonical-grapher-protocol-writes)
 - [D-0011 — Verification is deterministic](#d-0011--verification-is-deterministic-and-verifier-specific)
 - [D-0012 — Agent result channel is testimony-only](#d-0012--agent-result-channel-is-testimony-only)
+- [D-0013 — Repository changes update canonical Grapher state](#d-0013--repository-changes-update-canonical-grapher-state)
+- [D-0014 — Every repository change must actually use Grapher](#d-0014--every-repository-change-must-actually-use-grapher)
 - [Appendix — Process flow](#appendix--process-flow)
 
 Architectural decisions are recorded as decisions, not rewritten later as if inevitable. Superseded decisions remain in history. [Process map](#appendix--process-flow)
@@ -117,6 +119,27 @@ Architectural decisions are recorded as decisions, not rewritten later as if ine
 
 **Rationale:** Structured output must not let an agent self-promote testimony into observation or verdict authority. [Process map](#appendix--process-flow)
 
+## D-0013 — Repository changes update canonical Grapher state
+
+**Date:** 2026-09-06  
+**Status:** current
+
+**Decision:** Every substantive Dreadnought repository change advances `.grapher/knowledge.json` and `.grapher/history.jsonl`; CI rejects change sets that omit Grapher state.
+
+**Rationale:** Durable semantic state belongs in Grapher rather than being reconstructed from PR descriptions or chat history.
+
+## D-0014 — Every repository change must actually use Grapher
+
+**Date:** 2026-09-08  
+**Time:** 03:54 UTC / 21:54 MDT (September 7)  
+**Status:** current
+
+**Decision:** Repository work must invoke the repository-supported Grapher mutation path. Hand-authored `.grapher/shared/` evidence, pass records, commit messages, PR text, or manually edited canonical JSON do not satisfy the rule by themselves.
+
+**Enforcement:** A valid change must advance canonical `.grapher/knowledge.json`, append `.grapher/history.jsonl`, contain a structured Grapher mutation event with an operation ID/target/transitions, and pass `grapher validate`. Dreadnought-generated workspace instructions inherit this rule.
+
+**Grapher record:** `decision-always-use-grapher`, operation `governance-always-use-grapher-2026-09-08`.
+
 ## Appendix — Process flow
 
 ```mermaid
@@ -125,8 +148,9 @@ flowchart LR
     M --> D["Doctrine / bounded Orders<br/>inception: db2c89af7ffa2c803020739eec578f20bcf5850c<br/>current: f8f40d1d072d0c37a1ba4d63c430a234339c1a54"]
     D --> P["Typed testimony / authority classes<br/>inception: d6692863d9d43372f3fffc7b5c6fb821b6dafee1<br/>current: f8f40d1d072d0c37a1ba4d63c430a234339c1a54"]
     P --> G["Dreadnought-owned Grapher writes<br/>inception: 4630ac84da52677b343e7a3737844da683b25202<br/>current: f8f40d1d072d0c37a1ba4d63c430a234339c1a54"]
-    G --> V["Deterministic verification<br/>inception: 07721476c042df38edf6fc6fed1777a3f3c7004b<br/>current: f8f40d1d072d0c37a1ba4d63c430a234339c1a54"]
-    V --> S["Kernel boundary / Project Arm result channel<br/>inception: ce853e50706259b32585e7311b1d74638cb2bda5<br/>current: f8f40d1d072d0c37a1ba4d63c430a234339c1a54"]
+    G --> R["Mandatory Grapher use for repo changes<br/>inception: b748f868fe45c1f2af7d29db4d401eeb6ea39623<br/>current: 97ad3f13ad114f541e3cdf98f93f7ac67e359863"]
+    R --> V["Deterministic verification<br/>inception: 07721476c042df38edf6fc6fed1777a3f3c7004b<br/>current: 97ad3f13ad114f541e3cdf98f93f7ac67e359863"]
+    V --> S["Kernel boundary / Project Arm result channel<br/>inception: ce853e50706259b32585e7311b1d74638cb2bda5<br/>current: 97ad3f13ad114f541e3cdf98f93f7ac67e359863"]
 ```
 
 Commit references are the full hashes embedded in each node; all resolve under `https://github.com/seanbman/dreadnought/commit/<hash>`.
