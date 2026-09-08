@@ -1,0 +1,22 @@
+{
+  "id": "pass-primary-kernel-boundaries-2026-09-08",
+  "provenance": {
+    "actor_id": "dreadnought:control-plane",
+    "record_id": "record-08d4a9469adc",
+    "source": "dreadnought-protocol"
+  },
+  "semantic": {
+    "claims": [
+      "project max_minions is initialized as project policy",
+      "primary canonical workspace access is read-only under Bubblewrap",
+      "primary-to-minion communication is brokered by Dreadnought control plane",
+      "active unmetered primary sessions remain visible in token stats"
+    ],
+    "graph_path": "/home/runner/work/dreadnought/dreadnought/.grapher/knowledge.json",
+    "history_path": "/home/runner/work/dreadnought/dreadnought/.grapher/history.jsonl",
+    "record_id": "record-08d4a9469adc"
+  },
+  "status": "current",
+  "title": "Primary-agent kernel boundary repair",
+  "type": "verification"
+}
