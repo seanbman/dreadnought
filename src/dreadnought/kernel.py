@@ -87,6 +87,33 @@ class PrimaryKernel:
         allowed = set(_BASE_ENV) | set(_PROVIDER_ENV.get(agent_type, ()))
         return {key: value for key, value in os.environ.items() if key in allowed and key not in _BLOCKED_ENV}
 
+    @staticmethod
+    def _provider_args(agent_type: str, args: list[str]) -> list[str]:
+        """Avoid nesting a provider sandbox inside Dreadnought's outer kernel."""
+        rendered = list(args)
+        if agent_type != "codex":
+            return rendered
+        if "--dangerously-bypass-approvals-and-sandbox" in rendered:
+            return rendered
+        for index, arg in enumerate(rendered):
+            if arg in {"--sandbox", "-s"}:
+                if index + 1 >= len(rendered):
+                    raise ValueError("Codex sandbox option requires a mode")
+                mode = rendered[index + 1]
+                if mode != "danger-full-access":
+                    raise ValueError(
+                        "Codex primary must use --sandbox danger-full-access inside Dreadnought's outer sandbox"
+                    )
+                return rendered
+            if arg.startswith("--sandbox="):
+                mode = arg.split("=", 1)[1]
+                if mode != "danger-full-access":
+                    raise ValueError(
+                        "Codex primary must use --sandbox danger-full-access inside Dreadnought's outer sandbox"
+                    )
+                return rendered
+        return ["--sandbox", "danger-full-access", *rendered]
+
     def _provider_writable_paths(self, agent_type: str, env: dict[str, str]) -> list[Path]:
         """Return narrowly scoped provider runtime paths that must remain writable."""
         if agent_type != "codex":
@@ -156,7 +183,8 @@ class PrimaryKernel:
                     argv.extend(("--tmpfs", path))
                 else:
                     argv.extend(("--ro-bind", "/dev/null", path))
-            argv.extend(("--", executable, *args))
+            provider_args = self._provider_args(agent_type, args)
+            argv.extend(("--", executable, *provider_args))
             return subprocess.call(argv, cwd=self.workspace, env=env)
 
 

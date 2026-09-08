@@ -115,6 +115,20 @@ def test_primary_kernel_builds_read_only_workspace_and_strips_git_credentials(tm
     assert seen["env"]["DREADNOUGHT_CONTROL_SOCKET"].endswith("control.sock")
 
 
+
+def test_primary_codex_uses_outer_dreadnought_sandbox() -> None:
+    assert PrimaryKernel._provider_args("codex", ["--model", "x"]) == [
+        "--sandbox", "danger-full-access", "--model", "x"
+    ]
+    assert PrimaryKernel._provider_args("codex", ["--sandbox", "danger-full-access"]) == [
+        "--sandbox", "danger-full-access"
+    ]
+    assert PrimaryKernel._provider_args("custom", ["--sandbox", "workspace-write"]) == [
+        "--sandbox", "workspace-write"
+    ]
+    with pytest.raises(ValueError, match="outer sandbox"):
+        PrimaryKernel._provider_args("codex", ["--sandbox", "workspace-write"])
+
 def test_primary_kernel_rejects_codex_home_inside_workspace(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("CODEX_HOME", str(tmp_path / ".codex"))
     monkeypatch.setattr("dreadnought.kernel.shutil.which", lambda name: "/usr/bin/bwrap")
