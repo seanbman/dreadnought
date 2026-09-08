@@ -1,0 +1,24 @@
+{
+  "id": "pass-dreadnought-project-creation-2026-09-07",
+  "type": "result",
+  "title": "Complete Dreadnought project creation",
+  "content": {
+    "result": "Dreadnought can create a complete registered project from a name and directive, initialize Git and Grapher, create or explicitly link documentation, generate project instructions and entrypoints, and persist an initial ready Mission.",
+    "interpretation": "New projects can now be born inside the Dreadnought workspace instead of requiring an externally prepared repository; linked documentation remains external evidence and is not overwritten."
+  },
+  "status": "current",
+  "workflow_state": "completed",
+  "verification": "pending_ci",
+  "provenance": {
+    "actor_id": "openai:gpt-5.6-sol",
+    "actor_kind": "agent",
+    "source": "github-change",
+    "integrity": "declared"
+  },
+  "evidence": [
+    {"type": "file", "ref": "src/dreadnought/project_factory.py"},
+    {"type": "file", "ref": "src/dreadnought/project_cli.py"},
+    {"type": "file", "ref": "tests/test_project_factory.py"},
+    {"type": "file", "ref": "docs/PROJECTS.md"}
+  ]
+}
