@@ -16,8 +16,11 @@ def test_agent_config_sets_primary(tmp_path: Path) -> None:
     configure_agent(tmp_path, agent_type="codex", executable="codex", args=["--model", "x"], primary=True)
     config = load_config(tmp_path)
     assert config["primary_agent"] == "codex"
-    assert config["agents"]["codex"]["executable"] == "codex"
-    assert config["agents"]["codex"]["args"] == ["--model", "x"]
+    agent = config["agents"]["codex"]
+    assert agent["executable"] == "dreadnought"
+    assert agent["args"] == ["kernel", "launch", "--agent-type", "codex"]
+    assert agent["provider_executable"] == "codex"
+    assert agent["provider_args"] == ["--model", "x"]
 
 
 def test_usage_aggregates_and_projects_into_grapher(tmp_path: Path) -> None:
@@ -89,6 +92,7 @@ def test_command_adapter_exposes_usage_report_template(tmp_path: Path) -> None:
     )
     assert command[-1] == str(result_path.with_suffix(".usage.json"))
 
+
 def test_primary_cli_chat_records_unmetered_session(tmp_path: Path, monkeypatch) -> None:
     configure_agent(tmp_path, agent_type="codex", executable="codex", primary=True)
     monkeypatch.setattr("dreadnought.cli.subprocess.call", lambda command, cwd: 0)
@@ -100,4 +104,3 @@ def test_primary_cli_chat_records_unmetered_session(tmp_path: Path, monkeypatch)
     assert stats["metering"]["complete"] is False
     assert stats["metering"]["unmetered_sessions"] == 1
     assert stats["metering"]["unmetered_by_role"]["primary"] == 1
-

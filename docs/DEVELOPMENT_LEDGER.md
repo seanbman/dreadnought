@@ -6,6 +6,7 @@
 - [Mission schema and CLI skeleton](#2026-09-06--mission-schema-and-cli-skeleton)
 - [Doctrine, Campaign Plan, and Project Arm Orders](#2026-09-06--doctrine-campaign-plan-and-project-arm-orders)
 - [Typed protocol verified and Grapher write boundary begun](#2026-09-06--typed-protocol-verified-and-grapher-write-boundary-begun)
+- [Primary agent kernel boundary and project minion policy](#2026-09-08--primary-agent-kernel-boundary-and-project-minion-policy)
 - [Appendix — Process flow](#appendix--process-flow)
 
 Chronological record of Dreadnought's development. Entries describe what was actually done and why, with evidence references where possible. [Process map](#appendix--process-flow)
@@ -103,6 +104,28 @@ Initial commits: `ac29c56cba711458213e1be6582c69355332e85b`, `df5f1644dc93b838f6
 
 This is a software authority boundary, not yet a kernel-enforced one. Direct filesystem access to `.grapher/` remains possible until the Sarcophagus milestone removes that authority from Project Arms. [Process map](#appendix--process-flow)
 
+## 2026-09-08 — Primary agent kernel boundary and project minion policy
+
+**Branch:** `fix/init-kernel-boundaries`  
+**Implementation commit:** `1b03ab95241518552672051fc0eedc604670c756`  
+**Grapher record:** `record-08d4a9469adc`
+
+### Failure addressed
+
+The primary Dreadnought chat still launched as an ordinary host subprocess with the canonical workspace as its working directory. The architecture described authority separation, but the primary process retained direct filesystem mutation authority. That made the control plane advisory rather than a hard boundary.
+
+### Implementation
+
+Primary agents are now normalized through `dreadnought kernel launch`. Bubblewrap exposes canonical workspace state read-only, provides a dedicated writable scratch area, strips GitHub/SSH credential channels, and fails closed when the kernel backend is unavailable. A host-side Unix-socket broker exposes the limited control-plane operations required by the primary: Grapher query/get, usage statistics, and minion commissioning.
+
+Initialization now captures project-scoped `max_minions`; the same value is reflected in the bootstrap Mission and stored as runtime project policy. Concurrent minion leases are enforced per project, while stricter mission limits remain effective. Primary-to-minion communication is brokered through Dreadnought rather than allowing a direct agent channel.
+
+Token statistics also expose currently active native primary sessions that lack provider counters. Those sessions remain explicitly unmetered instead of being represented as measured zero-token activity.
+
+### Boundary under test
+
+The intended authority path is now `human → Dreadnought primary → Dreadnought control plane → Project Arm/minion → Sarcophagus`, with canonical mutation returning through Dreadnought-owned admission paths. Tests cover legacy config migration, project-scoped minion capacity, active usage coverage, credential stripping, and read-only canonical filesystem behavior. [Process map](#appendix--process-flow)
+
 ## Appendix — Process flow
 
 ```mermaid
@@ -113,6 +136,7 @@ flowchart LR
     P --> G["Grapher authority boundary<br/>inception: 4630ac84da52677b343e7a3737844da683b25202<br/>current: f8f40d1d072d0c37a1ba4d63c430a234339c1a54"]
     G --> V["Verification<br/>inception: 07721476c042df38edf6fc6fed1777a3f3c7004b<br/>current: f8f40d1d072d0c37a1ba4d63c430a234339c1a54"]
     V --> S["Sarcophagus + Project Arm<br/>inception: ce853e50706259b32585e7311b1d74638cb2bda5<br/>current: f8f40d1d072d0c37a1ba4d63c430a234339c1a54"]
+    S --> K["Primary kernel + broker-only minions<br/>code: src/dreadnought/kernel.py; src/dreadnought/control.py; src/dreadnought/secure_bootstrap.py<br/>inception: 1b03ab95241518552672051fc0eedc604670c756<br/>current: 1b03ab95241518552672051fc0eedc604670c756"]
 ```
 
 Commit references are the full hashes embedded in each node; all resolve under `https://github.com/seanbman/dreadnought/commit/<hash>`.

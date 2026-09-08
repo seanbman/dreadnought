@@ -16,6 +16,7 @@
 - [D-0012 — Agent result channel is testimony-only](#d-0012--agent-result-channel-is-testimony-only)
 - [D-0013 — Repository changes update canonical Grapher state](#d-0013--repository-changes-update-canonical-grapher-state)
 - [D-0014 — Every repository change must actually use Grapher](#d-0014--every-repository-change-must-actually-use-grapher)
+- [D-0015 — Primary agents have no direct project mutation authority](#d-0015--primary-agents-have-no-direct-project-mutation-authority)
 - [Appendix — Process flow](#appendix--process-flow)
 
 Architectural decisions are recorded as decisions, not rewritten later as if inevitable. Superseded decisions remain in history. [Process map](#appendix--process-flow)
@@ -140,6 +141,21 @@ Architectural decisions are recorded as decisions, not rewritten later as if ine
 
 **Grapher record:** `decision-always-use-grapher`, operation `governance-always-use-grapher-2026-09-08`.
 
+## D-0015 — Primary agents have no direct project mutation authority
+
+**Date:** 2026-09-08  
+**Status:** current
+
+**Decision:** A Dreadnought primary agent may inspect canonical project state but must not directly mutate the project or communicate with minions outside the Dreadnought control plane. Initialization establishes this as kernel policy: canonical workspace state is read-only in the primary process, writable work occurs in Dreadnought scratch, and minion commissioning crosses a host-side Dreadnought broker.
+
+**Enforcement:** Primary agents launch through `dreadnought kernel launch` using Bubblewrap and fail closed when the kernel backend is unavailable. GitHub/SSH credential channels are withheld from the primary kernel. `max_minions` is project-scoped policy configured at initialization and enforced as a concurrent runtime limit; mission limits may further reduce it but cannot enlarge the project cap.
+
+**Token-accounting rule:** Provider-reported token counts remain canonical when available. Active native primary sessions without provider counters are surfaced explicitly as unmetered rather than appearing as measured zero-token usage.
+
+**Implementation:** `src/dreadnought/kernel.py`, `src/dreadnought/control.py`, `src/dreadnought/project_policy.py`, `src/dreadnought/limits.py`, `src/dreadnought/secure_bootstrap.py`, `src/dreadnought/minion.py`, and `src/dreadnought/usage.py`. Initial implementation commit: `1b03ab95241518552672051fc0eedc604670c756`.
+
+**Grapher evidence:** `record-08d4a9469adc`; pass record `pass-primary-kernel-boundaries-2026-09-08`.
+
 ## Appendix — Process flow
 
 ```mermaid
@@ -151,6 +167,7 @@ flowchart LR
     G --> R["Mandatory Grapher use for repo changes<br/>inception: b748f868fe45c1f2af7d29db4d401eeb6ea39623<br/>current: 97ad3f13ad114f541e3cdf98f93f7ac67e359863"]
     R --> V["Deterministic verification<br/>inception: 07721476c042df38edf6fc6fed1777a3f3c7004b<br/>current: 97ad3f13ad114f541e3cdf98f93f7ac67e359863"]
     V --> S["Kernel boundary / Project Arm result channel<br/>inception: ce853e50706259b32585e7311b1d74638cb2bda5<br/>current: 97ad3f13ad114f541e3cdf98f93f7ac67e359863"]
+    S --> K["Primary kernel isolation + broker-only minions<br/>code: src/dreadnought/kernel.py; src/dreadnought/control.py; src/dreadnought/secure_bootstrap.py<br/>inception: 1b03ab95241518552672051fc0eedc604670c756<br/>current: 1b03ab95241518552672051fc0eedc604670c756"]
 ```
 
 Commit references are the full hashes embedded in each node; all resolve under `https://github.com/seanbman/dreadnought/commit/<hash>`.

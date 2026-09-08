@@ -532,6 +532,66 @@
         "source": "dreadnought-protocol",
         "integrity": "declared"
       }
+    },
+    "record-08d4a9469adc": {
+      "id": "record-08d4a9469adc",
+      "type": "dreadnought_note",
+      "title": "note: primary-agent-kernel-boundaries",
+      "content": "{\"actor_id\": \"dreadnought:kernel-boundary-repair\", \"created_at\": \"2026-09-08T05:02:44.775306+00:00\", \"data\": {\"audience\": \"human\", \"text\": \"Dreadnought now configures project-scoped max_minions at initialization; kernel-isolates the primary agent with the canonical workspace read-only; routes primary-to-minion communication exclusively through a host-side Dreadnought control-plane broker; and exposes active unmetered primary sessions in token statistics instead of reporting false measured zeroes.\"}, \"doctrine_ref\": null, \"evidence_refs\": [], \"id\": \"record-08d4a9469adc\", \"kind\": \"note\", \"mission_ref\": null, \"order_ref\": null, \"perspective\": \"observer\", \"schema_version\": 1, \"subject_ref\": \"primary-agent-kernel-boundaries\"}",
+      "path": "dreadnought://protocol",
+      "tags": [
+        "dreadnought-protocol",
+        "observer",
+        "note"
+      ],
+      "meta": {
+        "schema_version": 1,
+        "protocol": {
+          "id": "record-08d4a9469adc",
+          "kind": "note",
+          "perspective": "observer",
+          "actor_id": "dreadnought:kernel-boundary-repair",
+          "created_at": "2026-09-08T05:02:44.775306+00:00",
+          "schema_version": 1,
+          "mission_ref": null,
+          "doctrine_ref": null,
+          "order_ref": null,
+          "subject_ref": "primary-agent-kernel-boundaries",
+          "data": {
+            "audience": "human",
+            "text": "Dreadnought now configures project-scoped max_minions at initialization; kernel-isolates the primary agent with the canonical workspace read-only; routes primary-to-minion communication exclusively through a host-side Dreadnought control-plane broker; and exposes active unmetered primary sessions in token statistics instead of reporting false measured zeroes."
+          },
+          "evidence_refs": []
+        },
+        "submitted_by": "dreadnought:kernel-boundary-repair",
+        "submitted_perspective": "observer"
+      },
+      "created_at": "2026-09-08T05:02:44+00:00",
+      "updated_at": "2026-09-08T05:02:44+00:00",
+      "stage": "developing",
+      "status": "current",
+      "workflow_state": "active",
+      "verification": "unverified",
+      "evidence": [
+        {
+          "type": "protocol_record",
+          "ref": "record-08d4a9469adc"
+        }
+      ],
+      "source_refs": [],
+      "owners": [
+        "dreadnought:kernel-boundary-repair"
+      ],
+      "scope": {
+        "project_id": "dreadnought"
+      },
+      "provenance": {
+        "actor_id": "dreadnought:control-plane",
+        "actor_kind": "system_tool",
+        "actor_role": "control-plane",
+        "source": "dreadnought-protocol",
+        "integrity": "declared"
+      }
     }
   },
   "edges": [

@@ -65,17 +65,13 @@ class TokenUsage:
 
 
 class TokenUsageLedger:
-    """Append-only Dreadnought usage ledger with explicit metering coverage.
-
-    Exact token totals are recorded only when an adapter/provider reports them.
-    Native interactive sessions that do not expose usage are recorded separately as
-    unmetered sessions so the UI never represents active use as measured zero usage.
-    """
+    """Append-only usage ledger plus live unmetered-session coverage."""
 
     def __init__(self, workspace: Path | str):
         self.workspace = Path(workspace).resolve()
         self.path = self.workspace / ".dreadnought" / "token-usage.jsonl"
         self.sessions_path = self.workspace / ".dreadnought" / "agent-sessions.jsonl"
+        self.active_path = self.workspace / ".dreadnought" / "active-agent-sessions.json"
 
     def record(self, usage: TokenUsage, *, project_to_grapher: bool = True) -> TokenUsage:
         payload = usage.to_dict()
@@ -85,10 +81,7 @@ class TokenUsageLedger:
                 perspective=Perspective.OBSERVER,
                 actor_id="dreadnought:usage-meter",
                 subject_ref=usage.task_id or f"project:{usage.project_id}",
-                data={
-                    "audience": "human",
-                    "text": "token_usage " + json.dumps(payload, sort_keys=True),
-                },
+                data={"audience": "human", "text": "token_usage " + json.dumps(payload, sort_keys=True)},
             )
             GrapherControlPlane(self.workspace).write_record(record)
         self.path.parent.mkdir(parents=True, exist_ok=True)
@@ -96,16 +89,47 @@ class TokenUsageLedger:
             handle.write(json.dumps(payload, sort_keys=True) + "\n")
         return usage
 
-    def record_unmetered_session(
-        self,
-        *,
-        agent_id: str,
-        agent_role: str,
-        project_id: str,
-        task_id: str | None = None,
-        exit_code: int | None = None,
-        source: str = "native_interactive_chat",
-    ) -> dict[str, Any]:
+    def _read_active(self) -> dict[str, dict[str, Any]]:
+        if not self.active_path.is_file():
+            return {}
+        try:
+            data = json.loads(self.active_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            return {}
+        return data if isinstance(data, dict) else {}
+
+    def _write_active(self, rows: dict[str, dict[str, Any]]) -> None:
+        self.active_path.parent.mkdir(parents=True, exist_ok=True)
+        self.active_path.write_text(json.dumps(rows, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+
+    def mark_active_session(self, *, agent_id: str, agent_role: str, project_id: str,
+                            task_id: str | None = None, source: str = "native_interactive_chat") -> str:
+        if agent_role not in {"primary", "minion"}:
+            raise ValueError("agent role must be primary or minion")
+        session_id = f"session-{uuid4().hex}"
+        rows = self._read_active()
+        rows[session_id] = {
+            "id": session_id,
+            "recorded_at": datetime.now(timezone.utc).isoformat(),
+            "agent_id": agent_id,
+            "agent_role": agent_role,
+            "project_id": project_id,
+            "task_id": task_id,
+            "metered": False,
+            "state": "active",
+            "source": source,
+        }
+        self._write_active(rows)
+        return session_id
+
+    def clear_active_session(self, session_id: str) -> None:
+        rows = self._read_active()
+        if rows.pop(session_id, None) is not None:
+            self._write_active(rows)
+
+    def record_unmetered_session(self, *, agent_id: str, agent_role: str, project_id: str,
+                                 task_id: str | None = None, exit_code: int | None = None,
+                                 source: str = "native_interactive_chat") -> dict[str, Any]:
         if agent_role not in {"primary", "minion"}:
             raise ValueError("agent role must be primary or minion")
         payload = {
@@ -134,19 +158,26 @@ class TokenUsageLedger:
             return []
         return [json.loads(line) for line in self.sessions_path.read_text(encoding="utf-8").splitlines() if line.strip()]
 
+    def active_sessions(self) -> list[dict[str, Any]]:
+        return list(self._read_active().values())
+
     def stats(self, *, project_id: str | None = None, task_id: str | None = None,
               agent_role: str | None = None) -> dict[str, Any]:
         rows = self.entries()
         sessions = self.sessions()
+        active = self.active_sessions()
         if project_id is not None:
             rows = [row for row in rows if row.get("project_id") == project_id]
             sessions = [row for row in sessions if row.get("project_id") == project_id]
+            active = [row for row in active if row.get("project_id") == project_id]
         if task_id is not None:
             rows = [row for row in rows if row.get("task_id") == task_id]
             sessions = [row for row in sessions if row.get("task_id") == task_id]
+            active = [row for row in active if row.get("task_id") == task_id]
         if agent_role is not None:
             rows = [row for row in rows if row.get("agent_role") == agent_role]
             sessions = [row for row in sessions if row.get("agent_role") == agent_role]
+            active = [row for row in active if row.get("agent_role") == agent_role]
         by_agent: dict[str, int] = {}
         by_project: dict[str, int] = {}
         by_task: dict[str, int] = {}
@@ -161,10 +192,11 @@ class TokenUsageLedger:
             if role in by_role:
                 by_role[role] += total
         unmetered_by_role = {"primary": 0, "minion": 0}
-        for session in sessions:
+        for session in [*sessions, *active]:
             role = session.get("agent_role")
             if role in unmetered_by_role:
                 unmetered_by_role[role] += 1
+        unmetered_count = len(sessions) + len(active)
         return {
             "records": len(rows),
             "total_tokens": sum(by_agent.values()),
@@ -173,13 +205,14 @@ class TokenUsageLedger:
             "by_project": by_project,
             "by_task": by_task,
             "metering": {
-                "complete": len(sessions) == 0,
-                "unmetered_sessions": len(sessions),
+                "complete": unmetered_count == 0,
+                "unmetered_sessions": unmetered_count,
+                "active_unmetered_sessions": len(active),
+                "active_sessions": active,
                 "unmetered_by_role": unmetered_by_role,
                 "note": (
-                    "Token totals include provider-reported usage only. "
-                    "Unmetered native interactive sessions are counted separately."
-                    if sessions else
+                    "Token totals include provider-reported usage only. Active or native sessions without provider counters are reported explicitly rather than as zero-token usage."
+                    if unmetered_count else
                     "All recorded sessions in this view have provider-reported token usage."
                 ),
             },
