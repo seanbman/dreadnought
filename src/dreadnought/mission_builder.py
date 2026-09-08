@@ -158,11 +158,20 @@ def _edit_capabilities(mission: Mission) -> None:
         "Shell access",
         [("none", "None"), ("restricted", "Restricted"), ("unrestricted", "Unrestricted")],
     )
-    max_minions_text = ask("Mission capabilities", "Maximum minions", str(caps.max_minions))
-    try:
-        max_minions = max(0, int(max_minions_text or caps.max_minions))
-    except ValueError:
-        max_minions = caps.max_minions
+    current_limit = "" if caps.max_minions is None else str(caps.max_minions)
+    max_minions_text = ask(
+        "Mission capabilities",
+        "Maximum minions (blank = Dreadnought decides; 0 = prohibit)",
+        current_limit,
+    )
+    raw_limit = (max_minions_text or "").strip()
+    if not raw_limit:
+        max_minions = None
+    else:
+        try:
+            max_minions = max(0, int(raw_limit))
+        except ValueError:
+            max_minions = caps.max_minions
     mission.capabilities = CapabilitySet(
         canonical_workspace=AccessMode(workspace or caps.canonical_workspace.value),
         scratch_write=confirm("Mission capabilities", "Allow scratch writes?"),
