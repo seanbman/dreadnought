@@ -4,6 +4,7 @@ import argparse
 import json
 from pathlib import Path
 
+from .project_factory import create_project
 from .project_registry import list_projects, register_project, select_project, unregister_project
 
 
@@ -14,6 +15,15 @@ def run_project_cli(argv: list[str]) -> int:
 
     listing = sub.add_parser("list", help="list registered projects")
     listing.add_argument("--root", default=".")
+
+    create = sub.add_parser("create", help="create and register a complete Dreadnought-managed project")
+    create.add_argument("name")
+    create.add_argument("directive")
+    create.add_argument("--id")
+    create.add_argument("--docs-source", help="existing documentation directory to link as project/docs")
+    create.add_argument("--actor", default="human:user")
+    create.add_argument("--default", action="store_true", dest="make_default")
+    create.add_argument("--root", default=".")
 
     add = sub.add_parser("add", help="register an existing project directory")
     add.add_argument("path")
@@ -38,6 +48,18 @@ def run_project_cli(argv: list[str]) -> int:
         if args.project_command == "list":
             print(json.dumps(list_projects(workspace), indent=2))
             return 0
+        if args.project_command == "create":
+            result = create_project(
+                workspace,
+                args.name,
+                args.directive,
+                project_id=args.id,
+                docs_source=args.docs_source,
+                actor=args.actor,
+                make_default=True if args.make_default else None,
+            )
+            print(json.dumps(result, indent=2))
+            return 0
         if args.project_command == "add":
             record = register_project(
                 workspace,
@@ -57,6 +79,6 @@ def run_project_cli(argv: list[str]) -> int:
             record = unregister_project(workspace, args.project_id)
             print(json.dumps(record.to_dict(), indent=2))
             return 0
-    except (OSError, ValueError, json.JSONDecodeError) as exc:
+    except (OSError, ValueError, RuntimeError, json.JSONDecodeError) as exc:
         parser.error(str(exc))
     return 2
