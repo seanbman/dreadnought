@@ -1,0 +1,25 @@
+{
+  "id": "pass-dreadnought-bootstrap-initialization-2026-09-07",
+  "type": "result",
+  "title": "Workspace bootstrap and inherited Grapher adoption",
+  "content": {
+    "result": "Dreadnought initialization now captures human bootstrap intent, selects or discovers a managed project root, generates a ready bootstrap Mission and durable instructions, adopts existing schema-v2 Grapher brains without rewriting historical nodes, and routes control-plane Grapher access from a workspace root to a nested managed project.",
+    "interpretation": "A fresh workspace containing an older Grapher-backed project can be brought under Dreadnought without Agent Hub, without destructive Grapher reinitialization, and without requiring the operator to hand-author project instructions before bootstrap."
+  },
+  "status": "current",
+  "workflow_state": "completed",
+  "verification": "pending_ci",
+  "provenance": {
+    "actor_id": "openai:gpt-5.6-sol",
+    "actor_kind": "agent",
+    "source": "github-change",
+    "integrity": "declared"
+  },
+  "evidence": [
+    {"type": "file", "ref": "src/dreadnought/bootstrap.py"},
+    {"type": "file", "ref": "src/dreadnought/grapher.py"},
+    {"type": "file", "ref": "src/dreadnought/main.py"},
+    {"type": "file", "ref": "tests/test_bootstrap.py"},
+    {"type": "file", "ref": "docs/BOOTSTRAP.md"}
+  ]
+}
