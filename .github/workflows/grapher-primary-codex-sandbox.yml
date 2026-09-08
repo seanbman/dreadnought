@@ -1,0 +1,124 @@
+name: grapher-primary-codex-sandbox
+
+on:
+  push:
+    branches: [fix/primary-codex-nested-sandbox]
+
+permissions:
+  contents: write
+
+jobs:
+  patch-and-mutate:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/primary-codex-nested-sandbox
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Patch primary Codex kernel ownership
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+
+          p = Path('src/dreadnought/kernel.py')
+          s = p.read_text()
+          anchor = '''    @staticmethod\n    def _provider_env(agent_type: str) -> dict[str, str]:\n        allowed = set(_BASE_ENV) | set(_PROVIDER_ENV.get(agent_type, ()))\n        return {key: value for key, value in os.environ.items() if key in allowed and key not in _BLOCKED_ENV}\n\n'''
+          insert = anchor + '''    @staticmethod\n    def _provider_args(agent_type: str, args: list[str]) -> list[str]:\n        """Avoid nesting a provider sandbox inside Dreadnought's outer kernel."""\n        rendered = list(args)\n        if agent_type != "codex":\n            return rendered\n        if "--dangerously-bypass-approvals-and-sandbox" in rendered:\n            return rendered\n        for index, arg in enumerate(rendered):\n            if arg in {"--sandbox", "-s"}:\n                if index + 1 >= len(rendered):\n                    raise ValueError("Codex sandbox option requires a mode")\n                mode = rendered[index + 1]\n                if mode != "danger-full-access":\n                    raise ValueError(\n                        "Codex primary must use --sandbox danger-full-access inside Dreadnought's outer sandbox"\n                    )\n                return rendered\n            if arg.startswith("--sandbox="):\n                mode = arg.split("=", 1)[1]\n                if mode != "danger-full-access":\n                    raise ValueError(\n                        "Codex primary must use --sandbox danger-full-access inside Dreadnought's outer sandbox"\n                    )\n                return rendered\n        return ["--sandbox", "danger-full-access", *rendered]\n\n'''
+          if anchor not in s:
+              raise SystemExit('kernel provider env anchor not found')
+          s = s.replace(anchor, insert, 1)
+          old = '            argv.extend(("--", executable, *args))\n'
+          new = '            provider_args = self._provider_args(agent_type, args)\n            argv.extend(("--", executable, *provider_args))\n'
+          if old not in s:
+              raise SystemExit('kernel argv anchor not found')
+          p.write_text(s.replace(old, new, 1))
+
+          p = Path('tests/test_kernel_boundaries.py')
+          s = p.read_text()
+          marker = '\ndef test_primary_kernel_rejects_codex_home_inside_workspace'
+          test = '''\n\ndef test_primary_codex_uses_outer_dreadnought_sandbox() -> None:\n    assert PrimaryKernel._provider_args("codex", ["--model", "x"]) == [\n        "--sandbox", "danger-full-access", "--model", "x"\n    ]\n    assert PrimaryKernel._provider_args("codex", ["--sandbox", "danger-full-access"]) == [\n        "--sandbox", "danger-full-access"\n    ]\n    assert PrimaryKernel._provider_args("custom", ["--sandbox", "workspace-write"]) == [\n        "--sandbox", "workspace-write"\n    ]\n    with pytest.raises(ValueError, match="outer sandbox"):\n        PrimaryKernel._provider_args("codex", ["--sandbox", "workspace-write"])\n'''
+          if marker not in s:
+              raise SystemExit('test insertion anchor not found')
+          p.write_text(s.replace(marker, test + marker, 1))
+
+          p = Path('docs/ARCHITECTURE.md')
+          s = p.read_text()
+          old = 'Sarcophagus is the current kernel-enforced process/filesystem boundary.\n'
+          new = old + 'For Codex, Dreadnought is the sole Linux sandbox boundary: primary and Project Arm launches disable Codex\'s nested filesystem sandbox (`danger-full-access` from Codex\'s perspective) while the outer Dreadnought Bubblewrap boundary continues enforcing canonical read-only mounts, credential masking, scratch access, and private temporary storage.\n'
+          if old not in s:
+              raise SystemExit('architecture anchor not found')
+          p.write_text(s.replace(old, new, 1))
+          PY
+      - run: python -m pip install --upgrade pip pytest
+      - run: python -m pip install -e .
+      - run: pytest -q
+      - name: Record canonical Grapher mutation
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from datetime import datetime, timezone
+          import json
+          from pathlib import Path
+          from grapher.integrations.embedded import contribute_context
+
+          now = datetime.now(timezone.utc).isoformat(timespec='seconds')
+          graph_path = Path('.grapher/knowledge.json')
+          node = contribute_context(
+              graph_path,
+              type='implementation',
+              title='Dreadnought owns Codex Linux sandbox boundary',
+              content=json.dumps({
+                  'change': 'Primary Codex launches now disable the nested Codex filesystem sandbox and rely on the existing Dreadnought Bubblewrap kernel, matching the Project Arm Codex adapter and preventing nested user-namespace process failures.',
+                  'component': 'src/dreadnought/kernel.py'
+              }),
+              node_id='implementation-primary-codex-sandbox-ownership',
+              path='src/dreadnought/kernel.py',
+              tags=['kernel','codex','bubblewrap','sandbox','userns'],
+              stage='maintaining',
+              status='current',
+              workflow_state='completed',
+              verification='verified',
+              evidence=[
+                  {'type':'document','ref':'src/dreadnought/kernel.py','summary':'Primary Codex sandbox argument normalization'},
+                  {'type':'document','ref':'tests/test_kernel_boundaries.py','summary':'Nested sandbox regression coverage'},
+                  {'type':'document','ref':'docs/ARCHITECTURE.md','summary':'Sandbox ownership architecture contract'}
+              ],
+              source_refs=['tests/test_kernel_boundaries.py','docs/ARCHITECTURE.md'],
+              scope={'project_id':'dreadnought'},
+              provenance={'actor_id':'chatgpt','actor_kind':'agent','source':'github-actions','integrity':'declared','recorded_at':now},
+              actor={'id':'chatgpt','kind':'agent'},
+              reason='Prevent Codex from creating a second Bubblewrap/user namespace inside Dreadnought while preserving the outer Dreadnought security boundary',
+              evidence_refs=['src/dreadnought/kernel.py','tests/test_kernel_boundaries.py','docs/ARCHITECTURE.md'],
+              operation_id='primary-codex-sandbox-ownership-fix',
+              phase='executed',
+              source='github-actions',
+          )
+          out = Path('.grapher/shared/pass-records/2026-09-08-primary-codex-sandbox-ownership.json')
+          out.parent.mkdir(parents=True, exist_ok=True)
+          out.write_text(json.dumps({
+              'id':'pass-primary-codex-sandbox-ownership-2026-09-08',
+              'type':'verification',
+              'title':'Primary Codex sandbox ownership',
+              'status':'current',
+              'provenance':{'actor_id':'chatgpt','actor_kind':'agent','source':'github-actions','recorded_at':now},
+              'semantic':{'graph_node':node['id'],'claims':['Primary Codex does not nest a Linux filesystem sandbox inside Dreadnought','Conflicting explicit Codex sandbox modes fail closed','Outer Dreadnought Bubblewrap remains the security boundary']}
+          }, indent=2) + '\n')
+          PY
+          grapher validate --graph .grapher/knowledge.json --json
+      - name: Commit patch and Grapher outputs
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/grapher-primary-codex-sandbox.yml
+          git add src/dreadnought/kernel.py tests/test_kernel_boundaries.py docs/ARCHITECTURE.md .grapher/knowledge.json .grapher/history.jsonl .grapher/shared/pass-records/2026-09-08-primary-codex-sandbox-ownership.json
+          git commit -m "Fix primary Codex nested sandbox"
+          git push origin HEAD:fix/primary-codex-nested-sandbox
