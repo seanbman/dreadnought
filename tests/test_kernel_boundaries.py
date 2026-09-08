@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-import shutil
 
 import pytest
 
@@ -79,11 +78,22 @@ def test_live_unmetered_primary_session_is_visible_immediately(tmp_path: Path) -
     assert TokenUsageLedger(tmp_path).stats()["metering"]["active_unmetered_sessions"] == 0
 
 
+def test_primary_kernel_doctor_requires_operational_bubblewrap(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr("dreadnought.kernel.shutil.which", lambda name: "/usr/bin/bwrap")
+    monkeypatch.setattr(PrimaryKernel, "_bubblewrap_probe", staticmethod(lambda backend: (False, "uid map denied")))
+    status = PrimaryKernel(tmp_path).doctor()
+    assert status["available"] is False
+    assert status["detail"] == "uid map denied"
+
+
 def test_primary_kernel_builds_read_only_workspace_and_strips_git_credentials(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     seen = {}
+    codex_home = tmp_path.parent / f"{tmp_path.name}-codex-home"
     monkeypatch.setenv("GITHUB_TOKEN", "secret")
     monkeypatch.setenv("OPENAI_API_KEY", "provider")
+    monkeypatch.setenv("CODEX_HOME", str(codex_home))
     monkeypatch.setattr("dreadnought.kernel.shutil.which", lambda name: "/usr/bin/bwrap")
+    monkeypatch.setattr(PrimaryKernel, "_bubblewrap_probe", staticmethod(lambda backend: (True, None)))
 
     def fake_call(argv, *, cwd, env):
         seen["argv"] = argv
@@ -96,17 +106,30 @@ def test_primary_kernel_builds_read_only_workspace_and_strips_git_credentials(tm
     assert rc == 0
     argv = seen["argv"]
     triples = list(zip(argv, argv[1:], argv[2:]))
+    resolved_codex_home = str(codex_home.resolve())
     assert ("--ro-bind", str(tmp_path), str(tmp_path)) in triples
+    assert ("--bind", resolved_codex_home, resolved_codex_home) in triples
     assert "GITHUB_TOKEN" not in seen["env"]
     assert seen["env"]["OPENAI_API_KEY"] == "provider"
+    assert seen["env"]["CODEX_HOME"] == resolved_codex_home
     assert seen["env"]["DREADNOUGHT_CONTROL_SOCKET"].endswith("control.sock")
 
 
-@pytest.mark.skipif(shutil.which("bwrap") is None, reason="bubblewrap not installed")
+def test_primary_kernel_rejects_codex_home_inside_workspace(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("CODEX_HOME", str(tmp_path / ".codex"))
+    monkeypatch.setattr("dreadnought.kernel.shutil.which", lambda name: "/usr/bin/bwrap")
+    monkeypatch.setattr(PrimaryKernel, "_bubblewrap_probe", staticmethod(lambda backend: (True, None)))
+    with pytest.raises(ValueError, match="outside the read-only canonical workspace"):
+        PrimaryKernel(tmp_path).run(agent_type="codex", executable="codex", args=[])
+
+
 def test_primary_kernel_cannot_write_canonical_workspace(tmp_path: Path) -> None:
+    kernel = PrimaryKernel(tmp_path)
+    if not kernel.doctor()["available"]:
+        pytest.skip("bubblewrap sandbox is not operational")
     target = tmp_path / "protected.txt"
     target.write_text("original")
     command = ["-c", f"echo hacked > {target}"]
-    rc = PrimaryKernel(tmp_path).run(agent_type="custom", executable="/bin/sh", args=command)
+    rc = kernel.run(agent_type="custom", executable="/bin/sh", args=command)
     assert rc != 0
     assert target.read_text() == "original"
