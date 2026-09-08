@@ -86,7 +86,9 @@ def test_bootstrap_adopts_nested_project_and_generates_instructions(tmp_path: Pa
     assert result["brain"]["mode"] == "adopted"
     assert "Continue the Plumbing Track site overhaul" in instructions
     assert "sole authority that mutates Grapher" in instructions
+    assert "Every substantive repository change must invoke Grapher" in instructions
     assert ".dreadnought/INSTRUCTIONS.md" in agent_entry
+    assert "Every substantive repository change must invoke Grapher" in agent_entry
     assert "legacy-unclassified" in graph["nodes"]
     assert GrapherControlPlane(tmp_path).doctor()["compatible"] is True
 
