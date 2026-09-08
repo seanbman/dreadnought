@@ -79,6 +79,14 @@ def _bootstrap_extension(argv: list[str]) -> int | None:
     return run_bootstrap_cli(argv[1:], prog=f"dreadnought {argv[0]}")
 
 
+def _project_extension(argv: list[str]) -> int | None:
+    if not argv or argv[0] != "project":
+        return None
+    from dreadnought.project_cli import run_project_cli
+
+    return run_project_cli(argv[1:])
+
+
 def _update_command(argv: list[str]) -> int | None:
     if not argv or argv[0] != "update":
         return None
@@ -101,6 +109,7 @@ def _print_help() -> int:
         "  dreadnought                          open the interactive workspace menu\n"
         "  dreadnought initialize [brief]       initialize/adopt a workspace and generate instructions\n"
         "  dreadnought init [brief]             alias for initialize\n"
+        "  dreadnought project <command>        register/list/select workspace projects\n"
         "  dreadnought mission <command>        build or inspect missions\n"
         "  dreadnought doctrine <command>       normalize authoritative intent\n"
         "  dreadnought campaign <command>       plan doctrine as bounded operations\n"
@@ -141,6 +150,9 @@ def main() -> int:
     bootstrapped = _bootstrap_extension(actual)
     if bootstrapped is not None:
         return bootstrapped
+    projects = _project_extension(actual)
+    if projects is not None:
+        return projects
     updated = _update_command(actual)
     if updated is not None:
         return updated
