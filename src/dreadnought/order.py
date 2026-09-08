@@ -19,6 +19,7 @@ class Order:
     project_arm: str
     objective: str
     created_at: str
+    project_id: str | None = None
     source_refs: list[str] = field(default_factory=list)
     relevant_requirements: list[str] = field(default_factory=list)
     include_scope: list[str] = field(default_factory=list)
@@ -36,6 +37,7 @@ class Order:
         operation_ref: str,
         objective: str,
         project_arm: str = "project-arm-1",
+        project_id: str | None = None,
     ) -> "Order":
         return cls(
             id=f"order-{uuid4().hex[:12]}",
@@ -45,6 +47,7 @@ class Order:
             project_arm=project_arm,
             objective=objective,
             created_at=datetime.now(timezone.utc).isoformat(),
+            project_id=project_id,
         )
 
     def validate(self) -> list[str]:
@@ -59,6 +62,8 @@ class Order:
         for name, value in required.items():
             if not value.strip():
                 errors.append(f"{name} must not be empty")
+        if self.project_id is not None and not self.project_id.strip():
+            errors.append("project_id must not be empty when supplied")
         for domain, level in self.creative_authority.items():
             if level not in AGENCY_LEVELS:
                 errors.append(f"invalid creative authority level for {domain}: {level}")
