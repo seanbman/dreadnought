@@ -1,0 +1,16 @@
+{
+  "id": "pass-release-0.2.0b4-2026-09-08",
+  "provenance": {
+    "actor_id": "dreadnought:control-plane",
+    "record_id": "record-ae5acb0e9896",
+    "source": "dreadnought-protocol"
+  },
+  "semantic": {
+    "record_id": "record-ae5acb0e9896",
+    "source_merge": "162a5b71b602d635eacd3a30ab844c9380ccddd6",
+    "version": "0.2.0b4"
+  },
+  "status": "current",
+  "title": "Release Dreadnought 0.2.0b4",
+  "type": "verification"
+}

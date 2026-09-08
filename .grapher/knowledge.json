@@ -592,6 +592,66 @@
         "source": "dreadnought-protocol",
         "integrity": "declared"
       }
+    },
+    "record-ae5acb0e9896": {
+      "id": "record-ae5acb0e9896",
+      "type": "dreadnought_note",
+      "title": "note: release-v0.2.0b4",
+      "content": "{\"actor_id\": \"dreadnought:release\", \"created_at\": \"2026-09-08T05:07:11.589470+00:00\", \"data\": {\"audience\": \"human\", \"text\": \"Release 0.2.0b4 packages the primary-agent kernel boundary repair from PR #30: project-scoped max_minions, read-only canonical workspace access for the primary, broker-only primary-to-minion communication, stripped GitHub/SSH credential channels, and visible active unmetered primary sessions in token statistics.\"}, \"doctrine_ref\": null, \"evidence_refs\": [], \"id\": \"record-ae5acb0e9896\", \"kind\": \"note\", \"mission_ref\": null, \"order_ref\": null, \"perspective\": \"observer\", \"schema_version\": 1, \"subject_ref\": \"release-v0.2.0b4\"}",
+      "path": "dreadnought://protocol",
+      "tags": [
+        "dreadnought-protocol",
+        "observer",
+        "note"
+      ],
+      "meta": {
+        "schema_version": 1,
+        "protocol": {
+          "id": "record-ae5acb0e9896",
+          "kind": "note",
+          "perspective": "observer",
+          "actor_id": "dreadnought:release",
+          "created_at": "2026-09-08T05:07:11.589470+00:00",
+          "schema_version": 1,
+          "mission_ref": null,
+          "doctrine_ref": null,
+          "order_ref": null,
+          "subject_ref": "release-v0.2.0b4",
+          "data": {
+            "audience": "human",
+            "text": "Release 0.2.0b4 packages the primary-agent kernel boundary repair from PR #30: project-scoped max_minions, read-only canonical workspace access for the primary, broker-only primary-to-minion communication, stripped GitHub/SSH credential channels, and visible active unmetered primary sessions in token statistics."
+          },
+          "evidence_refs": []
+        },
+        "submitted_by": "dreadnought:release",
+        "submitted_perspective": "observer"
+      },
+      "created_at": "2026-09-08T05:07:11+00:00",
+      "updated_at": "2026-09-08T05:07:11+00:00",
+      "stage": "developing",
+      "status": "current",
+      "workflow_state": "active",
+      "verification": "unverified",
+      "evidence": [
+        {
+          "type": "protocol_record",
+          "ref": "record-ae5acb0e9896"
+        }
+      ],
+      "source_refs": [],
+      "owners": [
+        "dreadnought:release"
+      ],
+      "scope": {
+        "project_id": "dreadnought"
+      },
+      "provenance": {
+        "actor_id": "dreadnought:control-plane",
+        "actor_kind": "system_tool",
+        "actor_role": "control-plane",
+        "source": "dreadnought-protocol",
+        "integrity": "declared"
+      }
     }
   },
   "edges": [
