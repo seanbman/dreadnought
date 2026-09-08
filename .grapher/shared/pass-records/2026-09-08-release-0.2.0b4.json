@@ -1,0 +1,21 @@
+{
+  "id": "pass-release-0.2.0b4-2026-09-08",
+  "type": "verification",
+  "title": "Dreadnought v0.2.0b4 release candidate",
+  "status": "current",
+  "provenance": {
+    "actor_id": "chatgpt",
+    "actor_kind": "agent",
+    "source": "github-actions",
+    "recorded_at": "2026-09-08T07:21:11+00:00"
+  },
+  "semantic": {
+    "graph_node": "implementation-release-0.2.0b4",
+    "claims": [
+      "Package version is 0.2.0b4",
+      "README public beta marker is 0.2.0b4",
+      "Full pytest and focused runtime/bootstrap regressions pass",
+      "Release includes merged Codex unified-exec kernel repair"
+    ]
+  }
+}

@@ -940,6 +940,64 @@
         "change": "Primary and minion Codex launches force features.unified_exec=false while Dreadnought/Sarcophagus own the external Bubblewrap security boundary, avoiding unified-exec CreateProcess failures under the enclosing kernel.",
         "component": "src/dreadnought/kernel.py; src/dreadnought/agent.py"
       }
+    },
+    "implementation-release-0.2.0b4": {
+      "id": "implementation-release-0.2.0b4",
+      "type": "implementation",
+      "title": "Dreadnought v0.2.0b4 release packages Codex kernel compatibility repair",
+      "content": "{\"component\": \"Dreadnought beta distribution v0.2.0b4\", \"change\": \"Publish the Codex unified-exec compatibility repair and corrected public beta marker so normal install/update paths receive the fixed Dreadnought build.\"}",
+      "path": "pyproject.toml",
+      "tags": [
+        "release",
+        "beta",
+        "codex",
+        "kernel",
+        "distribution"
+      ],
+      "meta": {},
+      "created_at": "2026-09-08T07:21:11+00:00",
+      "updated_at": "2026-09-08T07:21:11+00:00",
+      "stage": "launching",
+      "status": "current",
+      "workflow_state": "completed",
+      "verification": "verified",
+      "evidence": [
+        {
+          "type": "document",
+          "ref": "pyproject.toml",
+          "summary": "Package beta version 0.2.0b4"
+        },
+        {
+          "type": "document",
+          "ref": "README.md",
+          "summary": "Public beta marker 0.2.0b4"
+        },
+        {
+          "type": "commit",
+          "ref": "d0fdbb724d5617737a68eff3a74d60ea70c6ec5a",
+          "summary": "Merged Codex process execution repair"
+        }
+      ],
+      "source_refs": [
+        "pyproject.toml",
+        "README.md",
+        "src/dreadnought/kernel.py"
+      ],
+      "owners": [],
+      "scope": {
+        "project_id": "dreadnought"
+      },
+      "provenance": {
+        "actor_id": "chatgpt",
+        "actor_kind": "agent",
+        "source": "github-actions",
+        "integrity": "declared",
+        "recorded_at": "2026-09-08T07:21:11+00:00"
+      },
+      "semantic": {
+        "component": "Dreadnought beta distribution v0.2.0b4",
+        "change": "Publish the Codex unified-exec compatibility repair and corrected public beta marker so normal install/update paths receive the fixed Dreadnought build."
+      }
     }
   },
   "edges": [
