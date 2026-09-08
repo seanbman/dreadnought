@@ -16,7 +16,7 @@ This is the canonical durable documentation map. **New users should begin with t
 
 - [`README.md`](../README.md) — user-friendly overview and Linux quick start.
 - [`BOOTSTRAP.md`](BOOTSTRAP.md) — workspace initialization, inherited Grapher adoption, generated instructions, and nested-project routing.
-- [`PROJECTS.md`](PROJECTS.md) — multi-project workspace registry, project selection, compatibility, and CLI.
+- [`PROJECTS.md`](PROJECTS.md) — multi-project workspace registry, project creation, documentation linking, project selection, compatibility, and CLI.
 - [`MISSION_BUILDER.md`](MISSION_BUILDER.md) — guided mission prompt, source-document, requirement, notes, capability, review, and readiness workflow.
 - [`INSTALLATION_AND_UPDATES.md`](INSTALLATION_AND_UPDATES.md) — Linux installation, updates, release checks, dependency, troubleshooting.
 - [`INLINE_CLI.md`](INLINE_CLI.md) — inline numbered/arrow-key menus, cancellation semantics, help command, and `man dreadnought`.
@@ -56,18 +56,18 @@ Local runtime brain state lives under project `.grapher/` directories. Git-versi
 
 ## Document authority and update rules
 
-Current typed schema/code and validated machine state define executable behavior; the Architecture Charter/current decisions define intended architecture; Roadmap defines active sequence; ledgers preserve contemporaneous beliefs. CLI parser/help is executable authority. [`BOOTSTRAP.md`](BOOTSTRAP.md) is workspace-initialization authority, [`PROJECTS.md`](PROJECTS.md) is workspace-project registry authority, [`MISSION_BUILDER.md`](MISSION_BUILDER.md) is mission-authoring authority, [`INSTALLATION_AND_UPDATES.md`](INSTALLATION_AND_UPDATES.md) is distribution authority, [`INLINE_CLI.md`](INLINE_CLI.md) is interactive-terminal authority, and [`PROJECT_EXECUTION_TUTORIAL.md`](PROJECT_EXECUTION_TUTORIAL.md) is the canonical execution walkthrough. New durable Markdown must be indexed here, contain `## Index`, and include the required Mermaid provenance appendix. Architecture-bearing docs link to [`ARCHITECTURE.md`](ARCHITECTURE.md).
+Current typed schema/code and validated machine state define executable behavior; the Architecture Charter/current decisions define intended architecture; Roadmap defines active sequence; ledgers preserve contemporaneous beliefs. CLI parser/help is executable authority. [`BOOTSTRAP.md`](BOOTSTRAP.md) is workspace-initialization authority, [`PROJECTS.md`](PROJECTS.md) is workspace-project registry and creation authority, [`MISSION_BUILDER.md`](MISSION_BUILDER.md) is mission-authoring authority, [`INSTALLATION_AND_UPDATES.md`](INSTALLATION_AND_UPDATES.md) is distribution authority, [`INLINE_CLI.md`](INLINE_CLI.md) is interactive-terminal authority, and [`PROJECT_EXECUTION_TUTORIAL.md`](PROJECT_EXECUTION_TUTORIAL.md) is the canonical execution walkthrough. New durable Markdown must be indexed here, contain `## Index`, and include the required Mermaid provenance appendix. Architecture-bearing docs link to [`ARCHITECTURE.md`](ARCHITECTURE.md).
 
 ## Current milestone boundary
 
-Current public beta: **Dreadnought v0.2.0b2** with **Grapher v0.7.0b1**. The current development line adds generated workspace bootstrap plus a multi-project workspace registry. The selected project is a default route only; registration does not restrict Dreadnought to one project. Project creation and simultaneous multi-project routing are staged in follow-on work.
+Current public beta: **Dreadnought v0.2.0b2** with **Grapher v0.7.0b1**. The current development line adds generated workspace bootstrap, a multi-project registry, and complete project creation from a name/directive with Git, docs, Grapher, generated project instructions, and an initial Mission. Explicit simultaneous multi-project routing remains the next control-plane increment.
 
 ## Appendix — Process flow
 
 ```mermaid
 flowchart LR
-    R["User entry point\ncode: README.md; install.sh\ninception: 3bea73dd2ca73199b86b49998e049fb0f30c454f\ncurrent: feature/workspace-project-registry"] --> I["Canonical docs index\ncode: docs/INDEX.md; tests/test_documentation.py\ninception: b1852eff25b2c8b95924e134792ade74e433f255\ncurrent: feature/workspace-project-registry"]
-    I --> B["Workspace bootstrap\ncode: docs/BOOTSTRAP.md; src/dreadnought/bootstrap.py\ninception: a72edbfe4df191e5d9570c9dcf6d55909a1893ce\ncurrent: feature/workspace-project-registry"]
-    I --> P["Workspace projects\ncode: docs/PROJECTS.md; src/dreadnought/project_registry.py\ninception: b0d1f2bc1c0973d9df253987e4b6ec43bf1566cc\ncurrent: feature/workspace-project-registry"]
-    I --> M["Mission Builder\ncode: docs/MISSION_BUILDER.md; src/dreadnought/mission_builder.py\ninception: 9808bfe5d35beabd950b0fff1487c452494cf597\ncurrent: feature/workspace-project-registry"]
+    R["User entry point\ncode: README.md; install.sh\ninception: 3bea73dd2ca73199b86b49998e049fb0f30c454f\ncurrent: feature/project-creation"] --> I["Canonical docs index\ncode: docs/INDEX.md; tests/test_documentation.py\ninception: b1852eff25b2c8b95924e134792ade74e433f255\ncurrent: feature/project-creation"]
+    I --> B["Workspace bootstrap\ncode: docs/BOOTSTRAP.md; src/dreadnought/bootstrap.py\ninception: a72edbfe4df191e5d9570c9dcf6d55909a1893ce\ncurrent: feature/project-creation"]
+    I --> P["Workspace projects + creation\ncode: docs/PROJECTS.md; src/dreadnought/project_registry.py; src/dreadnought/project_factory.py\ninception: b0d1f2bc1c0973d9df253987e4b6ec43bf1566cc\ncurrent: feature/project-creation"]
+    I --> M["Mission Builder\ncode: docs/MISSION_BUILDER.md; src/dreadnought/mission_builder.py\ninception: 9808bfe5d35beabd950b0fff1487c452494cf597\ncurrent: feature/project-creation"]
 ```
