@@ -1,0 +1,28 @@
+{
+  "id": "pass-dreadnought-multi-project-control-2026-09-07",
+  "type": "result",
+  "title": "Synchronous multi-project control and routing",
+  "content": {
+    "result": "Dreadnought can address multiple registered projects in one control-plane session without switching the default project, route Grapher operations explicitly by project ID, create project-targeted Orders, and dispatch those Orders into the target project's canonical root, scratch namespace, token accounting, observer testimony, and Grapher brain.",
+    "interpretation": "The workspace default is now only a convenience route; project identity is explicit through multi-project coordination and execution, allowing one Dreadnought process to manage several independent project brains synchronously."
+  },
+  "status": "current",
+  "workflow_state": "completed",
+  "verification": "pending_ci",
+  "provenance": {
+    "actor_id": "openai:gpt-5.6-sol",
+    "actor_kind": "agent",
+    "source": "github-change",
+    "integrity": "declared"
+  },
+  "evidence": [
+    {"type": "file", "ref": "src/dreadnought/multi_project.py"},
+    {"type": "file", "ref": "src/dreadnought/grapher.py"},
+    {"type": "file", "ref": "src/dreadnought/order.py"},
+    {"type": "file", "ref": "src/dreadnought/dispatch.py"},
+    {"type": "file", "ref": "tests/test_multi_project_control.py"},
+    {"type": "file", "ref": "tests/test_dispatch.py"},
+    {"type": "file", "ref": "docs/ARCHITECTURE.md"},
+    {"type": "file", "ref": "docs/PROJECTS.md"}
+  ]
+}
