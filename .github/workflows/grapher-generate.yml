@@ -1,22 +1,33 @@
 name: generate-grapher-provenance
 
 on:
-  pull_request:
+  push:
+    branches: [fix/init-kernel-boundaries]
+
+permissions:
+  contents: write
 
 jobs:
   generate:
-    if: github.head_ref == 'fix/init-kernel-boundaries'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: fix/init-kernel-boundaries
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
       - run: python -m pip install --upgrade pip
       - run: python -m pip install -e .
-      - name: Invoke Dreadnought Grapher control plane
+      - name: Invoke Dreadnought Grapher control plane and commit canonical output
         shell: bash
         run: |
+          set -euo pipefail
+          if grep -q 'primary-agent-kernel-boundaries' .grapher/knowledge.json; then
+            echo 'Kernel-boundary provenance already present; nothing to regenerate.'
+            exit 0
+          fi
           python - <<'PY'
           import json
           from pathlib import Path
@@ -65,14 +76,9 @@ jobs:
           path = Path('.grapher/shared/pass-records/2026-09-08-primary-kernel-boundaries.json')
           path.parent.mkdir(parents=True, exist_ok=True)
           path.write_text(json.dumps(pass_record, indent=2, sort_keys=True) + '\n')
-          stage = Path('grapher-artifact')
-          stage.mkdir()
-          (stage / 'knowledge.json').write_bytes(Path('.grapher/knowledge.json').read_bytes())
-          (stage / 'history.jsonl').write_bytes(Path('.grapher/history.jsonl').read_bytes())
-          (stage / 'pass-record.json').write_bytes(path.read_bytes())
-          (stage / 'record-id.txt').write_text(record.id + '\n')
           PY
-      - uses: actions/upload-artifact@v4
-        with:
-          name: dreadnought-grapher-provenance
-          path: grapher-artifact/
+          git config user.name 'dreadnought-control-plane'
+          git config user.email 'actions@users.noreply.github.com'
+          git add .grapher/knowledge.json .grapher/history.jsonl .grapher/shared/pass-records/2026-09-08-primary-kernel-boundaries.json
+          git commit -m 'grapher: record primary kernel boundary repair'
+          git push origin HEAD:fix/init-kernel-boundaries
