@@ -1,0 +1,24 @@
+{
+  "id": "pass-dreadnought-project-registry-2026-09-07",
+  "type": "result",
+  "title": "Workspace multi-project registry",
+  "content": {
+    "result": "Dreadnought can register, list, select and unregister multiple project roots in one workspace while preserving the legacy project_id/project_root keys as default-routing aliases.",
+    "interpretation": "Project selection is now a default route rather than a single-project architectural boundary; project files are never deleted by registry removal."
+  },
+  "status": "current",
+  "workflow_state": "completed",
+  "verification": "pending_ci",
+  "provenance": {
+    "actor_id": "openai:gpt-5.6-sol",
+    "actor_kind": "agent",
+    "source": "github-change",
+    "integrity": "declared"
+  },
+  "evidence": [
+    {"type": "file", "ref": "src/dreadnought/project_registry.py"},
+    {"type": "file", "ref": "src/dreadnought/project_cli.py"},
+    {"type": "file", "ref": "tests/test_project_registry.py"},
+    {"type": "file", "ref": "docs/PROJECTS.md"}
+  ]
+}
