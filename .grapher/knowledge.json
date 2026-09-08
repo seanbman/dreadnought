@@ -815,6 +815,68 @@
         "change": "Primary Codex launches now disable the nested Codex filesystem sandbox and rely on the existing Dreadnought Bubblewrap kernel, matching the Project Arm Codex adapter and preventing nested user-namespace process failures.",
         "component": "src/dreadnought/kernel.py"
       }
+    },
+    "implementation-primary-bootstrap-runtime-contract": {
+      "id": "implementation-primary-bootstrap-runtime-contract",
+      "type": "implementation",
+      "title": "Primary agent launch contract seeds mission and owns Codex sandboxing",
+      "content": "{\"change\": \"Primary Codex now receives an automatic bootstrap turn and both primary/minion Codex runtimes bypass their internal approval+sandbox layer because Dreadnought/Sarcophagus are the external security boundary.\", \"component\": \"src/dreadnought/kernel.py\"}",
+      "path": "src/dreadnought/kernel.py",
+      "tags": [
+        "kernel",
+        "codex",
+        "bootstrap",
+        "sarcophagus",
+        "project-arm"
+      ],
+      "meta": {},
+      "created_at": "2026-09-08T06:54:57+00:00",
+      "updated_at": "2026-09-08T06:54:57+00:00",
+      "stage": "maintaining",
+      "status": "current",
+      "workflow_state": "completed",
+      "verification": "unverified",
+      "evidence": [
+        {
+          "type": "document",
+          "ref": "src/dreadnought/kernel.py",
+          "summary": "Primary bootstrap prompt and provider sandbox ownership"
+        },
+        {
+          "type": "document",
+          "ref": "src/dreadnought/agent.py",
+          "summary": "Project Arm Codex external-sandbox bypass"
+        },
+        {
+          "type": "document",
+          "ref": "tests/test_kernel_boundaries.py",
+          "summary": "Sandbox ownership regression"
+        },
+        {
+          "type": "document",
+          "ref": "tests/test_secure_bootstrap.py",
+          "summary": "Automatic primary bootstrap-turn regression"
+        }
+      ],
+      "source_refs": [
+        "tests/test_kernel_boundaries.py",
+        "tests/test_secure_bootstrap.py"
+      ],
+      "owners": [],
+      "scope": {
+        "project_id": "dreadnought"
+      },
+      "provenance": {
+        "actor_id": "chatgpt",
+        "actor_kind": "agent",
+        "source": "github-actions",
+        "integrity": "declared",
+        "recorded_at": "2026-09-08T06:54:57+00:00"
+      },
+      "semantic": {
+        "change": "Primary Codex now receives an automatic bootstrap turn and both primary/minion Codex runtimes bypass their internal approval+sandbox layer because Dreadnought/Sarcophagus are the external security boundary.",
+        "component": "src/dreadnought/kernel.py"
+      }
     }
   },
   "edges": [

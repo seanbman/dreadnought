@@ -115,19 +115,16 @@ def test_primary_kernel_builds_read_only_workspace_and_strips_git_credentials(tm
     assert seen["env"]["DREADNOUGHT_CONTROL_SOCKET"].endswith("control.sock")
 
 
-
 def test_primary_codex_uses_outer_dreadnought_sandbox() -> None:
     assert PrimaryKernel._provider_args("codex", ["--model", "x"]) == [
-        "--sandbox", "danger-full-access", "--model", "x"
+        "--dangerously-bypass-approvals-and-sandbox", "--model", "x"
     ]
-    assert PrimaryKernel._provider_args("codex", ["--sandbox", "danger-full-access"]) == [
-        "--sandbox", "danger-full-access"
-    ]
+    with pytest.raises(ValueError, match="externally sandboxed"):
+        PrimaryKernel._provider_args("codex", ["--sandbox", "danger-full-access"])
     assert PrimaryKernel._provider_args("custom", ["--sandbox", "workspace-write"]) == [
         "--sandbox", "workspace-write"
     ]
-    with pytest.raises(ValueError, match="outer sandbox"):
-        PrimaryKernel._provider_args("codex", ["--sandbox", "workspace-write"])
+
 
 def test_primary_kernel_rejects_codex_home_inside_workspace(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("CODEX_HOME", str(tmp_path / ".codex"))
@@ -147,3 +144,10 @@ def test_primary_kernel_cannot_write_canonical_workspace(tmp_path: Path) -> None
     rc = kernel.run(agent_type="custom", executable="/bin/sh", args=command)
     assert rc != 0
     assert target.read_text() == "original"
+
+
+def test_primary_codex_uses_external_sandbox_bypass() -> None:
+    args = PrimaryKernel._provider_args("codex", ["--model", "x"])
+    assert args[:3] == ["--dangerously-bypass-approvals-and-sandbox", "--model", "x"]
+    with pytest.raises(ValueError, match="externally sandboxed"):
+        PrimaryKernel._provider_args("codex", ["--sandbox", "danger-full-access"])

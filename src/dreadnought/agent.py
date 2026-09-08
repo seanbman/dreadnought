@@ -116,8 +116,7 @@ class CodexMinionAdapter:
             "exec",
             "--ephemeral",
             "--json",
-            "--sandbox",
-            "danger-full-access",
+            "--dangerously-bypass-approvals-and-sandbox",
             prompt,
         ]
 
