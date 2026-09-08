@@ -65,7 +65,7 @@ def test_command_adapter_renders_only_explicit_tokens(tmp_path: Path) -> None:
     ]
 
 
-def test_dispatch_writes_order_packet_and_observer_record(tmp_path: Path) -> None:
+def test_dispatch_writes_order_packet_observation_and_evaluation(tmp_path: Path) -> None:
     workspace = tmp_path / "workspace"
     workspace.mkdir()
     scratch = tmp_path / "scratch"
@@ -90,13 +90,20 @@ def test_dispatch_writes_order_packet_and_observer_record(tmp_path: Path) -> Non
     assert result.exit_code == 0
     assert result.stdout == "agent-ok\n"
     assert result.agent_record_ids == ()
-    assert len(graph.records) == 1
+    assert result.accepted is True
+    assert result.verification_status == "supported"
+    assert len(result.verdict_ids) == 1
+    assert len(graph.records) == 2
     observation = graph.records[0]
+    verdict = graph.records[1]
     assert observation.actor_id == "dreadnought:observer"
     assert observation.order_ref == order.id
     assert observation.data["result"]["adapter_id"] == "fixture"
     assert observation.data["result"]["exit_code"] == 0
     assert observation.data["result"]["result_path"] == str(result_path)
+    assert verdict.actor_id == "dreadnought:evaluator"
+    assert verdict.subject_ref == order.id
+    assert verdict.data["status"] == "supported"
 
 
 def test_dispatch_routes_explicit_project_without_switching_workspace_default(tmp_path: Path) -> None:
@@ -123,6 +130,7 @@ def test_dispatch_routes_explicit_project_without_switching_workspace_default(tm
     beta = load_graph(workspace / "beta" / ".grapher" / "knowledge.json")
     alpha = load_graph(workspace / "alpha" / ".grapher" / "knowledge.json")
     assert result.observation_id in beta["nodes"]
+    assert all(verdict_id in beta["nodes"] for verdict_id in result.verdict_ids)
     assert result.observation_id not in alpha["nodes"]
 
 
