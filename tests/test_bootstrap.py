@@ -83,10 +83,14 @@ def test_bootstrap_adopts_nested_project_and_generates_instructions(tmp_path: Pa
     assert config["bootstrap_mission"] == mission.id
     assert mission.status.value == "ready"
     assert mission.sources[0].locator == str(project.resolve())
+    assert mission.capabilities.max_minions is None
     assert result["brain"]["mode"] == "adopted"
     assert "Continue the Plumbing Track site overhaul" in instructions
     assert "sole authority that mutates Grapher" in instructions
     assert "Every substantive repository change must invoke Grapher" in instructions
+    assert "max_minions: null" in instructions
+    assert "does **not** mean zero" in instructions
+    assert "must commission the work through the Project Arm / Sarcophagus path" in instructions
     assert ".dreadnought/INSTRUCTIONS.md" in agent_entry
     assert "Every substantive repository change must invoke Grapher" in agent_entry
     assert "legacy-unclassified" in graph["nodes"]
@@ -97,7 +101,9 @@ def test_bootstrap_initializes_new_workspace_when_no_project_exists(tmp_path: Pa
     assert discover_project_roots(tmp_path) == []
 
     result = bootstrap_workspace(tmp_path, directive="Create a new managed project context.")
+    mission = Mission.read(Path(result["mission_path"]))
 
     assert result["brain"]["mode"] == "initialized"
+    assert mission.capabilities.max_minions is None
     assert (tmp_path / ".grapher" / "knowledge.json").is_file()
     assert Path(result["instructions"]).is_file()
