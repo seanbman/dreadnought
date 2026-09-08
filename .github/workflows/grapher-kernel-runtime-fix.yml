@@ -1,0 +1,112 @@
+name: grapher-kernel-runtime-fix
+
+on:
+  push:
+    branches: [fix/kernel-bwrap-codex-state]
+
+permissions:
+  contents: write
+
+jobs:
+  mutate:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/kernel-bwrap-codex-state
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install --upgrade pip
+      - run: python -m pip install -e .
+      - name: Record canonical Grapher mutation
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from datetime import datetime, timezone
+          import json
+          from pathlib import Path
+
+          from grapher.integrations.embedded import contribute_context
+
+          now = datetime.now(timezone.utc).isoformat(timespec="seconds")
+          graph_path = Path(".grapher/knowledge.json")
+          node = contribute_context(
+              graph_path,
+              type="implementation",
+              title="Primary kernel validates Bubblewrap and preserves writable Codex runtime state",
+              content=(
+                  "The primary-agent kernel now smoke-tests Bubblewrap user-namespace operability "
+                  "instead of treating binary presence as availability. Codex launches selectively "
+                  "rebind CODEX_HOME writable while the canonical workspace and the rest of the host "
+                  "filesystem remain read-only; CODEX_HOME inside the canonical workspace is rejected."
+              ),
+              node_id="implementation-primary-kernel-runtime-state",
+              path="src/dreadnought/kernel.py",
+              tags=["kernel", "bubblewrap", "codex", "sandbox", "runtime-state"],
+              stage="maintaining",
+              status="current",
+              workflow_state="completed",
+              verification="unverified",
+              evidence=[
+                  {"type": "document", "ref": "src/dreadnought/kernel.py", "summary": "Kernel implementation"},
+                  {"type": "document", "ref": "tests/test_kernel_boundaries.py", "summary": "Regression coverage"},
+              ],
+              source_refs=["tests/test_kernel_boundaries.py"],
+              scope={"project_id": "dreadnought"},
+              provenance={
+                  "actor_id": "chatgpt",
+                  "actor_kind": "agent",
+                  "source": "github-actions",
+                  "integrity": "declared",
+                  "recorded_at": now,
+              },
+              actor={"id": "chatgpt", "kind": "agent"},
+              reason="Repair operational Bubblewrap preflight and writable Codex state under primary kernel isolation",
+              evidence_refs=["src/dreadnought/kernel.py", "tests/test_kernel_boundaries.py"],
+              operation_id="kernel-bwrap-codex-state-fix",
+              phase="executed",
+              source="github-actions",
+          )
+
+          pass_record = {
+              "id": "pass-kernel-bwrap-codex-state-2026-09-08",
+              "type": "verification",
+              "title": "Primary kernel Bubblewrap and Codex runtime-state repair",
+              "status": "current",
+              "provenance": {
+                  "actor_id": "chatgpt",
+                  "actor_kind": "agent",
+                  "source": "github-actions",
+                  "recorded_at": now,
+              },
+              "semantic": {
+                  "claims": [
+                      "Bubblewrap availability requires an operational user-namespace smoke test",
+                      "Codex runtime state is writable through a narrow CODEX_HOME bind",
+                      "The canonical workspace remains read-only",
+                      "CODEX_HOME inside the canonical workspace is rejected",
+                  ],
+                  "graph_node": node["id"],
+                  "graph_path": str(graph_path.resolve()),
+                  "history_path": str(Path(".grapher/history.jsonl").resolve()),
+              },
+          }
+          out = Path(".grapher/shared/pass-records/2026-09-08-kernel-bwrap-codex-state.json")
+          out.parent.mkdir(parents=True, exist_ok=True)
+          out.write_text(json.dumps(pass_record, indent=2) + "\n", encoding="utf-8")
+          PY
+          grapher validate --graph .grapher/knowledge.json --json
+      - name: Commit Grapher outputs
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/grapher-kernel-runtime-fix.yml
+          git add .grapher/knowledge.json .grapher/history.jsonl .grapher/shared/pass-records/2026-09-08-kernel-bwrap-codex-state.json
+          git commit -m "Record kernel runtime repair in Grapher"
+          git push origin HEAD:fix/kernel-bwrap-codex-state
