@@ -592,6 +592,57 @@
         "source": "dreadnought-protocol",
         "integrity": "declared"
       }
+    },
+    "implementation-primary-kernel-runtime-state": {
+      "id": "implementation-primary-kernel-runtime-state",
+      "type": "implementation",
+      "title": "Primary kernel validates Bubblewrap and preserves writable Codex runtime state",
+      "content": "{\"change\": \"Smoke-test Bubblewrap user-namespace operability and selectively bind Codex runtime state writable while preserving the read-only canonical workspace.\", \"component\": \"src/dreadnought/kernel.py\"}",
+      "path": "src/dreadnought/kernel.py",
+      "tags": [
+        "kernel",
+        "bubblewrap",
+        "codex",
+        "sandbox",
+        "runtime-state"
+      ],
+      "meta": {},
+      "created_at": "2026-09-08T06:00:20+00:00",
+      "updated_at": "2026-09-08T06:00:20+00:00",
+      "stage": "maintaining",
+      "status": "current",
+      "workflow_state": "completed",
+      "verification": "unverified",
+      "evidence": [
+        {
+          "type": "document",
+          "ref": "src/dreadnought/kernel.py",
+          "summary": "Kernel implementation"
+        },
+        {
+          "type": "document",
+          "ref": "tests/test_kernel_boundaries.py",
+          "summary": "Regression coverage"
+        }
+      ],
+      "source_refs": [
+        "tests/test_kernel_boundaries.py"
+      ],
+      "owners": [],
+      "scope": {
+        "project_id": "dreadnought"
+      },
+      "provenance": {
+        "actor_id": "chatgpt",
+        "actor_kind": "agent",
+        "source": "github-actions",
+        "integrity": "declared",
+        "recorded_at": "2026-09-08T06:00:20+00:00"
+      },
+      "semantic": {
+        "change": "Smoke-test Bubblewrap user-namespace operability and selectively bind Codex runtime state writable while preserving the read-only canonical workspace.",
+        "component": "src/dreadnought/kernel.py"
+      }
     }
   },
   "edges": [

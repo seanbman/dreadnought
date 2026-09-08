@@ -1,0 +1,23 @@
+{
+  "id": "pass-kernel-bwrap-codex-state-2026-09-08",
+  "type": "verification",
+  "title": "Primary kernel Bubblewrap and Codex runtime-state repair",
+  "status": "current",
+  "provenance": {
+    "actor_id": "chatgpt",
+    "actor_kind": "agent",
+    "source": "github-actions",
+    "recorded_at": "2026-09-08T06:00:20+00:00"
+  },
+  "semantic": {
+    "claims": [
+      "Bubblewrap availability requires an operational user-namespace smoke test",
+      "Codex runtime state is writable through a narrow CODEX_HOME bind",
+      "The canonical workspace remains read-only",
+      "CODEX_HOME inside the canonical workspace is rejected"
+    ],
+    "graph_node": "implementation-primary-kernel-runtime-state",
+    "graph_path": "/home/runner/work/dreadnought/dreadnought/.grapher/knowledge.json",
+    "history_path": "/home/runner/work/dreadnought/dreadnought/.grapher/history.jsonl"
+  }
+}
