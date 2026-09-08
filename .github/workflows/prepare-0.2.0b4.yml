@@ -1,0 +1,113 @@
+name: prepare-0.2.0b4
+
+on:
+  push:
+    branches: [release/0.2.0b4]
+
+permissions:
+  contents: write
+
+jobs:
+  prepare:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: release/0.2.0b4
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Bump beta version and public beta marker
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('pyproject.toml')
+          s = p.read_text()
+          old = 'version = "0.2.0b3"'
+          new = 'version = "0.2.0b4"'
+          if old not in s:
+              raise SystemExit('expected v0.2.0b3 package version not found')
+          p.write_text(s.replace(old, new, 1))
+
+          p = Path('README.md')
+          s = p.read_text()
+          marker = '**Current public beta: v0.2.0b2**'
+          if marker not in s:
+              raise SystemExit('README beta marker not found')
+          p.write_text(s.replace(marker, '**Current public beta: v0.2.0b4**', 1))
+          PY
+      - name: Test release candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --upgrade pip pytest
+          python -m pip install -e .
+          pytest -q
+          pytest -q tests/test_kernel_boundaries.py tests/test_minion.py tests/test_secure_bootstrap.py
+          dreadnought --version | grep -F '0.2.0b4'
+      - name: Record release through Grapher
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from datetime import datetime, timezone
+          import json
+          from pathlib import Path
+          from grapher.integrations.embedded import contribute_context
+
+          now = datetime.now(timezone.utc).isoformat(timespec='seconds')
+          graph = Path('.grapher/knowledge.json')
+          node = contribute_context(
+              graph,
+              type='implementation',
+              title='Dreadnought v0.2.0b4 release packages Codex kernel compatibility repair',
+              content=json.dumps({
+                  'release':'v0.2.0b4',
+                  'change':'Publish the Codex unified-exec compatibility repair and corrected public beta marker so normal install/update paths receive the fixed Dreadnought build.'
+              }),
+              node_id='implementation-release-0.2.0b4',
+              path='pyproject.toml',
+              tags=['release','beta','codex','kernel','distribution'],
+              stage='launching', status='current', workflow_state='completed', verification='verified',
+              evidence=[
+                {'type':'document','ref':'pyproject.toml','summary':'Package beta version 0.2.0b4'},
+                {'type':'document','ref':'README.md','summary':'Public beta marker 0.2.0b4'},
+                {'type':'commit','ref':'d0fdbb724d5617737a68eff3a74d60ea70c6ec5a','summary':'Merged Codex process execution repair'}
+              ],
+              source_refs=['pyproject.toml','README.md','src/dreadnought/kernel.py'],
+              scope={'project_id':'dreadnought'},
+              provenance={'actor_id':'chatgpt','actor_kind':'agent','source':'github-actions','integrity':'declared','recorded_at':now},
+              actor={'id':'chatgpt','kind':'agent'},
+              reason='A merged runtime fix must be available through the published beta installer/update path rather than only from main/local checkout.',
+              evidence_refs=['pyproject.toml','README.md','src/dreadnought/kernel.py'],
+              operation_id='release-0.2.0b4', phase='executed', source='github-actions'
+          )
+          out = Path('.grapher/shared/pass-records/2026-09-08-release-0.2.0b4.json')
+          out.parent.mkdir(parents=True, exist_ok=True)
+          out.write_text(json.dumps({
+              'id':'pass-release-0.2.0b4-2026-09-08',
+              'type':'verification',
+              'title':'Dreadnought v0.2.0b4 release candidate',
+              'status':'current',
+              'provenance':{'actor_id':'chatgpt','actor_kind':'agent','source':'github-actions','recorded_at':now},
+              'semantic':{
+                  'graph_node':node['id'],
+                  'claims':['Package version is 0.2.0b4','README public beta marker is 0.2.0b4','Full pytest and focused runtime/bootstrap regressions pass','Release includes merged Codex unified-exec kernel repair']
+              }
+          }, indent=2) + '\n')
+          PY
+          grapher validate --graph .grapher/knowledge.json --json
+      - name: Commit release candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/prepare-0.2.0b4.yml
+          git add pyproject.toml README.md .grapher/knowledge.json .grapher/history.jsonl .grapher/shared/pass-records/2026-09-08-release-0.2.0b4.json
+          git commit -m "Prepare Dreadnought v0.2.0b4"
+          git push origin HEAD:release/0.2.0b4
