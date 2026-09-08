@@ -23,21 +23,33 @@ class DispatchResult:
     stdout: str
     stderr: str
     observation_id: str
+    project_id: str | None = None
     agent_record_ids: tuple[str, ...] = ()
     usage_id: str | None = None
 
 
 class ProjectArmDispatcher:
-    """Dispatch one compartmentalized Order to one external agent adapter."""
+    """Dispatch one compartmentalized Order to one project-scoped external agent.
 
-    def __init__(self, *, workspace: Path, scratch: Path,
-                 sarcophagus: Sarcophagus | None = None,
-                 grapher: GrapherControlPlane | None = None,
-                 result_channel: AgentResultChannel | None = None) -> None:
-        self.workspace = workspace.resolve()
+    The constructor receives the Dreadnought workspace root. An Order with
+    ``project_id`` is routed to that registered project's canonical root and Grapher
+    brain without changing the workspace default project.
+    """
+
+    def __init__(
+        self,
+        *,
+        workspace: Path,
+        scratch: Path,
+        sarcophagus: Sarcophagus | None = None,
+        grapher: GrapherControlPlane | None = None,
+        result_channel: AgentResultChannel | None = None,
+    ) -> None:
+        self.control_workspace = workspace.resolve()
+        self.workspace = self.control_workspace
         self.scratch = scratch.resolve()
-        self.sarcophagus = sarcophagus or Sarcophagus(self.workspace, self.scratch)
-        self.grapher = grapher or GrapherControlPlane(self.workspace)
+        self.sarcophagus = sarcophagus
+        self.grapher = grapher
         self.result_channel = result_channel or AgentResultChannel()
 
     def dispatch(self, order: Order, adapter: AgentAdapter, *, timeout: int = 300) -> DispatchResult:
@@ -45,8 +57,13 @@ class ProjectArmDispatcher:
         if errors:
             raise ValueError("invalid order: " + "; ".join(errors))
 
-        packet_dir = self.scratch / "orders"
-        result_dir = self.scratch / "results"
+        grapher = self.grapher or GrapherControlPlane(self.control_workspace, project_id=order.project_id)
+        project_workspace = grapher.project_root
+        project_scratch = self.scratch / order.project_id if order.project_id else self.scratch
+        sarcophagus = self.sarcophagus or Sarcophagus(project_workspace, project_scratch)
+
+        packet_dir = project_scratch / "orders"
+        result_dir = project_scratch / "results"
         packet_dir.mkdir(parents=True, exist_ok=True)
         result_dir.mkdir(parents=True, exist_ok=True)
         order_path = packet_dir / f"{order.id}.json"
@@ -61,10 +78,10 @@ class ProjectArmDispatcher:
             order=order,
             order_path=order_path,
             result_path=result_path,
-            scratch=self.scratch,
-            workspace=self.workspace,
+            scratch=project_scratch,
+            workspace=project_workspace,
         )
-        completed = self.sarcophagus.run(command, timeout=timeout)
+        completed = sarcophagus.run(command, timeout=timeout)
 
         observation = ProtocolRecord.create(
             kind=RecordKind.OBSERVATION,
@@ -75,6 +92,8 @@ class ProjectArmDispatcher:
             data={
                 "observation_type": ObservationType.PROCESS.value,
                 "result": {
+                    "project_id": order.project_id,
+                    "project_root": str(project_workspace),
                     "adapter_id": adapter.id,
                     "argv": command,
                     "exit_code": completed.returncode,
@@ -85,7 +104,7 @@ class ProjectArmDispatcher:
                 },
             },
         )
-        self.grapher.write_record(observation)
+        grapher.write_record(observation)
 
         agent_records = self.result_channel.read(result_path)
         for record in agent_records:
@@ -93,7 +112,7 @@ class ProjectArmDispatcher:
                 record.order_ref = order.id
             elif record.order_ref != order.id:
                 raise ValueError(f"agent result references wrong order: {record.order_ref}")
-            self.grapher.write_record(record)
+            grapher.write_record(record)
 
         usage_id = self._record_usage_if_reported(usage_path, order, adapter.id)
         return DispatchResult(
@@ -104,6 +123,7 @@ class ProjectArmDispatcher:
             stdout=completed.stdout,
             stderr=completed.stderr,
             observation_id=observation.id,
+            project_id=order.project_id,
             agent_record_ids=tuple(record.id for record in agent_records),
             usage_id=usage_id,
         )
@@ -117,11 +137,17 @@ class ProjectArmDispatcher:
             output_tokens = int(report["output_tokens"])
         except (OSError, json.JSONDecodeError, KeyError, TypeError, ValueError) as exc:
             raise ValueError(f"invalid adapter usage report {usage_path}: {exc}") from exc
-        config = load_config(self.workspace)
+        config = load_config(self.control_workspace)
         usage = TokenUsage.create(
             agent_id=str(report.get("agent_id") or adapter_id),
             agent_role="minion",
-            project_id=str(report.get("project_id") or config.get("project_id") or self.workspace.name),
+            project_id=str(
+                report.get("project_id")
+                or order.project_id
+                or config.get("active_project")
+                or config.get("project_id")
+                or self.control_workspace.name
+            ),
             task_id=order.id,
             input_tokens=input_tokens,
             output_tokens=output_tokens,
@@ -131,5 +157,5 @@ class ProjectArmDispatcher:
             model=report.get("model"),
             source="adapter_report",
         )
-        TokenUsageLedger(self.workspace).record(usage)
+        TokenUsageLedger(self.control_workspace).record(usage)
         return usage.id
