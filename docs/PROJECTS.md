@@ -4,7 +4,9 @@
 
 - [Purpose](#purpose)
 - [Registry model](#registry-model)
-- [Commands](#commands)
+- [Creating projects](#creating-projects)
+- [Linking existing documentation](#linking-existing-documentation)
+- [Registry commands](#registry-commands)
 - [Compatibility](#compatibility)
 - [Appendix — Process flow](#appendix--process-flow)
 
@@ -18,7 +20,41 @@ A Dreadnought workspace may contain multiple independently versioned projects. E
 
 Each project record contains an ID, workspace-relative root, optional directive, optional documentation root, and whether Dreadnought created/managed the project.
 
-## Commands
+## Creating projects
+
+Create a complete project from a name and directive:
+
+```bash
+dreadnought project create "Telemetry Service" \
+  "Build a small telemetry ingestion service with explicit verification and provenance"
+```
+
+Dreadnought creates a slugged project directory and initializes:
+
+- `.git/`
+- `docs/`
+- `.grapher/`
+- `.dreadnought/PROJECT_INSTRUCTIONS.md`
+- `README.md`
+- `AGENTS.md`
+- a ready workspace Mission derived from the directive
+- a registry entry for the new project
+
+The creation path is rollback-safe for failures after directory creation: a failed create removes the newly created project tree and its initial Mission rather than leaving a half-created project.
+
+## Linking existing documentation
+
+An existing documentation directory can be linked into a new project:
+
+```bash
+dreadnought project create "Site Overhaul" \
+  "Rebuild the site using the supplied documentation as evidence" \
+  --docs-source /path/to/existing/docs
+```
+
+`project/docs` is created as a directory symlink to the explicit source. Dreadnought does not overwrite or copy the source directory. Project-specific generated instructions remain under `.dreadnought/PROJECT_INSTRUCTIONS.md`, so linking documentation does not inject generated files into the external documentation source.
+
+## Registry commands
 
 ```bash
 dreadnought project add ./pt-site-overhaul --id pt-site-overhaul
@@ -28,9 +64,9 @@ dreadnought project select pt-site-overhaul
 dreadnought project remove scheduler
 ```
 
-`project remove` only unregisters the project. It never deletes project files.
+`project add` registers an existing project without creating or deleting its files. `project remove` only unregisters the project. It never deletes project files.
 
-Project roots must live inside the Dreadnought workspace. This keeps the workspace boundary explicit and prevents an accidental registry entry from claiming unrelated filesystem state.
+Project roots must live inside the Dreadnought workspace. This keeps the workspace boundary explicit and prevents an accidental registry entry from claiming unrelated filesystem state. Linked documentation may live outside the workspace because the link is explicit operator input.
 
 ## Compatibility
 
@@ -40,7 +76,8 @@ Existing single-project `.dreadnought/config.json` files using `project_id` and 
 
 ```mermaid
 flowchart LR
-    W["Workspace config\ncode: src/dreadnought/config.py\ninception: 20d26c8ee686b7ae88050aa2418fcd40ef0a4989\ncurrent: feature/workspace-project-registry"] --> R["Project registry\ncode: src/dreadnought/project_registry.py\ninception: b0d1f2bc1c0973d9df253987e4b6ec43bf1566cc\ncurrent: feature/workspace-project-registry"]
-    R --> C["Project CLI\ncode: src/dreadnought/project_cli.py; src/dreadnought/main.py\ninception: 3ff7500cacac8a87945d9db660e125daea523af6\ncurrent: feature/workspace-project-registry"]
-    C --> P["Registered project roots\ncode: tests/test_project_registry.py\ninception: 6d3078ce5730daff5737ac8c8ab7edfd0d90a9e8\ncurrent: feature/workspace-project-registry"]
+    W["Workspace registry\ncode: src/dreadnought/project_registry.py\ninception: b0d1f2bc1c0973d9df253987e4b6ec43bf1566cc\ncurrent: feature/project-creation"] --> C["Create project\ncode: src/dreadnought/project_factory.py\ninception: e810d13461ff2a9634e515b37866884781e57e53\ncurrent: feature/project-creation"]
+    C --> G["Initialize Git + Grapher + docs\ncode: src/dreadnought/project_factory.py; src/dreadnought/grapher.py\ninception: e810d13461ff2a9634e515b37866884781e57e53\ncurrent: feature/project-creation"]
+    G --> M["Initial Mission + generated instructions\ncode: src/dreadnought/project_factory.py; src/dreadnought/mission.py\ninception: 79e635890ccada4b6442d69d4145c33be064122e\ncurrent: feature/project-creation"]
+    M --> R["Registered managed project\ncode: src/dreadnought/project_registry.py; tests/test_project_factory.py\ninception: ba900855ccb1c39553676a25cd48c354b5c325c9\ncurrent: feature/project-creation"]
 ```
