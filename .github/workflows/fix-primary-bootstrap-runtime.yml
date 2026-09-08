@@ -32,49 +32,42 @@ jobs:
           if old not in s:
               raise SystemExit('kernel provider args block not found')
           s = s.replace(old, new)
-
           anchor = '''    provider_args = list(agent.get("provider_args") or [])\n    if not executable:\n'''
           repl = '''    provider_args = list(agent.get("provider_args") or [])\n    instructions = root / str(config.get("instructions_path") or ".dreadnought/INSTRUCTIONS.md")\n    mission_id = str(config.get("bootstrap_mission") or "").strip()\n    mission_path = root / ".dreadnought" / "missions" / f"{mission_id}.json" if mission_id else None\n    if args.agent_type == "codex":\n        initial_prompt = (\n            "You are the primary Dreadnought agent for this workspace. Begin immediately; do not wait for "\n            "the operator to tell you what to do. Read the authoritative workspace instructions at "\n            f"{instructions}. "\n        )\n        if mission_path is not None:\n            initial_prompt += f"Read the bootstrap Mission at {mission_path}. "\n        initial_prompt += (\n            "Inspect relevant Grapher state through the Dreadnought control plane, then execute the ready "\n            "mission under those instructions. Dreadnought is the external sandbox and authority boundary; "\n            "use the provided control-plane paths for canonical mutation and delegation. If execution is blocked, "\n            "report the exact failing operation and error after attempting the permitted Dreadnought path."\n        )\n        provider_args.append(initial_prompt)\n    if not executable:\n'''
           if anchor not in s:
               raise SystemExit('kernel prompt anchor not found')
-          s = s.replace(anchor, repl)
-          p.write_text(s)
+          p.write_text(s.replace(anchor, repl))
 
           p = Path('src/dreadnought/agent.py')
           s = p.read_text()
           old = '''            "--sandbox",\n            "danger-full-access",\n            prompt,\n'''
-          new = '''            "--dangerously-bypass-approvals-and-sandbox",\n            prompt,\n'''
           if old not in s:
               raise SystemExit('Codex minion sandbox args not found')
-          p.write_text(s.replace(old, new))
+          p.write_text(s.replace(old, '''            "--dangerously-bypass-approvals-and-sandbox",\n            prompt,\n'''))
 
           p = Path('tests/test_kernel_boundaries.py')
           s = p.read_text()
-          addition = '''\n\ndef test_primary_codex_uses_external_sandbox_bypass() -> None:\n    args = PrimaryKernel._provider_args("codex", ["--model", "x"])\n    assert args[:3] == ["--dangerously-bypass-approvals-and-sandbox", "--model", "x"]\n    with pytest.raises(ValueError, match="externally sandboxed"):\n        PrimaryKernel._provider_args("codex", ["--sandbox", "danger-full-access"])\n'''
+          s = s.replace('''    assert PrimaryKernel._provider_args("codex", ["--model", "x"]) == [\n        "--sandbox", "danger-full-access", "--model", "x"\n    ]\n''', '''    assert PrimaryKernel._provider_args("codex", ["--model", "x"]) == [\n        "--dangerously-bypass-approvals-and-sandbox", "--model", "x"\n    ]\n''')
           if 'test_primary_codex_uses_external_sandbox_bypass' not in s:
-              p.write_text(s + addition)
+              s += '''\n\ndef test_primary_codex_uses_external_sandbox_bypass() -> None:\n    args = PrimaryKernel._provider_args("codex", ["--model", "x"])\n    assert args[:3] == ["--dangerously-bypass-approvals-and-sandbox", "--model", "x"]\n    with pytest.raises(ValueError, match="externally sandboxed"):\n        PrimaryKernel._provider_args("codex", ["--sandbox", "danger-full-access"])\n'''
+          p.write_text(s)
 
           p = Path('tests/test_secure_bootstrap.py')
-          if p.exists():
-              s = p.read_text()
-          else:
-              s = ''
-          addition = '''\n\ndef test_kernel_cli_seeds_primary_codex_with_bootstrap_instruction(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:\n    from dreadnought.config import configure_agent, default_config, save_config\n    from dreadnought.kernel import run_kernel_cli\n\n    (tmp_path / ".dreadnought" / "missions").mkdir(parents=True)\n    (tmp_path / ".dreadnought" / "INSTRUCTIONS.md").write_text("instructions")\n    config = default_config(tmp_path)\n    config["bootstrap_mission"] = "mission-test"\n    config["instructions_path"] = ".dreadnought/INSTRUCTIONS.md"\n    save_config(tmp_path, config)\n    configure_agent(tmp_path, agent_type="codex", executable="codex", args=[], primary=True)\n    seen = {}\n    def fake_run(self, *, agent_type, executable, args):\n        seen["args"] = args\n        return 0\n    monkeypatch.setattr("dreadnought.kernel.PrimaryKernel.run", fake_run)\n    assert run_kernel_cli(["launch", "--agent-type", "codex", "--root", str(tmp_path)]) == 0\n    assert seen["args"]\n    assert "Begin immediately" in seen["args"][-1]\n    assert ".dreadnought/INSTRUCTIONS.md" in seen["args"][-1]\n    assert "mission-test.json" in seen["args"][-1]\n'''
+          s = p.read_text() if p.exists() else 'from pathlib import Path\n\nimport pytest\n'
+          if 'from pathlib import Path' not in s:
+              s = 'from pathlib import Path\n' + s
+          if 'import pytest' not in s:
+              s = s.replace('from pathlib import Path\n', 'from pathlib import Path\n\nimport pytest\n', 1)
           if 'test_kernel_cli_seeds_primary_codex_with_bootstrap_instruction' not in s:
-              if not s:
-                  s = 'from pathlib import Path\n\nimport pytest\n'
-              elif 'from pathlib import Path' not in s:
-                  s = 'from pathlib import Path\n' + s
-              elif 'import pytest' not in s:
-                  s = s.replace('from pathlib import Path\n', 'from pathlib import Path\n\nimport pytest\n', 1)
-              p.write_text(s + addition)
+              s += '''\n\ndef test_kernel_cli_seeds_primary_codex_with_bootstrap_instruction(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:\n    from dreadnought.config import configure_agent, default_config, save_config\n    from dreadnought.kernel import run_kernel_cli\n    (tmp_path / ".dreadnought" / "missions").mkdir(parents=True)\n    (tmp_path / ".dreadnought" / "INSTRUCTIONS.md").write_text("instructions")\n    config = default_config(tmp_path)\n    config["bootstrap_mission"] = "mission-test"\n    config["instructions_path"] = ".dreadnought/INSTRUCTIONS.md"\n    save_config(tmp_path, config)\n    configure_agent(tmp_path, agent_type="codex", executable="codex", args=[], primary=True)\n    seen = {}\n    def fake_run(self, *, agent_type, executable, args):\n        seen["args"] = args\n        return 0\n    monkeypatch.setattr("dreadnought.kernel.PrimaryKernel.run", fake_run)\n    assert run_kernel_cli(["launch", "--agent-type", "codex", "--root", str(tmp_path)]) == 0\n    assert "Begin immediately" in seen["args"][-1]\n    assert ".dreadnought/INSTRUCTIONS.md" in seen["args"][-1]\n    assert "mission-test.json" in seen["args"][-1]\n'''
+          p.write_text(s)
 
           p = Path('docs/ARCHITECTURE.md')
           s = p.read_text()
           needle = 'Sarcophagus is the current kernel-enforced process/filesystem boundary.'
-          replacement = needle + ' For Codex providers, Dreadnought/Sarcophagus are explicitly the external sandbox: Codex is launched with its own approval and sandbox layer bypassed so nested provider sandboxes cannot break shell/process execution.'
-          if needle in s and replacement not in s:
-              p.write_text(s.replace(needle, replacement))
+          add = needle + ' For Codex providers, Dreadnought/Sarcophagus are explicitly the external sandbox: Codex is launched with its own approval and sandbox layer bypassed so nested provider sandboxes cannot break shell/process execution.'
+          if needle in s and add not in s:
+              p.write_text(s.replace(needle, add))
           PY
       - run: python -m pip install --upgrade pip pytest
       - run: python -m pip install -e .
@@ -89,32 +82,7 @@ jobs:
           from grapher.integrations.embedded import contribute_context
           now = datetime.now(timezone.utc).isoformat(timespec='seconds')
           graph = Path('.grapher/knowledge.json')
-          node = contribute_context(
-              graph,
-              type='implementation',
-              title='Primary agent launch contract seeds mission and owns Codex sandboxing',
-              content=json.dumps({
-                  'change':'Primary Codex now receives an automatic bootstrap turn and both primary/minion Codex runtimes bypass their internal approval+sandbox layer because Dreadnought/Sarcophagus are the external security boundary.',
-                  'component':'src/dreadnought/kernel.py'
-              }),
-              node_id='implementation-primary-bootstrap-runtime-contract',
-              path='src/dreadnought/kernel.py',
-              tags=['kernel','codex','bootstrap','sarcophagus','project-arm'],
-              stage='maintaining', status='current', workflow_state='completed', verification='unverified',
-              evidence=[
-                {'type':'document','ref':'src/dreadnought/kernel.py','summary':'Primary bootstrap prompt and provider sandbox ownership'},
-                {'type':'document','ref':'src/dreadnought/agent.py','summary':'Project Arm Codex external-sandbox bypass'},
-                {'type':'document','ref':'tests/test_kernel_boundaries.py','summary':'Sandbox ownership regression'},
-                {'type':'document','ref':'tests/test_secure_bootstrap.py','summary':'Automatic primary bootstrap-turn regression'}
-              ],
-              source_refs=['tests/test_kernel_boundaries.py','tests/test_secure_bootstrap.py'],
-              scope={'project_id':'dreadnought'},
-              provenance={'actor_id':'chatgpt','actor_kind':'agent','source':'github-actions','integrity':'declared','recorded_at':now},
-              actor={'id':'chatgpt','kind':'agent'},
-              reason='Primary agents must start with Dreadnought intent and must not nest Codex execution sandboxes inside the Dreadnought kernel.',
-              evidence_refs=['src/dreadnought/kernel.py','src/dreadnought/agent.py','tests/test_kernel_boundaries.py','tests/test_secure_bootstrap.py'],
-              operation_id='primary-bootstrap-runtime-contract-fix', phase='executed', source='github-actions'
-          )
+          node = contribute_context(graph, type='implementation', title='Primary agent launch contract seeds mission and owns Codex sandboxing', content=json.dumps({'change':'Primary Codex now receives an automatic bootstrap turn and both primary/minion Codex runtimes bypass their internal approval+sandbox layer because Dreadnought/Sarcophagus are the external security boundary.','component':'src/dreadnought/kernel.py'}), node_id='implementation-primary-bootstrap-runtime-contract', path='src/dreadnought/kernel.py', tags=['kernel','codex','bootstrap','sarcophagus','project-arm'], stage='maintaining', status='current', workflow_state='completed', verification='unverified', evidence=[{'type':'document','ref':'src/dreadnought/kernel.py','summary':'Primary bootstrap prompt and provider sandbox ownership'},{'type':'document','ref':'src/dreadnought/agent.py','summary':'Project Arm Codex external-sandbox bypass'},{'type':'document','ref':'tests/test_kernel_boundaries.py','summary':'Sandbox ownership regression'},{'type':'document','ref':'tests/test_secure_bootstrap.py','summary':'Automatic primary bootstrap-turn regression'}], source_refs=['tests/test_kernel_boundaries.py','tests/test_secure_bootstrap.py'], scope={'project_id':'dreadnought'}, provenance={'actor_id':'chatgpt','actor_kind':'agent','source':'github-actions','integrity':'declared','recorded_at':now}, actor={'id':'chatgpt','kind':'agent'}, reason='Primary agents must start with Dreadnought intent and must not nest Codex execution sandboxes inside the Dreadnought kernel.', evidence_refs=['src/dreadnought/kernel.py','src/dreadnought/agent.py','tests/test_kernel_boundaries.py','tests/test_secure_bootstrap.py'], operation_id='primary-bootstrap-runtime-contract-fix', phase='executed', source='github-actions')
           out = Path('.grapher/shared/pass-records/2026-09-08-primary-bootstrap-runtime-contract.json')
           out.parent.mkdir(parents=True, exist_ok=True)
           out.write_text(json.dumps({'id':'pass-primary-bootstrap-runtime-contract-2026-09-08','type':'verification','title':'Primary bootstrap runtime contract','status':'current','provenance':{'actor_id':'chatgpt','actor_kind':'agent','source':'github-actions','recorded_at':now},'semantic':{'graph_node':node['id'],'claims':['Primary Codex is seeded automatically from workspace instructions and bootstrap Mission','Codex inner approval/sandbox is bypassed only inside Dreadnought external isolation','Project Arm Codex uses the same external-sandbox ownership model']}}, indent=2)+'\n')
