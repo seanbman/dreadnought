@@ -34,16 +34,18 @@ jobs:
 
           now = datetime.now(timezone.utc).isoformat(timespec="seconds")
           graph_path = Path(".grapher/knowledge.json")
+          semantic_content = json.dumps({
+              "change": (
+                  "Smoke-test Bubblewrap user-namespace operability and selectively bind Codex "
+                  "runtime state writable while preserving the read-only canonical workspace."
+              ),
+              "component": "src/dreadnought/kernel.py",
+          })
           node = contribute_context(
               graph_path,
               type="implementation",
               title="Primary kernel validates Bubblewrap and preserves writable Codex runtime state",
-              content=(
-                  "The primary-agent kernel now smoke-tests Bubblewrap user-namespace operability "
-                  "instead of treating binary presence as availability. Codex launches selectively "
-                  "rebind CODEX_HOME writable while the canonical workspace and the rest of the host "
-                  "filesystem remain read-only; CODEX_HOME inside the canonical workspace is rejected."
-              ),
+              content=semantic_content,
               node_id="implementation-primary-kernel-runtime-state",
               path="src/dreadnought/kernel.py",
               tags=["kernel", "bubblewrap", "codex", "sandbox", "runtime-state"],
