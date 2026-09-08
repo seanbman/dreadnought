@@ -65,11 +65,17 @@ class TokenUsage:
 
 
 class TokenUsageLedger:
-    """Append-only Dreadnought usage ledger with a Grapher record per task/session."""
+    """Append-only Dreadnought usage ledger with explicit metering coverage.
+
+    Exact token totals are recorded only when an adapter/provider reports them.
+    Native interactive sessions that do not expose usage are recorded separately as
+    unmetered sessions so the UI never represents active use as measured zero usage.
+    """
 
     def __init__(self, workspace: Path | str):
         self.workspace = Path(workspace).resolve()
         self.path = self.workspace / ".dreadnought" / "token-usage.jsonl"
+        self.sessions_path = self.workspace / ".dreadnought" / "agent-sessions.jsonl"
 
     def record(self, usage: TokenUsage, *, project_to_grapher: bool = True) -> TokenUsage:
         payload = usage.to_dict()
@@ -90,20 +96,57 @@ class TokenUsageLedger:
             handle.write(json.dumps(payload, sort_keys=True) + "\n")
         return usage
 
+    def record_unmetered_session(
+        self,
+        *,
+        agent_id: str,
+        agent_role: str,
+        project_id: str,
+        task_id: str | None = None,
+        exit_code: int | None = None,
+        source: str = "native_interactive_chat",
+    ) -> dict[str, Any]:
+        if agent_role not in {"primary", "minion"}:
+            raise ValueError("agent role must be primary or minion")
+        payload = {
+            "id": f"session-{uuid4().hex}",
+            "recorded_at": datetime.now(timezone.utc).isoformat(),
+            "agent_id": agent_id,
+            "agent_role": agent_role,
+            "project_id": project_id,
+            "task_id": task_id,
+            "metered": False,
+            "exit_code": exit_code,
+            "source": source,
+        }
+        self.sessions_path.parent.mkdir(parents=True, exist_ok=True)
+        with self.sessions_path.open("a", encoding="utf-8") as handle:
+            handle.write(json.dumps(payload, sort_keys=True) + "\n")
+        return payload
+
     def entries(self) -> list[dict[str, Any]]:
         if not self.path.is_file():
             return []
         return [json.loads(line) for line in self.path.read_text(encoding="utf-8").splitlines() if line.strip()]
 
+    def sessions(self) -> list[dict[str, Any]]:
+        if not self.sessions_path.is_file():
+            return []
+        return [json.loads(line) for line in self.sessions_path.read_text(encoding="utf-8").splitlines() if line.strip()]
+
     def stats(self, *, project_id: str | None = None, task_id: str | None = None,
               agent_role: str | None = None) -> dict[str, Any]:
         rows = self.entries()
+        sessions = self.sessions()
         if project_id is not None:
             rows = [row for row in rows if row.get("project_id") == project_id]
+            sessions = [row for row in sessions if row.get("project_id") == project_id]
         if task_id is not None:
             rows = [row for row in rows if row.get("task_id") == task_id]
+            sessions = [row for row in sessions if row.get("task_id") == task_id]
         if agent_role is not None:
             rows = [row for row in rows if row.get("agent_role") == agent_role]
+            sessions = [row for row in sessions if row.get("agent_role") == agent_role]
         by_agent: dict[str, int] = {}
         by_project: dict[str, int] = {}
         by_task: dict[str, int] = {}
@@ -117,6 +160,11 @@ class TokenUsageLedger:
             role = row.get("agent_role")
             if role in by_role:
                 by_role[role] += total
+        unmetered_by_role = {"primary": 0, "minion": 0}
+        for session in sessions:
+            role = session.get("agent_role")
+            if role in unmetered_by_role:
+                unmetered_by_role[role] += 1
         return {
             "records": len(rows),
             "total_tokens": sum(by_agent.values()),
@@ -124,4 +172,15 @@ class TokenUsageLedger:
             "by_agent": by_agent,
             "by_project": by_project,
             "by_task": by_task,
+            "metering": {
+                "complete": len(sessions) == 0,
+                "unmetered_sessions": len(sessions),
+                "unmetered_by_role": unmetered_by_role,
+                "note": (
+                    "Token totals include provider-reported usage only. "
+                    "Unmetered native interactive sessions are counted separately."
+                    if sessions else
+                    "All recorded sessions in this view have provider-reported token usage."
+                ),
+            },
         }
