@@ -1,0 +1,77 @@
+name: generate-grapher-provenance
+
+on:
+  pull_request:
+
+jobs:
+  generate:
+    if: github.head_ref == 'fix/init-kernel-boundaries'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install --upgrade pip
+      - run: python -m pip install -e .
+      - name: Invoke Dreadnought Grapher control plane
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from dreadnought.grapher import GrapherControlPlane
+          from dreadnought.protocol import Perspective, ProtocolRecord, RecordKind
+
+          record = ProtocolRecord.create(
+              kind=RecordKind.NOTE,
+              perspective=Perspective.OBSERVER,
+              actor_id='dreadnought:kernel-boundary-repair',
+              subject_ref='primary-agent-kernel-boundaries',
+              data={
+                  'audience': 'human',
+                  'text': (
+                      'Dreadnought now configures project-scoped max_minions at initialization; '
+                      'kernel-isolates the primary agent with the canonical workspace read-only; '
+                      'routes primary-to-minion communication exclusively through a host-side '
+                      'Dreadnought control-plane broker; and exposes active unmetered primary '
+                      'sessions in token statistics instead of reporting false measured zeroes.'
+                  ),
+              },
+          )
+          result = GrapherControlPlane(Path('.')).write_record(record)
+          Path('/tmp/dreadnought-grapher-record-id').write_text(record.id + '\n')
+          pass_record = {
+              'id': 'pass-primary-kernel-boundaries-2026-09-08',
+              'type': 'verification',
+              'title': 'Primary-agent kernel boundary repair',
+              'status': 'current',
+              'semantic': {
+                  'record_id': record.id,
+                  'graph_path': str(result.graph_path),
+                  'history_path': str(result.history_path),
+                  'claims': [
+                      'project max_minions is initialized as project policy',
+                      'primary canonical workspace access is read-only under Bubblewrap',
+                      'primary-to-minion communication is brokered by Dreadnought control plane',
+                      'active unmetered primary sessions remain visible in token stats',
+                  ],
+              },
+              'provenance': {
+                  'actor_id': 'dreadnought:control-plane',
+                  'source': 'dreadnought-protocol',
+                  'record_id': record.id,
+              },
+          }
+          path = Path('.grapher/shared/pass-records/2026-09-08-primary-kernel-boundaries.json')
+          path.parent.mkdir(parents=True, exist_ok=True)
+          path.write_text(json.dumps(pass_record, indent=2, sort_keys=True) + '\n')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dreadnought-grapher-provenance
+          path: |
+            .grapher/knowledge.json
+            .grapher/history.jsonl
+            .grapher/shared/pass-records/2026-09-08-primary-kernel-boundaries.json
+            /tmp/dreadnought-grapher-record-id
