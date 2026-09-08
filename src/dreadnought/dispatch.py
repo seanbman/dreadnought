@@ -10,7 +10,7 @@ from .grapher import GrapherControlPlane
 from .order import Order
 from .protocol import ObservationType, Perspective, ProtocolRecord, RecordKind
 from .result_channel import AgentResultChannel
-from .sarcophagus import Sarcophagus
+from .sarcophagus import NetworkPolicy, Sarcophagus, SarcophagusPolicy
 from .usage import TokenUsage, TokenUsageLedger
 
 
@@ -60,7 +60,16 @@ class ProjectArmDispatcher:
         grapher = self.grapher or GrapherControlPlane(self.control_workspace, project_id=order.project_id)
         project_workspace = grapher.project_root
         project_scratch = self.scratch / order.project_id if order.project_id else self.scratch
-        sarcophagus = self.sarcophagus or Sarcophagus(project_workspace, project_scratch)
+        if self.sarcophagus is not None:
+            sarcophagus = self.sarcophagus
+        else:
+            base_env = ("PATH", "LANG", "LC_ALL", "TERM")
+            adapter_env = tuple(getattr(adapter, "environment_allowlist", ()) or ())
+            policy = SarcophagusPolicy(
+                network=NetworkPolicy.HOST if bool(getattr(adapter, "requires_network", False)) else NetworkPolicy.NONE,
+                environment_allowlist=tuple(dict.fromkeys((*base_env, *adapter_env))),
+            )
+            sarcophagus = Sarcophagus(project_workspace, project_scratch, policy=policy)
 
         packet_dir = project_scratch / "orders"
         result_dir = project_scratch / "results"
@@ -101,6 +110,7 @@ class ProjectArmDispatcher:
                     "stderr": completed.stderr,
                     "result_path": str(result_path),
                     "usage_path": str(usage_path),
+                    "network_policy": sarcophagus.policy.network.value,
                 },
             },
         )
@@ -115,6 +125,10 @@ class ProjectArmDispatcher:
             grapher.write_record(record)
 
         usage_id = self._record_usage_if_reported(usage_path, order, adapter.id)
+        if usage_id is None:
+            report = adapter.usage_from_output(completed.stdout)
+            if report is not None:
+                usage_id = self._record_usage_report(report, order, adapter.id, source="structured_stdout")
         return DispatchResult(
             order_id=order.id,
             project_arm=order.project_arm,
@@ -133,10 +147,23 @@ class ProjectArmDispatcher:
             return None
         try:
             report = json.loads(usage_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as exc:
+            raise ValueError(f"invalid adapter usage report {usage_path}: {exc}") from exc
+        return self._record_usage_report(report, order, adapter_id, source="adapter_report")
+
+    def _record_usage_report(
+        self,
+        report: dict[str, object],
+        order: Order,
+        adapter_id: str,
+        *,
+        source: str,
+    ) -> str:
+        try:
             input_tokens = int(report["input_tokens"])
             output_tokens = int(report["output_tokens"])
-        except (OSError, json.JSONDecodeError, KeyError, TypeError, ValueError) as exc:
-            raise ValueError(f"invalid adapter usage report {usage_path}: {exc}") from exc
+        except (KeyError, TypeError, ValueError) as exc:
+            raise ValueError(f"invalid adapter usage report: {exc}") from exc
         config = load_config(self.control_workspace)
         usage = TokenUsage.create(
             agent_id=str(report.get("agent_id") or adapter_id),
@@ -153,9 +180,9 @@ class ProjectArmDispatcher:
             output_tokens=output_tokens,
             cached_tokens=int(report.get("cached_tokens") or 0),
             reasoning_tokens=int(report.get("reasoning_tokens") or 0),
-            provider=report.get("provider"),
-            model=report.get("model"),
-            source="adapter_report",
+            provider=str(report.get("provider")) if report.get("provider") else None,
+            model=str(report.get("model")) if report.get("model") else None,
+            source=source,
         )
         TokenUsageLedger(self.control_workspace).record(usage)
         return usage.id
