@@ -71,6 +71,7 @@ jobs:
               type='implementation',
               title='Dreadnought v0.2.0b4 release packages Codex kernel compatibility repair',
               content=json.dumps({
+                  'component':'Dreadnought beta distribution',
                   'release':'v0.2.0b4',
                   'change':'Publish the Codex unified-exec compatibility repair and corrected public beta marker so normal install/update paths receive the fixed Dreadnought build.'
               }),
