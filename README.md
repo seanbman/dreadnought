@@ -9,6 +9,7 @@ Dreadnought is an experimental agent control plane for turning human intent into
 
 - [Quick start — Linux](#quick-start--linux)
 - [Start here](#start-here)
+- [Workspace bootstrap](#workspace-bootstrap)
 - [Mission Builder](#mission-builder)
 - [Mental model](#mental-model)
 - [Updating](#updating)
@@ -26,19 +27,20 @@ export PATH="$HOME/.local/bin:$PATH"
 dreadnought --version
 ```
 
-Then run:
+Then, from the workspace Dreadnought should control:
 
 ```bash
-dreadnought
+dreadnought initialize
 ```
 
-The root menu now includes **Missions** for guided mission authoring.
+`dreadnought init` is an alias. The interactive bootstrap captures human intent, detects the managed project, initializes or adopts Grapher, creates a ready bootstrap Mission, generates `.dreadnought/INSTRUCTIONS.md`, and can configure the primary Dreadnought agent.
 
 ## Start here
 
 | I want to… | Read |
 |---|---|
-| Build a project mission with prompts, source docs, constraints, and capabilities | [`docs/MISSION_BUILDER.md`](docs/MISSION_BUILDER.md) |
+| Initialize a workspace or adopt an existing Grapher project | [`docs/BOOTSTRAP.md`](docs/BOOTSTRAP.md) |
+| Build or refine a project mission | [`docs/MISSION_BUILDER.md`](docs/MISSION_BUILDER.md) |
 | Install or update | [`docs/INSTALLATION_AND_UPDATES.md`](docs/INSTALLATION_AND_UPDATES.md) |
 | Run a project end-to-end | [`docs/PROJECT_EXECUTION_TUTORIAL.md`](docs/PROJECT_EXECUTION_TUTORIAL.md) |
 | Use interactive menu, agent chat, token accounting | [`docs/INTERACTIVE_CLI_AND_TOKEN_USAGE.md`](docs/INTERACTIVE_CLI_AND_TOKEN_USAGE.md) |
@@ -46,6 +48,20 @@ The root menu now includes **Missions** for guided mission authoring.
 | Understand architecture/trust boundaries | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) |
 | Understand Dreadnought ↔ Grapher brokering | [`docs/GRAPHER_INTEGRATION.md`](docs/GRAPHER_INTEGRATION.md) |
 | Browse all durable documentation | [`docs/INDEX.md`](docs/INDEX.md) |
+
+## Workspace bootstrap
+
+A fresh Dreadnought workspace may contain an existing standalone project. For example:
+
+```text
+csw-070926/
+└── pt-site-overhaul/
+    └── .grapher/
+```
+
+Running `dreadnought initialize` from `csw-070926` detects the nested project and routes Dreadnought's Grapher control plane to `pt-site-overhaul/.grapher`. If that brain is already schema v2, Dreadnought adopts it without rewriting historical nodes. Existing `unclassified` nodes are grandfathered through Grapher's legacy allowlist before explicit-status policy is enabled.
+
+The generated workspace instructions preserve the architecture boundary: Grapher is the durable brain, Dreadnought is the encapsulating control plane, and Project Arms / Sarcophagus agents do not mutate Grapher directly.
 
 ## Mission Builder
 
@@ -72,6 +88,8 @@ Mission Builder uses the existing authoritative Mission schema. It captures the 
 
 ```text
 Human intent
+    ↓
+Workspace bootstrap → generated instructions + bootstrap Mission
     ↓
 Mission Builder → Mission → Doctrine → Campaign → Order
     ↓
@@ -111,7 +129,7 @@ Interactive release checks are best-effort and quiet for automation. Updates are
 
 ## Current beta boundary
 
-v0.2.0b2 adds guided Mission Builder, mission review/readiness flows, `dreadnought update`, local-checkout installation, and an explicit `--version` surface. It retains the v0.2.0b1 Mission/Doctrine/Campaign/Order model, typed protocol, Project Arm infrastructure, Sarcophagus isolation, Grapher mediation, interactive CLI, token accounting, and Linux distribution baseline. The next empirical milestone remains a real vendor adapter and bounded real-workspace Project Arm run.
+v0.2.0b2 adds guided Mission Builder, mission review/readiness flows, `dreadnought update`, local-checkout installation, and an explicit `--version` surface. The current development line adds workspace bootstrap, nested-project Grapher routing, inherited-brain adoption, and generated instructions while retaining the v0.2.0b1 Mission/Doctrine/Campaign/Order model, typed protocol, Project Arm infrastructure, Sarcophagus isolation, Grapher mediation, interactive CLI, token accounting, and Linux distribution baseline.
 
 ## Documentation and governance
 
@@ -121,8 +139,8 @@ v0.2.0b2 adds guided Mission Builder, mission review/readiness flows, `dreadnoug
 
 ```mermaid
 flowchart LR
-    H["Human mission intent\ncode: src/dreadnought/mission_builder.py\ninception: 9808bfe5d35beabd950b0fff1487c452494cf597\ncurrent: release/0.2.1b1-mission-builder"] --> M["Mission schema\ncode: src/dreadnought/mission.py\ninception: db2c89af7ffa2c803020739eec578f20bcf5850c\ncurrent: release/0.2.1b1-mission-builder"]
-    M --> O["Doctrine / Campaign / Order\ncode: src/dreadnought/doctrine.py; campaign.py; order.py\ninception: db2c89af7ffa2c803020739eec578f20bcf5850c\ncurrent: release/0.2.1b1-mission-builder"]
-    O --> A["Project Arm / typed testimony\ncode: src/dreadnought/dispatch.py; protocol.py\ninception: d6692863d9d43372f3fffc7b5c6fb821b6dafee1\ncurrent: release/0.2.1b1-mission-builder"]
-    A --> G["Dreadnought-mediated Grapher state\ncode: src/dreadnought/grapher.py\ninception: 4630ac84da52677b343e7a3737844da683b25202\ncurrent: release/0.2.1b1-mission-builder"]
+    H["Human workspace intent\ncode: src/dreadnought/bootstrap.py\ninception: a72edbfe4df191e5d9570c9dcf6d55909a1893ce\ncurrent: fix/bootstrap-initialization-flow"] --> B["Bootstrap Mission + generated instructions\ncode: src/dreadnought/bootstrap.py; src/dreadnought/mission.py\ninception: a72edbfe4df191e5d9570c9dcf6d55909a1893ce\ncurrent: fix/bootstrap-initialization-flow"]
+    B --> M["Mission / Doctrine / Campaign / Order\ncode: src/dreadnought/mission.py; doctrine.py; campaign.py; order.py\ninception: db2c89af7ffa2c803020739eec578f20bcf5850c\ncurrent: fix/bootstrap-initialization-flow"]
+    M --> A["Project Arm / typed testimony\ncode: src/dreadnought/dispatch.py; protocol.py\ninception: d6692863d9d43372f3fffc7b5c6fb821b6dafee1\ncurrent: fix/bootstrap-initialization-flow"]
+    A --> G["Dreadnought-mediated Grapher state\ncode: src/dreadnought/grapher.py\ninception: 4630ac84da52677b343e7a3737844da683b25202\ncurrent: fix/bootstrap-initialization-flow"]
 ```

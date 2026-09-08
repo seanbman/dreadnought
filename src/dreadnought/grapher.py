@@ -48,21 +48,51 @@ class GrapherControlPlane:
     validates and projects that testimony, and this adapter is the only Dreadnought
     component permitted to mutate Grapher. Grapher remains responsible for canonical
     storage, truth policy, semantic integrity, transition handling, and history.
+
+    ``workspace`` is the Dreadnought workspace root. If its Dreadnought config names a
+    managed ``project_root``, Grapher operations are transparently routed there. This
+    keeps Dreadnought workspace state outside a nested project's standalone Grapher
+    brain while preserving the same control-plane API.
     """
 
     def __init__(self, workspace: Path | str):
-        self.workspace = Path(workspace)
-        self.grapher_dir = self.workspace / ".grapher"
+        self.workspace = Path(workspace).resolve()
+        self.project_root = self._configured_project_root()
+        self.grapher_dir = self.project_root / ".grapher"
         self.graph_path = self.grapher_dir / "knowledge.json"
         self.history_path = self.grapher_dir / "history.jsonl"
         self.config_path = self.grapher_dir / "config.json"
+
+    def _dreadnought_config(self) -> dict[str, Any]:
+        path = self.workspace / ".dreadnought" / "config.json"
+        if not path.is_file():
+            return {}
+        try:
+            data = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            return {}
+        return data if isinstance(data, dict) else {}
+
+    def _configured_project_root(self) -> Path:
+        raw = self._dreadnought_config().get("project_root")
+        if not raw:
+            return self.workspace
+        candidate = Path(str(raw))
+        if not candidate.is_absolute():
+            candidate = self.workspace / candidate
+        return candidate.resolve()
+
+    def _project_id(self) -> str:
+        configured = self._dreadnought_config().get("project_id")
+        return str(configured or self.project_root.name or "dreadnought")
 
     def initialize(self) -> Path:
         """Initialize a new Dreadnought-managed Grapher context.
 
         Initialization is intentionally mediated by Dreadnought so a new workspace
         starts with the projection types and explicit truth-status policy required by
-        the control plane. Existing graphs are never overwritten.
+        the control plane. Existing graphs are never overwritten; use :meth:`adopt`
+        when bringing an existing Grapher project under Dreadnought control.
         """
         if self.graph_path.exists():
             raise ValueError(f"Grapher graph already initialized: {self.graph_path}")
@@ -70,7 +100,7 @@ class GrapherControlPlane:
         grapher.init_context(
             self.graph_path,
             scope="project",
-            name=self.workspace.name or "dreadnought-project",
+            name=self.project_root.name or "dreadnought-project",
             domain="agent-control-plane",
         )
         config = load_config(self.graph_path)
@@ -103,9 +133,56 @@ class GrapherControlPlane:
         save_config(self.graph_path, config)
         return self.graph_path
 
+    def adopt(self) -> dict[str, Any]:
+        """Adopt an existing v2 Grapher brain without rewriting historical nodes.
+
+        Dreadnought adds only the policy it needs to broker future writes. Existing
+        custom node types and legacy allowlist entries are preserved. Nodes that were
+        already missing an explicit truth status (or were ``unclassified``) are added
+        to Grapher's legacy allowlist so enabling explicit status does not mutate or
+        retroactively invalidate inherited provenance.
+        """
+        if not self.graph_path.is_file():
+            raise FileNotFoundError(f"Grapher graph not initialized: {self.graph_path}")
+        try:
+            graph = json.loads(self.graph_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as exc:
+            raise ValueError(f"cannot read Grapher graph: {exc}") from exc
+        if not isinstance(graph, dict) or graph.get("version") != 2:
+            raise ValueError("existing Grapher brain must be schema version 2 before Dreadnought adoption")
+
+        nodes = graph.get("nodes") or {}
+        if not isinstance(nodes, dict):
+            raise ValueError("existing Grapher brain has invalid nodes collection")
+        inherited_unclassified = {
+            str(node_id)
+            for node_id, node in nodes.items()
+            if isinstance(node, dict) and (not node.get("status") or node.get("status") == "unclassified")
+        }
+
+        config = load_config(self.graph_path)
+        configured_types = set(config.get("custom_node_types") or [])
+        legacy_allowlist = set(config.get("truth_status_legacy_allowlist") or [])
+        config["custom_node_types"] = sorted(configured_types | _REQUIRED_NODE_TYPES)
+        config["require_explicit_status"] = True
+        config["truth_status_legacy_allowlist"] = sorted(legacy_allowlist | inherited_unclassified)
+        save_config(self.graph_path, config)
+
+        checks = self.doctor()
+        return {
+            "mode": "adopted",
+            "graph_path": str(self.graph_path),
+            "graph_version": graph.get("version"),
+            "existing_nodes": len(nodes),
+            "legacy_unclassified_allowlisted": len(inherited_unclassified),
+            "compatible": bool(checks.get("compatible")),
+        }
+
     def doctor(self) -> dict[str, Any]:
         """Return deterministic compatibility checks for the embedded Grapher brain."""
         checks: dict[str, Any] = {
+            "workspace": str(self.workspace),
+            "project_root": str(self.project_root),
             "grapher_version": grapher_package.__version__,
             "embedded_api": callable(getattr(grapher, "contribute_context", None)),
             "graph_exists": self.graph_path.is_file(),
@@ -224,7 +301,7 @@ class GrapherControlPlane:
             return False
 
     def _scope(self, record: ProtocolRecord) -> dict[str, Any]:
-        scope: dict[str, Any] = {"project_id": "dreadnought"}
+        scope: dict[str, Any] = {"project_id": self._project_id()}
         if record.mission_ref:
             scope["mission_id"] = record.mission_ref
         return scope
