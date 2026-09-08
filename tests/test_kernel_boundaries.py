@@ -144,3 +144,10 @@ def test_primary_kernel_cannot_write_canonical_workspace(tmp_path: Path) -> None
     rc = kernel.run(agent_type="custom", executable="/bin/sh", args=command)
     assert rc != 0
     assert target.read_text() == "original"
+
+
+def test_primary_codex_uses_external_sandbox_bypass() -> None:
+    args = PrimaryKernel._provider_args("codex", ["--model", "x"])
+    assert args[:3] == ["--dangerously-bypass-approvals-and-sandbox", "--model", "x"]
+    with pytest.raises(ValueError, match="externally sandboxed"):
+        PrimaryKernel._provider_args("codex", ["--sandbox", "danger-full-access"])

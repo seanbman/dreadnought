@@ -28,7 +28,7 @@ Dreadnought is a workspace-level control plane that can own several independentl
 
 ## Trust boundaries
 
-The Dreadnought workspace registry is control-plane-owned metadata; each registered project's canonical files, Git history, and Grapher store remain project-local. Project selection is only a default route. Explicit project IDs route operations directly and do not mutate that default. Agents receive bounded execution authority through Project Arms. Agent-authored records remain testimony; observer and evaluation records remain Dreadnought-owned. Sarcophagus is the current kernel-enforced process/filesystem boundary.
+The Dreadnought workspace registry is control-plane-owned metadata; each registered project's canonical files, Git history, and Grapher store remain project-local. Project selection is only a default route. Explicit project IDs route operations directly and do not mutate that default. Agents receive bounded execution authority through Project Arms. Agent-authored records remain testimony; observer and evaluation records remain Dreadnought-owned. Sarcophagus is the current kernel-enforced process/filesystem boundary. For Codex providers, Dreadnought/Sarcophagus are explicitly the external sandbox: Codex is launched with its own approval and sandbox layer bypassed so nested provider sandboxes cannot break shell/process execution.
 For Codex, Dreadnought is the sole Linux sandbox boundary: primary and Project Arm launches disable Codex's nested filesystem sandbox (`danger-full-access` from Codex's perspective) while the outer Dreadnought Bubblewrap boundary continues enforcing canonical read-only mounts, credential masking, scratch access, and private temporary storage.
 
 ## Architecture diagram

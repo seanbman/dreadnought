@@ -95,24 +95,12 @@ class PrimaryKernel:
             return rendered
         if "--dangerously-bypass-approvals-and-sandbox" in rendered:
             return rendered
-        for index, arg in enumerate(rendered):
-            if arg in {"--sandbox", "-s"}:
-                if index + 1 >= len(rendered):
-                    raise ValueError("Codex sandbox option requires a mode")
-                mode = rendered[index + 1]
-                if mode != "danger-full-access":
-                    raise ValueError(
-                        "Codex primary must use --sandbox danger-full-access inside Dreadnought's outer sandbox"
-                    )
-                return rendered
-            if arg.startswith("--sandbox="):
-                mode = arg.split("=", 1)[1]
-                if mode != "danger-full-access":
-                    raise ValueError(
-                        "Codex primary must use --sandbox danger-full-access inside Dreadnought's outer sandbox"
-                    )
-                return rendered
-        return ["--sandbox", "danger-full-access", *rendered]
+        for arg in rendered:
+            if arg in {"--sandbox", "-s"} or arg.startswith("--sandbox="):
+                raise ValueError(
+                    "Codex primary is externally sandboxed by Dreadnought; remove inner --sandbox options"
+                )
+        return ["--dangerously-bypass-approvals-and-sandbox", *rendered]
 
     def _provider_writable_paths(self, agent_type: str, env: dict[str, str]) -> list[Path]:
         """Return narrowly scoped provider runtime paths that must remain writable."""
@@ -205,6 +193,24 @@ def run_kernel_cli(argv: list[str]) -> int:
         return 2
     executable = str(agent.get("provider_executable") or "").strip()
     provider_args = list(agent.get("provider_args") or [])
+    instructions = root / str(config.get("instructions_path") or ".dreadnought/INSTRUCTIONS.md")
+    mission_id = str(config.get("bootstrap_mission") or "").strip()
+    mission_path = root / ".dreadnought" / "missions" / f"{mission_id}.json" if mission_id else None
+    if args.agent_type == "codex":
+        initial_prompt = (
+            "You are the primary Dreadnought agent for this workspace. Begin immediately; do not wait for "
+            "the operator to tell you what to do. Read the authoritative workspace instructions at "
+            f"{instructions}. "
+        )
+        if mission_path is not None:
+            initial_prompt += f"Read the bootstrap Mission at {mission_path}. "
+        initial_prompt += (
+            "Inspect relevant Grapher state through the Dreadnought control plane, then execute the ready "
+            "mission under those instructions. Dreadnought is the external sandbox and authority boundary; "
+            "use the provided control-plane paths for canonical mutation and delegation. If execution is blocked, "
+            "report the exact failing operation and error after attempting the permitted Dreadnought path."
+        )
+        provider_args.append(initial_prompt)
     if not executable:
         print(f"agent provider executable is missing: {args.agent_type}", file=sys.stderr)
         return 2

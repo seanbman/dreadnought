@@ -1,0 +1,20 @@
+{
+  "id": "pass-primary-bootstrap-runtime-contract-2026-09-08",
+  "type": "verification",
+  "title": "Primary bootstrap runtime contract",
+  "status": "current",
+  "provenance": {
+    "actor_id": "chatgpt",
+    "actor_kind": "agent",
+    "source": "github-actions",
+    "recorded_at": "2026-09-08T06:54:57+00:00"
+  },
+  "semantic": {
+    "graph_node": "implementation-primary-bootstrap-runtime-contract",
+    "claims": [
+      "Primary Codex is seeded automatically from workspace instructions and bootstrap Mission",
+      "Codex inner approval/sandbox is bypassed only inside Dreadnought external isolation",
+      "Project Arm Codex uses the same external-sandbox ownership model"
+    ]
+  }
+}
