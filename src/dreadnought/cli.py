@@ -115,10 +115,18 @@ def _launch_agent_chat(root: Path, agent_type: str) -> int:
     command = [agent["executable"], *list(agent.get("args") or [])]
     print(f"Opening {agent_type} chat in {root} ...", file=sys.stderr)
     try:
-        return subprocess.call(command, cwd=root)
+        rc = subprocess.call(command, cwd=root)
     except FileNotFoundError:
         print(f"agent executable not found: {agent['executable']}", file=sys.stderr)
         return 2
+    if bool((config.get("token_usage") or {}).get("enabled", True)):
+        TokenUsageLedger(root).record_unmetered_session(
+            agent_id=str(agent_type),
+            agent_role="primary",
+            project_id=str(config.get("active_project") or config.get("project_id") or root.name),
+            exit_code=rc,
+        )
+    return rc
 
 
 def cmd_agent_chat(args: argparse.Namespace) -> int:
