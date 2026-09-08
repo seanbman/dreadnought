@@ -95,8 +95,7 @@ class Sarcophagus:
             for key, value in os.environ.items()
             if key in self.policy.environment_allowlist
         }
-        if "TMPDIR" in self.policy.environment_allowlist or "TMPDIR" in os.environ:
-            environment["TMPDIR"] = "/tmp"
+        environment["TMPDIR"] = "/tmp"
         return ExecutionPlan(
             backend=IsolationBackend.BWRAP,
             argv=tuple(argv),
