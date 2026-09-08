@@ -1,0 +1,105 @@
+name: Temporary Codex repair Grapher mutation
+
+on:
+  push:
+    branches:
+      - fix/codex-managed-unified-exec
+
+permissions:
+  contents: write
+
+jobs:
+  mutate:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: fix/codex-managed-unified-exec
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install --upgrade pip
+      - run: python -m pip install -e .
+      - name: Mutate Grapher canonically
+        shell: bash
+        run: |
+          set -euo pipefail
+          NODE=implementation-codex-managed-unified-exec-compatibility
+          OLD=implementation-codex-unified-exec-kernel-compatibility
+          PASS=.grapher/shared/pass-records/2026-09-08-codex-managed-unified-exec-repair.json
+          if grep -q "\"$NODE\"" .grapher/knowledge.json; then
+            echo "Grapher repair already recorded"
+            exit 0
+          fi
+
+          mkdir -p "$(dirname "$PASS")"
+          cat > "$PASS" <<'JSON'
+          {
+            "id": "pass-codex-managed-unified-exec-repair-2026-09-08",
+            "type": "verification",
+            "title": "Codex managed UnifiedExec compatibility repair",
+            "status": "current",
+            "provenance": {
+              "actor_id": "chatgpt",
+              "actor_kind": "agent",
+              "source": "github-actions",
+              "recorded_at": "2026-09-08T00:00:00+00:00"
+            },
+            "semantic": {
+              "graph_node": "implementation-codex-managed-unified-exec-compatibility",
+              "supersedes": "implementation-codex-unified-exec-kernel-compatibility",
+              "claims": [
+                "Codex ordinary CLI feature overrides are not authoritative for disabling UnifiedExec",
+                "Dreadnought preserves existing /etc/codex managed policy while pinning features.unified_exec=false in a private system requirements overlay",
+                "The overlay is mounted read-only inside PrimaryKernel and Sarcophagus before private /tmp hides its host source",
+                "The outer Bubblewrap authority boundary and read-only canonical workspace are preserved",
+                "The v0.2.0b4 UnifiedExec compatibility claim is superseded because it tested argument construction rather than effective Codex tool execution"
+              ]
+            }
+          }
+          JSON
+
+          grapher --graph .grapher/knowledge.json add \
+            --id "$NODE" \
+            --type implementation \
+            --title "Codex UnifiedExec is disabled by managed requirements inside Dreadnought kernels" \
+            --content '{"change":"Primary and Sarcophagus Codex runtimes preserve existing system policy and receive a private /etc/codex/requirements.toml overlay that authoritatively pins features.unified_exec=false before Codex config normalization.","component":"src/dreadnought/codex_compat.py; src/dreadnought/kernel.py; src/dreadnought/sarcophagus.py"}' \
+            --path src/dreadnought/codex_compat.py \
+            --tags codex,unified-exec,bubblewrap,kernel,sarcophagus,compatibility \
+            --stage maintaining \
+            --status current \
+            --workflow-state completed \
+            --verification verified \
+            --evidence '{"type":"document","ref":"docs/FAILURE_LEDGER.md","summary":"F-0004 records the live integration failure and corrected compatibility boundary"}' \
+            --evidence '{"type":"test","ref":"tests/test_codex_compat.py","summary":"Managed requirements overlay and Bubblewrap mount-order regressions"}' \
+            --source-refs docs/FAILURE_LEDGER.md,tests/test_codex_compat.py \
+            --project dreadnought \
+            --actor chatgpt \
+            --actor-kind agent \
+            --source github-actions \
+            --provenance-integrity declared \
+            --reason "Live Codex execution proved the b4 CLI override was normalized away; use Codex managed requirements instead" \
+            --operation-id repair-codex-managed-unified-exec-20260908 \
+            --phase verified \
+            --history-evidence-ref "$PASS"
+
+          grapher --graph .grapher/knowledge.json curate supersede "$NODE" "$OLD" \
+            --note "Live primary-agent execution disproved the b4 CLI-only UnifiedExec disable claim" \
+            --project dreadnought \
+            --actor chatgpt \
+            --actor-kind agent \
+            --source github-actions \
+            --reason "Supersede false-positive b4 compatibility conclusion with managed-requirements implementation" \
+            --operation-id repair-codex-managed-unified-exec-20260908 \
+            --phase verified \
+            --history-evidence-ref "$PASS"
+
+          grapher validate --graph .grapher/knowledge.json --json
+
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add .grapher/knowledge.json .grapher/history.jsonl "$PASS"
+          git commit -m "Record Codex managed UnifiedExec repair through Grapher"
+          git push origin HEAD:fix/codex-managed-unified-exec
