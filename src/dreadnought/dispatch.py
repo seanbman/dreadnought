@@ -91,6 +91,9 @@ class ProjectArmDispatcher:
             workspace=project_workspace,
         )
         completed = sarcophagus.run(command, timeout=timeout)
+        policy = getattr(sarcophagus, "policy", None)
+        network = getattr(policy, "network", None)
+        network_policy = getattr(network, "value", "custom")
 
         observation = ProtocolRecord.create(
             kind=RecordKind.OBSERVATION,
@@ -110,7 +113,7 @@ class ProjectArmDispatcher:
                     "stderr": completed.stderr,
                     "result_path": str(result_path),
                     "usage_path": str(usage_path),
-                    "network_policy": sarcophagus.policy.network.value,
+                    "network_policy": network_policy,
                 },
             },
         )
