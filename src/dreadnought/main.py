@@ -6,7 +6,7 @@ from pathlib import Path
 import sys
 
 from dreadnought import __version__
-from dreadnought.bootstrap import run_bootstrap_cli, run_home_menu
+from dreadnought.secure_bootstrap import run_bootstrap_cli, run_home_menu
 from dreadnought.mission import Mission
 from dreadnought.mission_builder import (
     create_mission_interactive,
@@ -95,6 +95,22 @@ def _minion_extension(argv: list[str]) -> int | None:
     return run_minion_cli(argv[1:])
 
 
+def _kernel_extension(argv: list[str]) -> int | None:
+    if not argv or argv[0] != "kernel":
+        return None
+    from dreadnought.kernel import run_kernel_cli
+
+    return run_kernel_cli(argv[1:])
+
+
+def _control_extension(argv: list[str]) -> int | None:
+    if not argv or argv[0] != "control":
+        return None
+    from dreadnought.control import run_control_cli
+
+    return run_control_cli(argv[1:])
+
+
 def _update_command(argv: list[str]) -> int | None:
     if not argv or argv[0] != "update":
         return None
@@ -122,11 +138,12 @@ def _print_help() -> int:
         "  dreadnought doctrine <command>       normalize authoritative intent\n"
         "  dreadnought campaign <command>       plan doctrine as bounded operations\n"
         "  dreadnought order <command>          issue a Project Arm order\n"
-        "  dreadnought minion commission ...    commission a configured subordinate agent\n"
+        "  dreadnought minion commission ...    operator-side minion commissioning\n"
+        "  dreadnought control <command>        kernel-safe primary-agent broker client\n"
         "  dreadnought grapher <command>        broker managed Grapher access\n"
         "  dreadnought protocol <command>       validate or ingest typed testimony\n"
         "  dreadnought arm dispatch ...         execute a bounded Project Arm order\n"
-        "  dreadnought agent <command>          configure/open an agent adapter\n"
+        "  dreadnought agent <command>          configure/open a kernel-isolated primary adapter\n"
         "  dreadnought usage <command>          record or summarize token usage\n"
         "  dreadnought config <command>         inspect/change project configuration\n"
         "  dreadnought update                   update the managed installation\n"
@@ -165,6 +182,12 @@ def main() -> int:
     minion = _minion_extension(actual)
     if minion is not None:
         return minion
+    kernel = _kernel_extension(actual)
+    if kernel is not None:
+        return kernel
+    control = _control_extension(actual)
+    if control is not None:
+        return control
     updated = _update_command(actual)
     if updated is not None:
         return updated

@@ -9,8 +9,10 @@ import tempfile
 from .agent import configured_minion_adapter
 from .config import load_config
 from .dispatch import ProjectArmDispatcher
+from .limits import MinionSlotManager
 from .mission import Mission
 from .order import Order
+from .project_policy import project_policy
 
 
 def _mission_path(root: Path, mission_id: str) -> Path:
@@ -33,6 +35,16 @@ def _default_scratch(root: Path) -> Path:
     return Path(tempfile.gettempdir()) / "dreadnought" / root.name / "minions"
 
 
+def _effective_limit(config: dict, mission: Mission | None, project_id: str) -> int | None:
+    limits = []
+    policy_limit = project_policy(config, project_id).max_minions
+    if policy_limit is not None:
+        limits.append(policy_limit)
+    if mission is not None and mission.capabilities.max_minions is not None:
+        limits.append(mission.capabilities.max_minions)
+    return min(limits) if limits else None
+
+
 def commission(
     root: Path,
     order_path: Path,
@@ -45,10 +57,13 @@ def commission(
     root = root.resolve()
     config = load_config(root)
     mission = _resolve_mission(root, mission_id)
-    if mission is not None and mission.capabilities.max_minions == 0:
+    order = Order.read(order_path.resolve())
+    project_id = str(order.project_id or config.get("active_project") or config.get("project_id") or root.name)
+    limit = _effective_limit(config, mission, project_id)
+    if limit == 0:
         raise ValueError(
-            "mission explicitly prohibits minion delegation (max_minions=0); "
-            "only an operator-authored mission constraint may block commissioning"
+            "project or mission explicitly prohibits minion delegation (max_minions=0); "
+            "only operator-authored project/mission policy may block commissioning"
         )
 
     selected = (agent_type or config.get("primary_agent") or "").strip()
@@ -57,13 +72,14 @@ def commission(
     agent_config = (config.get("agents") or {}).get(selected)
     if not agent_config:
         raise ValueError(f"agent is not configured: {selected}")
-    adapter = configured_minion_adapter(selected, executable=agent_config.get("executable"))
+    provider_executable = agent_config.get("provider_executable") or agent_config.get("executable")
+    adapter = configured_minion_adapter(selected, executable=provider_executable)
 
-    order = Order.read(order_path.resolve())
-    return ProjectArmDispatcher(
-        workspace=root,
-        scratch=(scratch or _default_scratch(root)).resolve(),
-    ).dispatch(order, adapter, timeout=timeout)
+    with MinionSlotManager(root).lease(project_id, limit):
+        return ProjectArmDispatcher(
+            workspace=root,
+            scratch=(scratch or _default_scratch(root)).resolve(),
+        ).dispatch(order, adapter, timeout=timeout)
 
 
 def run_minion_cli(argv: list[str]) -> int:

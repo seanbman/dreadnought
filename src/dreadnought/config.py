@@ -21,10 +21,35 @@ def default_config(workspace: Path) -> dict[str, Any]:
         "project_id": workspace.name,
         "active_project": None,
         "projects": {},
+        "project_policies": {},
         "primary_agent": None,
         "agents": {},
         "ui": {"interactive_menu": True},
         "token_usage": {"enabled": True},
+        "kernel": {"primary_isolation": True, "minion_channel": "control_plane"},
+    }
+
+
+def _kernelize_agent(agent_type: str, raw: dict[str, Any]) -> dict[str, Any]:
+    data = dict(raw)
+    executable = str(data.get("executable") or DEFAULT_AGENT_EXECUTABLES.get(agent_type) or agent_type).strip()
+    args = list(data.get("args") or [])
+    if data.get("provider_executable"):
+        provider_executable = str(data["provider_executable"])
+        provider_args = list(data.get("provider_args") or [])
+    elif executable == "dreadnought" and args[:3] == ["kernel", "launch", "--agent-type"]:
+        provider_executable = str(data.get("provider_executable") or DEFAULT_AGENT_EXECUTABLES.get(agent_type) or agent_type)
+        provider_args = list(data.get("provider_args") or [])
+    else:
+        provider_executable = executable
+        provider_args = args
+    return {
+        "type": agent_type,
+        "executable": "dreadnought",
+        "args": ["kernel", "launch", "--agent-type", agent_type],
+        "provider_executable": provider_executable,
+        "provider_args": provider_args,
+        "kernel": "primary",
     }
 
 
@@ -37,8 +62,14 @@ def load_config(workspace: Path) -> dict[str, Any]:
         raise ValueError("Dreadnought config must be a JSON object")
     base = default_config(workspace)
     base.update(data)
-    base["agents"] = dict(data.get("agents") or {})
+    raw_agents = dict(data.get("agents") or {})
+    base["agents"] = {
+        str(agent_type): _kernelize_agent(str(agent_type), dict(agent or {}))
+        for agent_type, agent in raw_agents.items()
+    }
     base["projects"] = dict(data.get("projects") or {})
+    base["project_policies"] = dict(data.get("project_policies") or {})
+    base["kernel"] = {**default_config(workspace)["kernel"], **dict(data.get("kernel") or {})}
     return base
 
 
@@ -60,15 +91,18 @@ def configure_agent(
     agent_type = agent_type.strip().lower()
     if not agent_type:
         raise ValueError("agent type must not be empty")
-    executable = (executable or DEFAULT_AGENT_EXECUTABLES.get(agent_type) or agent_type).strip()
-    if not executable:
+    provider_executable = (executable or DEFAULT_AGENT_EXECUTABLES.get(agent_type) or agent_type).strip()
+    if not provider_executable:
         raise ValueError("agent executable must not be empty")
     config = load_config(workspace)
-    config.setdefault("agents", {})[agent_type] = {
-        "type": agent_type,
-        "executable": executable,
-        "args": list(args or []),
-    }
+    config.setdefault("agents", {})[agent_type] = _kernelize_agent(
+        agent_type,
+        {
+            "type": agent_type,
+            "executable": provider_executable,
+            "args": list(args or []),
+        },
+    )
     if primary or not config.get("primary_agent"):
         config["primary_agent"] = agent_type
     save_config(workspace, config)
