@@ -17,8 +17,10 @@ def config_path(workspace: Path) -> Path:
 
 def default_config(workspace: Path) -> dict[str, Any]:
     return {
-        "version": 1,
+        "version": 2,
         "project_id": workspace.name,
+        "active_project": None,
+        "projects": {},
         "primary_agent": None,
         "agents": {},
         "ui": {"interactive_menu": True},
@@ -36,6 +38,7 @@ def load_config(workspace: Path) -> dict[str, Any]:
     base = default_config(workspace)
     base.update(data)
     base["agents"] = dict(data.get("agents") or {})
+    base["projects"] = dict(data.get("projects") or {})
     return base
 
 
