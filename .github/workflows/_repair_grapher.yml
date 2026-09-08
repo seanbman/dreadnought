@@ -5,19 +5,65 @@ on:
     branches: [fix/delegation-usage-accounting]
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
-  generate:
+  finalize:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: fix/delegation-usage-accounting
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - run: python -m pip install --upgrade pip
+      - name: Finish bootstrap repair
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          cli = Path('src/dreadnought/cli.py')
+          text = cli.read_text(encoding='utf-8')
+          old = '''    try:\n        return subprocess.call(command, cwd=root)\n    except FileNotFoundError:\n        print(f"agent executable not found: {agent['executable']}", file=sys.stderr)\n        return 2\n'''
+          new = '''    try:\n        rc = subprocess.call(command, cwd=root)\n    except FileNotFoundError:\n        print(f"agent executable not found: {agent['executable']}", file=sys.stderr)\n        return 2\n    if bool((config.get("token_usage") or {}).get("enabled", True)):\n        TokenUsageLedger(root).record_unmetered_session(\n            agent_id=str(agent_type),\n            agent_role="primary",\n            project_id=str(config.get("active_project") or config.get("project_id") or root.name),\n            exit_code=rc,\n        )\n    return rc\n'''
+          if old not in text:
+              raise SystemExit('expected primary chat launch block not found')
+          cli.write_text(text.replace(old, new, 1), encoding='utf-8')
+
+          dispatch = Path('src/dreadnought/dispatch.py')
+          text = dispatch.read_text(encoding='utf-8')
+          old = '''        if usage_id is None:\n            report = adapter.usage_from_output(completed.stdout)\n            if report is not None:\n                usage_id = self._record_usage_report(report, order, adapter.id, source="structured_stdout")\n'''
+          new = '''        if usage_id is None:\n            parser = getattr(adapter, "usage_from_output", None)\n            report = parser(completed.stdout) if callable(parser) else None\n            if report is not None:\n                usage_id = self._record_usage_report(report, order, adapter.id, source="structured_stdout")\n'''
+          if old not in text:
+              raise SystemExit('expected structured usage block not found')
+          dispatch.write_text(text.replace(old, new, 1), encoding='utf-8')
+
+          docs = Path('docs/CLI_USAGE.md')
+          text = docs.read_text(encoding='utf-8')
+          text = text.replace('- [Project Arm dispatch](#project-arm-dispatch)\n', '- [Minion commissioning](#minion-commissioning)\n- [Project Arm dispatch](#project-arm-dispatch)\n', 1)
+          marker = '## Project Arm dispatch\n'
+          section = '''## Minion commissioning\n\nWhen a Mission permits delegation, commission a configured Codex or Cursor subordinate through Dreadnought:\n\n```bash\ndreadnought minion commission /path/to/order.json --root /path/to/workspace\n```\n\nUse `--agent codex` or `--agent cursor` to override the configured primary agent for the subordinate. Bootstrap Missions use `capabilities.max_minions: null`, meaning the Mission imposes no numerical delegation cap. `0` is reserved for an explicit operator prohibition. Minions execute through Project Arm / Sarcophagus, receive the canonical project read-only plus external writable scratch, and return typed testimony to Dreadnought rather than writing Grapher directly.\n\n'''
+          if marker not in text:
+              raise SystemExit('Project Arm documentation marker not found')
+          text = text.replace(marker, section + marker, 1)
+          table_marker = '| `dreadnought arm dispatch <order> ...` | Execute one bounded Order through Sarcophagus/Project Arm dispatch |\n'
+          text = text.replace(table_marker, '| `dreadnought minion commission <order> ...` | Commission a configured Codex/Cursor subordinate through Project Arm/Sarcophagus |\n' + table_marker, 1)
+          authority_marker = '- Project Arms return testimony/evidence; they do not gain canonical write authority;\n'
+          text = text.replace(authority_marker, '- absent an explicit Mission prohibition, delegation is available; `max_minions: null` is not a zero-agent cap;\n' + authority_marker, 1)
+          docs.write_text(text, encoding='utf-8')
+
+          tests = Path('tests/test_usage_and_config.py')
+          text = tests.read_text(encoding='utf-8')
+          addition = '''\n\ndef test_primary_cli_chat_records_unmetered_session(tmp_path: Path, monkeypatch) -> None:\n    configure_agent(tmp_path, agent_type="codex", executable="codex", primary=True)\n    monkeypatch.setattr("dreadnought.cli.subprocess.call", lambda command, cwd: 0)\n\n    from dreadnought.cli import _launch_agent_chat\n\n    assert _launch_agent_chat(tmp_path, "codex") == 0\n    stats = TokenUsageLedger(tmp_path).stats()\n    assert stats["metering"]["complete"] is False\n    assert stats["metering"]["unmetered_sessions"] == 1\n    assert stats["metering"]["unmetered_by_role"]["primary"] == 1\n'''
+          if 'test_primary_cli_chat_records_unmetered_session' not in text:
+              tests.write_text(text.rstrip() + addition + '\n', encoding='utf-8')
+          PY
+      - run: python -m pip install --upgrade pip pytest
       - run: python -m pip install -e .
-      - name: Invoke Dreadnought Grapher control plane
+      - name: Run full test suite
+        run: pytest -q
+      - name: Invoke Grapher through Dreadnought
         run: |
           python - <<'PY'
           import json
@@ -34,10 +80,10 @@ jobs:
               data={
                   'audience': 'human',
                   'text': (
-                      'Bootstrap repair: remove the silently invented zero-minion cap; '
-                      'make null mean no mission-imposed delegation limit; add first-class '
-                      'Codex/Cursor minion adapters and commissioning; and distinguish '
-                      'unmetered primary chat sessions from measured zero token usage.'
+                      'Verified bootstrap repair: unspecified delegation no longer becomes a zero-minion prohibition; '
+                      'Dreadnought exposes first-class Codex/Cursor minion commissioning through Project Arm/Sarcophagus; '
+                      'network and provider usage are adapter-aware; native primary chats are recorded as unmetered rather '
+                      'than falsely represented as measured zero-token activity.'
                   ),
               },
           )
@@ -47,15 +93,13 @@ jobs:
           pass_path = root / '.grapher' / 'shared' / 'pass-records' / '2026-09-08-delegation-usage-repair.json'
           pass_path.parent.mkdir(parents=True, exist_ok=True)
           pass_path.write_text(json.dumps(node, indent=2, sort_keys=True) + '\n', encoding='utf-8')
-          print(record.id)
-          print(result.graph_path)
-          print(result.history_path)
-          print(pass_path)
+          print(f'Grapher record: {record.id}')
           PY
-      - uses: actions/upload-artifact@v4
-        with:
-          name: dreadnought-grapher-repair
-          path: |
-            .grapher/knowledge.json
-            .grapher/history.jsonl
-            .grapher/shared/pass-records/2026-09-08-delegation-usage-repair.json
+      - name: Commit verified repair and remove bootstrap workflow
+        run: |
+          git config user.name "dreadnought-control-plane"
+          git config user.email "dreadnought@users.noreply.github.com"
+          git rm .github/workflows/_repair_grapher.yml
+          git add src/dreadnought/cli.py src/dreadnought/dispatch.py docs/CLI_USAGE.md tests/test_usage_and_config.py .grapher/knowledge.json .grapher/history.jsonl .grapher/shared/pass-records/2026-09-08-delegation-usage-repair.json
+          git commit -m "Finalize delegation and usage accounting repair"
+          git push origin HEAD:fix/delegation-usage-accounting
