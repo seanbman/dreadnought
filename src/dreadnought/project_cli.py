@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 
 from .multi_project import MultiProjectControlPlane
+from .order import Order
 from .project_factory import create_project
 from .project_registry import list_projects, register_project, select_project, unregister_project
 from .protocol import ProtocolRecord
@@ -33,6 +34,15 @@ def run_project_cli(argv: list[str]) -> int:
     ingest.add_argument("project_id")
     ingest.add_argument("path")
     ingest.add_argument("--root", default=".")
+
+    order = sub.add_parser("order", help="create an Order explicitly targeted at one project")
+    order.add_argument("project_id")
+    order.add_argument("objective")
+    order.add_argument("--doctrine", required=True)
+    order.add_argument("--campaign", required=True)
+    order.add_argument("--operation", required=True)
+    order.add_argument("--project-arm", default="project-arm-1")
+    order.add_argument("--root", default=".")
 
     create = sub.add_parser("create", help="create and register a complete Dreadnought-managed project")
     create.add_argument("name")
@@ -83,6 +93,20 @@ def run_project_cli(argv: list[str]) -> int:
             record = ProtocolRecord.read(Path(args.path))
             result = MultiProjectControlPlane(workspace).write_record(args.project_id, record)
             print(json.dumps({"project_id": args.project_id, "record_id": result.record_id}, indent=2))
+            return 0
+        if args.project_command == "order":
+            MultiProjectControlPlane(workspace).project_ids([args.project_id])
+            project_order = Order.draft(
+                doctrine_ref=args.doctrine,
+                campaign_ref=args.campaign,
+                operation_ref=args.operation,
+                objective=args.objective,
+                project_arm=args.project_arm,
+                project_id=args.project_id,
+            )
+            path = workspace / ".dreadnought" / "orders" / f"{project_order.id}.json"
+            project_order.write(path)
+            print(path)
             return 0
         if args.project_command == "create":
             result = create_project(
