@@ -6,6 +6,7 @@ from pathlib import Path
 import sys
 
 from dreadnought import __version__
+from dreadnought.bootstrap import run_bootstrap_cli, run_home_menu
 from dreadnought.mission import Mission
 from dreadnought.mission_builder import (
     create_mission_interactive,
@@ -13,7 +14,6 @@ from dreadnought.mission_builder import (
     list_missions,
     mark_ready,
     mission_path,
-    run_home_menu,
     save_mission,
 )
 from dreadnought.update import install_release, maybe_notify
@@ -73,6 +73,12 @@ def _mission_extension(argv: list[str]) -> int | None:
     return None
 
 
+def _bootstrap_extension(argv: list[str]) -> int | None:
+    if not argv or argv[0] not in {"init", "initialize"}:
+        return None
+    return run_bootstrap_cli(argv[1:], prog=f"dreadnought {argv[0]}")
+
+
 def _update_command(argv: list[str]) -> int | None:
     if not argv or argv[0] != "update":
         return None
@@ -93,6 +99,9 @@ def _print_help() -> int:
 
     build_parser().print_help()
     print(
+        "\nBootstrap:\n"
+        "  dreadnought initialize [brief]  initialize/adopt a workspace and generate instructions\n"
+        "  dreadnought init [brief]        alias for initialize\n"
         "\nInteractive controls:\n"
         "  ↑/↓ or 1..N  select menu items\n"
         "  q            back / exit a menu\n"
@@ -117,6 +126,9 @@ def main() -> int:
     if not actual and interactive:
         return run_home_menu()
 
+    bootstrapped = _bootstrap_extension(actual)
+    if bootstrapped is not None:
+        return bootstrapped
     updated = _update_command(actual)
     if updated is not None:
         return updated
