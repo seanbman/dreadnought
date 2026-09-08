@@ -10,7 +10,7 @@ import sys
 import tempfile
 from uuid import uuid4
 
-from .codex_compat import codex_system_requirements_overlay
+from .codex_compat import CODEX_ETC_MIRROR, codex_system_requirements_overlay
 from .config import load_config
 from .control import CONTROL_SOCKET_ENV, PRIMARY_SCRATCH_ENV, ControlPlaneBroker
 from .usage import TokenUsageLedger
@@ -161,7 +161,7 @@ class PrimaryKernel:
         env["TMPDIR"] = "/tmp"
 
         overlay_context = codex_system_requirements_overlay() if agent_type == "codex" else nullcontext(None)
-        with overlay_context as codex_system_dir, ControlPlaneBroker(self.workspace, scratch) as broker:
+        with overlay_context as codex_etc_overlay, ControlPlaneBroker(self.workspace, scratch) as broker:
             env[CONTROL_SOCKET_ENV] = str(broker.socket_path)
             env[PRIMARY_SCRATCH_ENV] = str(scratch)
             env["DREADNOUGHT_KERNEL"] = "primary"
@@ -172,13 +172,19 @@ class PrimaryKernel:
                 "--proc", "/proc",
                 "--dev", "/dev",
                 "--ro-bind", "/", "/",
-            ]
-            # The overlay source lives in the host temporary directory. Bind it
-            # before replacing /tmp so Bubblewrap can still resolve the source.
-            if codex_system_dir is not None:
-                argv.extend(("--ro-bind", str(codex_system_dir), "/etc/codex"))
-            argv.extend((
                 "--tmpfs", "/tmp",
+            ]
+            if codex_etc_overlay is not None:
+                # /etc/codex may not exist on the host. Build a private /etc
+                # facade instead of asking Bubblewrap to create a child mountpoint
+                # beneath the already read-only host /etc. Bubblewrap resolves bind
+                # sources through its old-root view, so /etc here is the host /etc.
+                argv.extend((
+                    "--dir", str(CODEX_ETC_MIRROR),
+                    "--ro-bind", "/etc", str(CODEX_ETC_MIRROR),
+                    "--ro-bind", str(codex_etc_overlay), "/etc",
+                ))
+            argv.extend((
                 "--ro-bind", str(self.workspace), str(self.workspace),
                 "--bind", str(scratch), str(scratch),
                 "--chdir", str(self.workspace),
