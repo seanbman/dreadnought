@@ -87,6 +87,14 @@ def _project_extension(argv: list[str]) -> int | None:
     return run_project_cli(argv[1:])
 
 
+def _minion_extension(argv: list[str]) -> int | None:
+    if not argv or argv[0] != "minion":
+        return None
+    from dreadnought.minion import run_minion_cli
+
+    return run_minion_cli(argv[1:])
+
+
 def _update_command(argv: list[str]) -> int | None:
     if not argv or argv[0] != "update":
         return None
@@ -114,6 +122,7 @@ def _print_help() -> int:
         "  dreadnought doctrine <command>       normalize authoritative intent\n"
         "  dreadnought campaign <command>       plan doctrine as bounded operations\n"
         "  dreadnought order <command>          issue a Project Arm order\n"
+        "  dreadnought minion commission ...    commission a configured subordinate agent\n"
         "  dreadnought grapher <command>        broker managed Grapher access\n"
         "  dreadnought protocol <command>       validate or ingest typed testimony\n"
         "  dreadnought arm dispatch ...         execute a bounded Project Arm order\n"
@@ -153,6 +162,9 @@ def main() -> int:
     projects = _project_extension(actual)
     if projects is not None:
         return projects
+    minion = _minion_extension(actual)
+    if minion is not None:
+        return minion
     updated = _update_command(actual)
     if updated is not None:
         return updated
