@@ -42,22 +42,24 @@ class GrapherWriteResult:
 
 
 class GrapherControlPlane:
-    """Exclusive Dreadnought write authority for an embedded Grapher brain.
+    """Exclusive Dreadnought write authority for one project Grapher brain.
 
-    Project-arm agents submit typed ProtocolRecord testimony to Dreadnought. Dreadnought
-    validates and projects that testimony, and this adapter is the only Dreadnought
-    component permitted to mutate Grapher. Grapher remains responsible for canonical
-    storage, truth policy, semantic integrity, transition handling, and history.
-
-    ``workspace`` is the Dreadnought workspace root. If its Dreadnought config names a
-    managed ``project_root``, Grapher operations are transparently routed there. This
-    keeps Dreadnought workspace state outside a nested project's standalone Grapher
-    brain while preserving the same control-plane API.
+    ``workspace`` is the enclosing Dreadnought workspace root. ``project_id`` may name
+    any registered project without mutating the workspace default. If omitted, the
+    selected default project's compatibility route is used. A standalone project root
+    without Dreadnought workspace configuration still resolves to itself.
     """
 
-    def __init__(self, workspace: Path | str):
+    def __init__(
+        self,
+        workspace: Path | str,
+        *,
+        project_id: str | None = None,
+        project_root: Path | str | None = None,
+    ):
         self.workspace = Path(workspace).resolve()
-        self.project_root = self._configured_project_root()
+        self.selected_project_id = project_id
+        self.project_root = self._resolve_project_root(project_id=project_id, project_root=project_root)
         self.grapher_dir = self.project_root / ".grapher"
         self.graph_path = self.grapher_dir / "knowledge.json"
         self.history_path = self.grapher_dir / "history.jsonl"
@@ -73,8 +75,34 @@ class GrapherControlPlane:
             return {}
         return data if isinstance(data, dict) else {}
 
-    def _configured_project_root(self) -> Path:
-        raw = self._dreadnought_config().get("project_root")
+    def _resolve_project_root(
+        self,
+        *,
+        project_id: str | None,
+        project_root: Path | str | None,
+    ) -> Path:
+        if project_root is not None:
+            candidate = Path(project_root)
+            if not candidate.is_absolute():
+                candidate = self.workspace / candidate
+            return candidate.resolve()
+
+        config = self._dreadnought_config()
+        projects = dict(config.get("projects") or {})
+        selected = project_id or config.get("active_project")
+        if selected and selected in projects:
+            raw = str(projects[selected].get("root") or "")
+            if not raw:
+                raise ValueError(f"registered project has no root: {selected}")
+            candidate = Path(raw)
+            if not candidate.is_absolute():
+                candidate = self.workspace / candidate
+            self.selected_project_id = str(selected)
+            return candidate.resolve()
+        if project_id:
+            raise ValueError(f"project is not registered: {project_id}")
+
+        raw = config.get("project_root")
         if not raw:
             return self.workspace
         candidate = Path(str(raw))
@@ -83,17 +111,12 @@ class GrapherControlPlane:
         return candidate.resolve()
 
     def _project_id(self) -> str:
-        configured = self._dreadnought_config().get("project_id")
-        return str(configured or self.project_root.name or "dreadnought")
+        if self.selected_project_id:
+            return str(self.selected_project_id)
+        config = self._dreadnought_config()
+        return str(config.get("active_project") or config.get("project_id") or self.project_root.name or "dreadnought")
 
     def initialize(self) -> Path:
-        """Initialize a new Dreadnought-managed Grapher context.
-
-        Initialization is intentionally mediated by Dreadnought so a new workspace
-        starts with the projection types and explicit truth-status policy required by
-        the control plane. Existing graphs are never overwritten; use :meth:`adopt`
-        when bringing an existing Grapher project under Dreadnought control.
-        """
         if self.graph_path.exists():
             raise ValueError(f"Grapher graph already initialized: {self.graph_path}")
 
@@ -134,14 +157,6 @@ class GrapherControlPlane:
         return self.graph_path
 
     def adopt(self) -> dict[str, Any]:
-        """Adopt an existing v2 Grapher brain without rewriting historical nodes.
-
-        Dreadnought adds only the policy it needs to broker future writes. Existing
-        custom node types and legacy allowlist entries are preserved. Nodes that were
-        already missing an explicit truth status (or were ``unclassified``) are added
-        to Grapher's legacy allowlist so enabling explicit status does not mutate or
-        retroactively invalidate inherited provenance.
-        """
         if not self.graph_path.is_file():
             raise FileNotFoundError(f"Grapher graph not initialized: {self.graph_path}")
         try:
@@ -179,9 +194,9 @@ class GrapherControlPlane:
         }
 
     def doctor(self) -> dict[str, Any]:
-        """Return deterministic compatibility checks for the embedded Grapher brain."""
         checks: dict[str, Any] = {
             "workspace": str(self.workspace),
+            "project_id": self._project_id(),
             "project_root": str(self.project_root),
             "grapher_version": grapher_package.__version__,
             "embedded_api": callable(getattr(grapher, "contribute_context", None)),
@@ -251,11 +266,7 @@ class GrapherControlPlane:
             workflow_state="active",
             verification="unverified",
             evidence=[{"type": "protocol_record", "ref": record.id}],
-            source_refs=[
-                ref
-                for ref in (record.mission_ref, record.doctrine_ref, record.order_ref)
-                if ref
-            ],
+            source_refs=[ref for ref in (record.mission_ref, record.doctrine_ref, record.order_ref) if ref],
             owners=[record.actor_id],
             scope=self._scope(record),
             provenance={
@@ -281,16 +292,9 @@ class GrapherControlPlane:
         return GrapherWriteResult(record.id, self.graph_path, self.history_path)
 
     def query(self, text: str, *, limit: int = 10, mission: str | None = None) -> list[dict[str, Any]]:
-        """Read scoped brain context through the Dreadnought control plane."""
-        return grapher.query_context(
-            self.graph_path,
-            text,
-            limit=limit,
-            mission=mission,
-        )
+        return grapher.query_context(self.graph_path, text, limit=limit, mission=mission)
 
     def get(self, node_id: str) -> dict[str, Any]:
-        """Read a single Grapher node through the Dreadnought control plane."""
         return grapher.get_context(self.graph_path, node_id)
 
     def _record_exists(self, record_id: str) -> bool:
