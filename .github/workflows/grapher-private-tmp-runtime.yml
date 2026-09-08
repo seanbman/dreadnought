@@ -39,7 +39,7 @@ jobs:
               title="Sandbox runtimes receive private writable temporary storage",
               content=json.dumps({
                   "change": "PrimaryKernel and Sarcophagus mount a private tmpfs at /tmp and normalize TMPDIR to /tmp so provider runtimes and MCP servers can create ephemeral state without exposing the host temp directory.",
-                  "components": ["src/dreadnought/kernel.py", "src/dreadnought/sarcophagus.py"]
+                  "component": "src/dreadnought/kernel.py; src/dreadnought/sarcophagus.py"
               }),
               node_id="implementation-private-tmp-runtime",
               path="src/dreadnought/kernel.py",
