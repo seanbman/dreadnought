@@ -1,9 +1,12 @@
 from pathlib import Path
 import subprocess
 
+from grapher.store import load_graph
+
 from dreadnought.agent import CommandAgentAdapter
 from dreadnought.dispatch import ProjectArmDispatcher
 from dreadnought.order import Order
+from dreadnought.project_factory import create_project
 
 
 class FakeSarcophagus:
@@ -18,6 +21,7 @@ class FakeSarcophagus:
 class FakeGrapher:
     def __init__(self) -> None:
         self.records = []
+        self.project_root = Path(".").resolve()
 
     def write_record(self, record):
         self.records.append(record)
@@ -67,6 +71,7 @@ def test_dispatch_writes_order_packet_and_observer_record(tmp_path: Path) -> Non
     scratch = tmp_path / "scratch"
     runner = FakeSarcophagus()
     graph = FakeGrapher()
+    graph.project_root = workspace
     dispatcher = ProjectArmDispatcher(
         workspace=workspace,
         scratch=scratch,
@@ -94,11 +99,39 @@ def test_dispatch_writes_order_packet_and_observer_record(tmp_path: Path) -> Non
     assert observation.data["result"]["result_path"] == str(result_path)
 
 
+def test_dispatch_routes_explicit_project_without_switching_workspace_default(tmp_path: Path) -> None:
+    workspace = tmp_path / "workspace"
+    create_project(workspace, "Alpha", "Build alpha")
+    create_project(workspace, "Beta", "Build beta")
+    scratch = tmp_path / "scratch"
+    runner = FakeSarcophagus()
+    dispatcher = ProjectArmDispatcher(workspace=workspace, scratch=scratch, sarcophagus=runner)
+    order = make_order()
+    order.project_id = "beta"
+    adapter = CommandAgentAdapter(
+        id="fixture",
+        executable="agent-bin",
+        args=("{workspace}", "{scratch}"),
+    )
+
+    result = dispatcher.dispatch(order, adapter)
+
+    assert result.project_id == "beta"
+    assert runner.commands == [["agent-bin", str(workspace / "beta"), str(scratch / "beta")]]
+    packet = scratch / "beta" / "orders" / f"{order.id}.json"
+    assert packet.is_file()
+    beta = load_graph(workspace / "beta" / ".grapher" / "knowledge.json")
+    alpha = load_graph(workspace / "alpha" / ".grapher" / "knowledge.json")
+    assert result.observation_id in beta["nodes"]
+    assert result.observation_id not in alpha["nodes"]
+
+
 def test_invalid_order_is_not_dispatched(tmp_path: Path) -> None:
     workspace = tmp_path / "workspace"
     workspace.mkdir()
     runner = FakeSarcophagus()
     graph = FakeGrapher()
+    graph.project_root = workspace
     dispatcher = ProjectArmDispatcher(
         workspace=workspace,
         scratch=tmp_path / "scratch",
