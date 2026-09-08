@@ -1,0 +1,60 @@
+{
+  "content": "{\"actor_id\": \"dreadnought:release\", \"created_at\": \"2026-09-08T04:47:04.243391+00:00\", \"data\": {\"audience\": \"human\", \"text\": \"Release 0.2.0b3 packages the verified delegation, first-class minion commissioning, provider-aware dispatch, and honest primary/minion usage accounting repair from PR #27.\"}, \"doctrine_ref\": null, \"evidence_refs\": [], \"id\": \"record-01ca224dc948\", \"kind\": \"note\", \"mission_ref\": null, \"order_ref\": null, \"perspective\": \"observer\", \"schema_version\": 1, \"subject_ref\": \"release-v0.2.0b3\"}",
+  "created_at": "2026-09-08T04:47:04+00:00",
+  "evidence": [
+    {
+      "ref": "record-01ca224dc948",
+      "type": "protocol_record"
+    }
+  ],
+  "id": "record-01ca224dc948",
+  "meta": {
+    "protocol": {
+      "actor_id": "dreadnought:release",
+      "created_at": "2026-09-08T04:47:04.243391+00:00",
+      "data": {
+        "audience": "human",
+        "text": "Release 0.2.0b3 packages the verified delegation, first-class minion commissioning, provider-aware dispatch, and honest primary/minion usage accounting repair from PR #27."
+      },
+      "doctrine_ref": null,
+      "evidence_refs": [],
+      "id": "record-01ca224dc948",
+      "kind": "note",
+      "mission_ref": null,
+      "order_ref": null,
+      "perspective": "observer",
+      "schema_version": 1,
+      "subject_ref": "release-v0.2.0b3"
+    },
+    "schema_version": 1,
+    "submitted_by": "dreadnought:release",
+    "submitted_perspective": "observer"
+  },
+  "owners": [
+    "dreadnought:release"
+  ],
+  "path": "dreadnought://protocol",
+  "provenance": {
+    "actor_id": "dreadnought:control-plane",
+    "actor_kind": "system_tool",
+    "actor_role": "control-plane",
+    "integrity": "declared",
+    "source": "dreadnought-protocol"
+  },
+  "scope": {
+    "project_id": "dreadnought"
+  },
+  "source_refs": [],
+  "stage": "developing",
+  "status": "current",
+  "tags": [
+    "dreadnought-protocol",
+    "observer",
+    "note"
+  ],
+  "title": "note: release-v0.2.0b3",
+  "type": "dreadnought_note",
+  "updated_at": "2026-09-08T04:47:04+00:00",
+  "verification": "unverified",
+  "workflow_state": "active"
+}
