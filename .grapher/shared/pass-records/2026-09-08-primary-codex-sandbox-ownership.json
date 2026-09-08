@@ -1,0 +1,20 @@
+{
+  "id": "pass-primary-codex-sandbox-ownership-2026-09-08",
+  "type": "verification",
+  "title": "Primary Codex sandbox ownership",
+  "status": "current",
+  "provenance": {
+    "actor_id": "chatgpt",
+    "actor_kind": "agent",
+    "source": "github-actions",
+    "recorded_at": "2026-09-08T06:38:22+00:00"
+  },
+  "semantic": {
+    "graph_node": "implementation-primary-codex-sandbox-ownership",
+    "claims": [
+      "Primary Codex does not nest a Linux filesystem sandbox inside Dreadnought",
+      "Conflicting explicit Codex sandbox modes fail closed",
+      "Outer Dreadnought Bubblewrap remains the security boundary"
+    ]
+  }
+}

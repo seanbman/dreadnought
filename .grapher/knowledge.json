@@ -758,6 +758,63 @@
         "change": "PrimaryKernel and Sarcophagus mount a private tmpfs at /tmp and normalize TMPDIR to /tmp so provider runtimes and MCP servers can create ephemeral state without exposing the host temp directory.",
         "component": "src/dreadnought/kernel.py; src/dreadnought/sarcophagus.py"
       }
+    },
+    "implementation-primary-codex-sandbox-ownership": {
+      "id": "implementation-primary-codex-sandbox-ownership",
+      "type": "implementation",
+      "title": "Dreadnought owns Codex Linux sandbox boundary",
+      "content": "{\"change\": \"Primary Codex launches now disable the nested Codex filesystem sandbox and rely on the existing Dreadnought Bubblewrap kernel, matching the Project Arm Codex adapter and preventing nested user-namespace process failures.\", \"component\": \"src/dreadnought/kernel.py\"}",
+      "path": "src/dreadnought/kernel.py",
+      "tags": [
+        "kernel",
+        "codex",
+        "bubblewrap",
+        "sandbox",
+        "userns"
+      ],
+      "meta": {},
+      "created_at": "2026-09-08T06:38:22+00:00",
+      "updated_at": "2026-09-08T06:38:22+00:00",
+      "stage": "maintaining",
+      "status": "current",
+      "workflow_state": "completed",
+      "verification": "verified",
+      "evidence": [
+        {
+          "type": "document",
+          "ref": "src/dreadnought/kernel.py",
+          "summary": "Primary Codex sandbox argument normalization"
+        },
+        {
+          "type": "document",
+          "ref": "tests/test_kernel_boundaries.py",
+          "summary": "Nested sandbox regression coverage"
+        },
+        {
+          "type": "document",
+          "ref": "docs/ARCHITECTURE.md",
+          "summary": "Sandbox ownership architecture contract"
+        }
+      ],
+      "source_refs": [
+        "tests/test_kernel_boundaries.py",
+        "docs/ARCHITECTURE.md"
+      ],
+      "owners": [],
+      "scope": {
+        "project_id": "dreadnought"
+      },
+      "provenance": {
+        "actor_id": "chatgpt",
+        "actor_kind": "agent",
+        "source": "github-actions",
+        "integrity": "declared",
+        "recorded_at": "2026-09-08T06:38:22+00:00"
+      },
+      "semantic": {
+        "change": "Primary Codex launches now disable the nested Codex filesystem sandbox and rely on the existing Dreadnought Bubblewrap kernel, matching the Project Arm Codex adapter and preventing nested user-namespace process failures.",
+        "component": "src/dreadnought/kernel.py"
+      }
     }
   },
   "edges": [
