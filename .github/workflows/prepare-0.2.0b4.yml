@@ -48,7 +48,12 @@ jobs:
           python -m pip install -e .
           pytest -q
           pytest -q tests/test_kernel_boundaries.py tests/test_minion.py tests/test_secure_bootstrap.py
-          dreadnought --version | grep -F '0.2.0b4'
+          python - <<'PY'
+          from importlib.metadata import version
+          actual = version('dreadnought-control-plane')
+          assert actual == '0.2.0b4', actual
+          print(actual)
+          PY
       - name: Record release through Grapher
         shell: bash
         run: |
