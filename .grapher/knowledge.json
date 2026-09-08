@@ -472,6 +472,66 @@
         "source": "dreadnought-protocol",
         "integrity": "declared"
       }
+    },
+    "record-01ca224dc948": {
+      "id": "record-01ca224dc948",
+      "type": "dreadnought_note",
+      "title": "note: release-v0.2.0b3",
+      "content": "{\"actor_id\": \"dreadnought:release\", \"created_at\": \"2026-09-08T04:47:04.243391+00:00\", \"data\": {\"audience\": \"human\", \"text\": \"Release 0.2.0b3 packages the verified delegation, first-class minion commissioning, provider-aware dispatch, and honest primary/minion usage accounting repair from PR #27.\"}, \"doctrine_ref\": null, \"evidence_refs\": [], \"id\": \"record-01ca224dc948\", \"kind\": \"note\", \"mission_ref\": null, \"order_ref\": null, \"perspective\": \"observer\", \"schema_version\": 1, \"subject_ref\": \"release-v0.2.0b3\"}",
+      "path": "dreadnought://protocol",
+      "tags": [
+        "dreadnought-protocol",
+        "observer",
+        "note"
+      ],
+      "meta": {
+        "schema_version": 1,
+        "protocol": {
+          "id": "record-01ca224dc948",
+          "kind": "note",
+          "perspective": "observer",
+          "actor_id": "dreadnought:release",
+          "created_at": "2026-09-08T04:47:04.243391+00:00",
+          "schema_version": 1,
+          "mission_ref": null,
+          "doctrine_ref": null,
+          "order_ref": null,
+          "subject_ref": "release-v0.2.0b3",
+          "data": {
+            "audience": "human",
+            "text": "Release 0.2.0b3 packages the verified delegation, first-class minion commissioning, provider-aware dispatch, and honest primary/minion usage accounting repair from PR #27."
+          },
+          "evidence_refs": []
+        },
+        "submitted_by": "dreadnought:release",
+        "submitted_perspective": "observer"
+      },
+      "created_at": "2026-09-08T04:47:04+00:00",
+      "updated_at": "2026-09-08T04:47:04+00:00",
+      "stage": "developing",
+      "status": "current",
+      "workflow_state": "active",
+      "verification": "unverified",
+      "evidence": [
+        {
+          "type": "protocol_record",
+          "ref": "record-01ca224dc948"
+        }
+      ],
+      "source_refs": [],
+      "owners": [
+        "dreadnought:release"
+      ],
+      "scope": {
+        "project_id": "dreadnought"
+      },
+      "provenance": {
+        "actor_id": "dreadnought:control-plane",
+        "actor_kind": "system_tool",
+        "actor_role": "control-plane",
+        "source": "dreadnought-protocol",
+        "integrity": "declared"
+      }
     }
   },
   "edges": [
