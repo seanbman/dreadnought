@@ -40,7 +40,6 @@ jobs:
               },
           )
           result = GrapherControlPlane(Path('.')).write_record(record)
-          Path('/tmp/dreadnought-grapher-record-id').write_text(record.id + '\n')
           pass_record = {
               'id': 'pass-primary-kernel-boundaries-2026-09-08',
               'type': 'verification',
@@ -66,12 +65,14 @@ jobs:
           path = Path('.grapher/shared/pass-records/2026-09-08-primary-kernel-boundaries.json')
           path.parent.mkdir(parents=True, exist_ok=True)
           path.write_text(json.dumps(pass_record, indent=2, sort_keys=True) + '\n')
+          stage = Path('grapher-artifact')
+          stage.mkdir()
+          (stage / 'knowledge.json').write_bytes(Path('.grapher/knowledge.json').read_bytes())
+          (stage / 'history.jsonl').write_bytes(Path('.grapher/history.jsonl').read_bytes())
+          (stage / 'pass-record.json').write_bytes(path.read_bytes())
+          (stage / 'record-id.txt').write_text(record.id + '\n')
           PY
       - uses: actions/upload-artifact@v4
         with:
           name: dreadnought-grapher-provenance
-          path: |
-            .grapher/knowledge.json
-            .grapher/history.jsonl
-            .grapher/shared/pass-records/2026-09-08-primary-kernel-boundaries.json
-            /tmp/dreadnought-grapher-record-id
+          path: grapher-artifact/
