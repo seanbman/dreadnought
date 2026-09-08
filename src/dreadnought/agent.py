@@ -40,6 +40,13 @@ def _minion_prompt(order: Order, order_path: Path, result_path: Path, scratch: P
         f"use writable scratch at {scratch}. Do not mutate Grapher directly. Complete only the bounded objective: {order.objective!r}. "
         f"Before exit, write agent testimony as JSONL to {result_path}. Each line must be one Dreadnought protocol schema_version 1 "
         "record with perspective 'agent' and kind claim, action, artifact, requirement, risk, or note. "
+        "For every acceptance criterion you assert is satisfied, emit at least one claim with data.acceptance_ref set to the criterion "
+        "index (zero-based) or exact criterion text, plus a deterministic verifier. Supported verifier forms are "
+        "filesystem.path with payload {'path':'relative/or/absolute','predicate':'exists|absent'}, "
+        "filesystem.sha256 with payload {'path':'...','expected':'sha256'}, and process.command with payload "
+        "{'argv':['command', 'arg'], 'expected_exit':0}. Example claim data: "
+        "{'predicate':'succeeds','acceptance_ref':0,'verifier':'process.command','payload':{'argv':['pytest','-q'],'expected_exit':0}}. "
+        "Dreadnought will execute verification independently after you exit; unsupported or missing verification remains unverified. "
         "For a simple summary, use kind 'note' with data {'audience':'human','text':'...'} and include the order_ref. "
         "Do not claim observer or evaluation authority."
     )

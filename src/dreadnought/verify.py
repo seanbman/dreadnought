@@ -92,13 +92,17 @@ def verify_command(payload: dict[str, Any]) -> VerificationResult:
     argv = payload.get("argv")
     expected_exit = payload.get("expected_exit", 0)
     timeout = payload.get("timeout", 30)
+    cwd = payload.get("cwd")
     if not isinstance(argv, list) or not argv or not all(isinstance(item, str) and item for item in argv):
         return VerificationResult(VerdictStatus.MALFORMED, reason="argv must be a non-empty string array")
     if not isinstance(expected_exit, int):
         return VerificationResult(VerdictStatus.MALFORMED, reason="expected_exit must be an integer")
+    if cwd is not None and (not isinstance(cwd, str) or not Path(cwd).is_dir()):
+        return VerificationResult(VerdictStatus.MALFORMED, reason="cwd must be an existing directory when supplied")
     try:
         completed = subprocess.run(
             argv,
+            cwd=cwd,
             capture_output=True,
             text=True,
             timeout=timeout,
@@ -110,6 +114,7 @@ def verify_command(payload: dict[str, Any]) -> VerificationResult:
     evidence = {
         "type": "command",
         "argv": argv,
+        "cwd": cwd,
         "exit_code": completed.returncode,
         "stdout": completed.stdout,
         "stderr": completed.stderr,

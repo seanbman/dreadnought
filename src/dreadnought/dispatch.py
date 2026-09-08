@@ -6,6 +6,7 @@ import json
 
 from .agent import AgentAdapter
 from .config import load_config
+from .evaluation import evaluate_order
 from .grapher import GrapherControlPlane
 from .order import Order
 from .protocol import ObservationType, Perspective, ProtocolRecord, RecordKind
@@ -25,6 +26,9 @@ class DispatchResult:
     observation_id: str
     project_id: str | None = None
     agent_record_ids: tuple[str, ...] = ()
+    verdict_ids: tuple[str, ...] = ()
+    verification_status: str = "not_yet_verified"
+    accepted: bool = False
     usage_id: str | None = None
 
 
@@ -33,7 +37,8 @@ class ProjectArmDispatcher:
 
     The constructor receives the Dreadnought workspace root. An Order with
     ``project_id`` is routed to that registered project's canonical root and Grapher
-    brain without changing the workspace default project.
+    brain without changing the workspace default project. After execution, agent
+    testimony is independently evaluated before the Order can be marked accepted.
     """
 
     def __init__(
@@ -127,6 +132,16 @@ class ProjectArmDispatcher:
                 raise ValueError(f"agent result references wrong order: {record.order_ref}")
             grapher.write_record(record)
 
+        evaluation = evaluate_order(
+            order,
+            agent_records,
+            workspace=project_workspace,
+            observation_id=observation.id,
+            process_exit_code=completed.returncode,
+        )
+        for verdict in evaluation.verdicts:
+            grapher.write_record(verdict)
+
         usage_id = self._record_usage_if_reported(usage_path, order, adapter.id)
         if usage_id is None:
             parser = getattr(adapter, "usage_from_output", None)
@@ -143,6 +158,9 @@ class ProjectArmDispatcher:
             observation_id=observation.id,
             project_id=order.project_id,
             agent_record_ids=tuple(record.id for record in agent_records),
+            verdict_ids=tuple(record.id for record in evaluation.verdicts),
+            verification_status=evaluation.status.value,
+            accepted=evaluation.accepted,
             usage_id=usage_id,
         )
 

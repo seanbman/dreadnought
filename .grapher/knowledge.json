@@ -643,6 +643,58 @@
         "change": "Smoke-test Bubblewrap user-namespace operability and selectively bind Codex runtime state writable while preserving the read-only canonical workspace.",
         "component": "src/dreadnought/kernel.py"
       }
+    },
+    "implementation-automatic-minion-evaluation": {
+      "id": "implementation-automatic-minion-evaluation",
+      "type": "implementation",
+      "title": "Project Arm completion automatically evaluates minion claims and acceptance criteria",
+      "content": "{\"change\": \"After each Project Arm minion exits, Dreadnought now independently evaluates verifiable claims, rolls them up against Order acceptance criteria, emits evaluation verdicts, and marks the Order accepted only when the final verdict is supported.\", \"component\": \"src/dreadnought/evaluation.py\"}",
+      "path": "src/dreadnought/evaluation.py",
+      "tags": [
+        "project-arm",
+        "minion",
+        "evaluation",
+        "verification",
+        "verdict"
+      ],
+      "meta": {},
+      "created_at": "2026-09-08T06:10:42+00:00",
+      "updated_at": "2026-09-08T06:10:42+00:00",
+      "stage": "maintaining",
+      "status": "current",
+      "workflow_state": "completed",
+      "verification": "unverified",
+      "evidence": [
+        {
+          "type": "document",
+          "ref": "src/dreadnought/evaluation.py",
+          "summary": "Evaluation pipeline"
+        },
+        {
+          "type": "document",
+          "ref": "tests/test_evaluation.py",
+          "summary": "Evaluation regression coverage"
+        }
+      ],
+      "source_refs": [
+        "src/dreadnought/dispatch.py",
+        "tests/test_evaluation.py"
+      ],
+      "owners": [],
+      "scope": {
+        "project_id": "dreadnought"
+      },
+      "provenance": {
+        "actor_id": "chatgpt",
+        "actor_kind": "agent",
+        "source": "github-actions",
+        "integrity": "declared",
+        "recorded_at": "2026-09-08T06:10:42+00:00"
+      },
+      "semantic": {
+        "change": "After each Project Arm minion exits, Dreadnought now independently evaluates verifiable claims, rolls them up against Order acceptance criteria, emits evaluation verdicts, and marks the Order accepted only when the final verdict is supported.",
+        "component": "src/dreadnought/evaluation.py"
+      }
     }
   },
   "edges": [
