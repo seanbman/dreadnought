@@ -67,7 +67,7 @@ def _write_project_entrypoints(project_root: Path, *, name: str, directive: str)
     )
 
 
-def _write_initial_mission(workspace: Path, project_root: Path, *, directive: str, actor: str) -> Mission:
+def _write_initial_mission(workspace: Path, project_root: Path, *, directive: str, actor: str) -> tuple[Mission, Path]:
     mission = Mission.draft(directive=directive, workspace=str(workspace), actor_id=actor)
     mission.objective = directive
     mission.sources.append(
@@ -81,8 +81,9 @@ def _write_initial_mission(workspace: Path, project_root: Path, *, directive: st
     errors = mission.validate()
     if errors:
         raise ValueError("invalid initial project mission: " + "; ".join(errors))
-    mission.write(workspace / ".dreadnought" / "missions" / f"{mission.id}.json")
-    return mission
+    path = workspace / ".dreadnought" / "missions" / f"{mission.id}.json"
+    mission.write(path)
+    return mission, path
 
 
 def create_project(
@@ -113,6 +114,7 @@ def create_project(
             raise ValueError(f"documentation source does not exist or is not a directory: {linked_docs}")
 
     project_root.mkdir(parents=False)
+    mission_path: Path | None = None
     try:
         try:
             subprocess.run(
@@ -134,7 +136,13 @@ def create_project(
             docs_path.symlink_to(linked_docs, target_is_directory=True)
             docs_root_value = str(linked_docs)
 
-        mission = _write_initial_mission(workspace, project_root, directive=directive, actor=actor)
+        plane = GrapherControlPlane(project_root)
+        graph_path = plane.initialize()
+        doctor = plane.doctor()
+        if not doctor.get("compatible"):
+            raise RuntimeError("new project Grapher brain failed compatibility checks")
+
+        mission, mission_path = _write_initial_mission(workspace, project_root, directive=directive, actor=actor)
         _write_project_entrypoints(project_root, name=name.strip() or slug, directive=directive)
         instructions = _write_project_instructions(
             project_root,
@@ -143,12 +151,6 @@ def create_project(
             mission_id=mission.id,
             docs_root=docs_root_value,
         )
-
-        plane = GrapherControlPlane(project_root)
-        graph_path = plane.initialize()
-        doctor = plane.doctor()
-        if not doctor.get("compatible"):
-            raise RuntimeError("new project Grapher brain failed compatibility checks")
 
         record = register_project(
             workspace,
@@ -172,4 +174,6 @@ def create_project(
         }
     except Exception:
         shutil.rmtree(project_root, ignore_errors=True)
+        if mission_path is not None:
+            mission_path.unlink(missing_ok=True)
         raise
