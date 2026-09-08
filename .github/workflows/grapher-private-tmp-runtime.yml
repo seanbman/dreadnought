@@ -1,0 +1,99 @@
+name: grapher-private-tmp-runtime
+
+on:
+  push:
+    branches: [fix/private-tmp-mcp-runtime]
+
+permissions:
+  contents: write
+
+jobs:
+  mutate:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/private-tmp-mcp-runtime
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install --upgrade pip
+      - run: python -m pip install -e .
+      - name: Record canonical Grapher mutation
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from datetime import datetime, timezone
+          import json
+          from pathlib import Path
+          from grapher.integrations.embedded import contribute_context
+
+          now = datetime.now(timezone.utc).isoformat(timespec="seconds")
+          graph_path = Path(".grapher/knowledge.json")
+          node = contribute_context(
+              graph_path,
+              type="implementation",
+              title="Sandbox runtimes receive private writable temporary storage",
+              content=json.dumps({
+                  "change": "PrimaryKernel and Sarcophagus mount a private tmpfs at /tmp and normalize TMPDIR to /tmp so provider runtimes and MCP servers can create ephemeral state without exposing the host temp directory.",
+                  "components": ["src/dreadnought/kernel.py", "src/dreadnought/sarcophagus.py"]
+              }),
+              node_id="implementation-private-tmp-runtime",
+              path="src/dreadnought/kernel.py",
+              tags=["kernel", "sarcophagus", "bubblewrap", "tmpfs", "mcp", "codex"],
+              stage="maintaining",
+              status="current",
+              workflow_state="completed",
+              verification="unverified",
+              evidence=[
+                  {"type":"document","ref":"src/dreadnought/kernel.py","summary":"Primary kernel private tmpfs"},
+                  {"type":"document","ref":"src/dreadnought/sarcophagus.py","summary":"Project Arm private tmpfs"},
+                  {"type":"document","ref":"tests/test_private_tmp_runtime.py","summary":"Primary runtime regression coverage"},
+                  {"type":"document","ref":"tests/test_sarcophagus.py","summary":"Sarcophagus regression coverage"}
+              ],
+              source_refs=["tests/test_private_tmp_runtime.py", "tests/test_sarcophagus.py"],
+              scope={"project_id":"dreadnought"},
+              provenance={"actor_id":"chatgpt","actor_kind":"agent","source":"github-actions","integrity":"declared","recorded_at":now},
+              actor={"id":"chatgpt","kind":"agent"},
+              reason="Restore writable ephemeral runtime storage required by Codex MCP child processes while preserving host and canonical workspace isolation",
+              evidence_refs=["src/dreadnought/kernel.py", "src/dreadnought/sarcophagus.py", "tests/test_private_tmp_runtime.py", "tests/test_sarcophagus.py"],
+              operation_id="private-tmp-mcp-runtime-fix",
+              phase="executed",
+              source="github-actions",
+          )
+
+          out = Path(".grapher/shared/pass-records/2026-09-08-private-tmp-mcp-runtime.json")
+          out.parent.mkdir(parents=True, exist_ok=True)
+          out.write_text(json.dumps({
+              "id":"pass-private-tmp-mcp-runtime-2026-09-08",
+              "type":"verification",
+              "title":"Private writable temporary runtime storage",
+              "status":"current",
+              "provenance":{"actor_id":"chatgpt","actor_kind":"agent","source":"github-actions","recorded_at":now},
+              "semantic":{
+                  "claims":[
+                      "PrimaryKernel mounts private writable /tmp",
+                      "Sarcophagus mounts private writable /tmp",
+                      "TMPDIR resolves to sandbox /tmp",
+                      "host temporary storage remains unexposed"
+                  ],
+                  "graph_node":node["id"],
+                  "graph_path":str(graph_path.resolve()),
+                  "history_path":str(Path(".grapher/history.jsonl").resolve())
+              }
+          }, indent=2) + "\n", encoding="utf-8")
+          PY
+          grapher validate --graph .grapher/knowledge.json --json
+      - name: Commit Grapher outputs
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/grapher-private-tmp-runtime.yml
+          git add .grapher/knowledge.json .grapher/history.jsonl .grapher/shared/pass-records/2026-09-08-private-tmp-mcp-runtime.json
+          git commit -m "Record private tmp runtime in Grapher"
+          git push origin HEAD:fix/private-tmp-mcp-runtime
