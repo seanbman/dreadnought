@@ -7,7 +7,12 @@ import tomllib
 
 import pytest
 
-from dreadnought.codex_compat import CodexCompatibilityError, codex_system_requirements_overlay, pin_unified_exec_requirement
+from dreadnought.codex_compat import (
+    CODEX_ETC_MIRROR,
+    CodexCompatibilityError,
+    codex_system_requirements_overlay,
+    pin_unified_exec_requirement,
+)
 from dreadnought.kernel import PrimaryKernel
 from dreadnought.sarcophagus import Sarcophagus
 
@@ -38,20 +43,30 @@ def test_pin_unified_exec_requirement_fails_closed_on_inline_feature_policy() ->
         pin_unified_exec_requirement("features = { unified_exec = true }\n")
 
 
-def test_codex_system_overlay_preserves_source_and_is_ephemeral(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    source = tmp_path / "system-codex"
-    source.mkdir()
-    requirements = source / "requirements.toml"
+def test_codex_system_overlay_builds_full_etc_facade_without_host_codex(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    source_etc = tmp_path / "host-etc"
+    source_etc.mkdir()
+    (source_etc / "hosts").write_text("127.0.0.1 localhost\n", encoding="utf-8")
+
+    source_codex = tmp_path / "system-codex"
+    source_codex.mkdir()
+    requirements = source_codex / "requirements.toml"
     requirements.write_text(
         "allowed_sandbox_modes = [\"read-only\"]\n\n[features]\nunified_exec = true\n",
         encoding="utf-8",
     )
-    monkeypatch.setattr("dreadnought.codex_compat.CODEX_SYSTEM_DIR", source)
+    monkeypatch.setattr("dreadnought.codex_compat.CODEX_ETC_DIR", source_etc)
+    monkeypatch.setattr("dreadnought.codex_compat.CODEX_SYSTEM_DIR", source_codex)
 
     overlay_path: Path | None = None
     with codex_system_requirements_overlay() as overlay:
         overlay_path = overlay
-        parsed = tomllib.loads((overlay / "requirements.toml").read_text(encoding="utf-8"))
+        assert (overlay / "hosts").is_symlink()
+        assert (overlay / "hosts").readlink() == CODEX_ETC_MIRROR / "hosts"
+        parsed = tomllib.loads((overlay / "codex" / "requirements.toml").read_text(encoding="utf-8"))
         assert parsed["allowed_sandbox_modes"] == ["read-only"]
         assert parsed["features"]["unified_exec"] is False
         assert "unified_exec = true" in requirements.read_text(encoding="utf-8")
@@ -60,7 +75,7 @@ def test_codex_system_overlay_preserves_source_and_is_ephemeral(tmp_path: Path, 
     assert not overlay_path.exists()
 
 
-def test_primary_kernel_mounts_codex_requirements_before_private_tmp(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_primary_kernel_mounts_private_etc_facade(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     workspace = tmp_path / "workspace"
     workspace.mkdir()
     codex_home = tmp_path / "codex-home"
@@ -89,13 +104,13 @@ def test_primary_kernel_mounts_codex_requirements_before_private_tmp(tmp_path: P
     argv = seen["argv"]
     assert isinstance(argv, list)
     triples = list(zip(argv, argv[1:], argv[2:]))
-    assert ("--ro-bind", str(overlay), "/etc/codex") in triples
-    overlay_index = argv.index(str(overlay))
-    tmp_index = argv.index("/tmp")
-    assert overlay_index < tmp_index
+    assert ("--ro-bind", "/etc", str(CODEX_ETC_MIRROR)) in triples
+    assert ("--ro-bind", str(overlay), "/etc") in triples
+    assert "/etc/codex" not in argv
+    assert argv.index("/tmp") < argv.index(str(CODEX_ETC_MIRROR)) < argv.index(str(overlay))
 
 
-def test_sarcophagus_mounts_codex_requirements_before_private_tmp(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_sarcophagus_mounts_private_etc_facade(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     workspace = tmp_path / "workspace"
     workspace.mkdir()
     scratch = tmp_path / "scratch"
@@ -120,7 +135,7 @@ def test_sarcophagus_mounts_codex_requirements_before_private_tmp(tmp_path: Path
     argv = seen["argv"]
     assert isinstance(argv, list)
     triples = list(zip(argv, argv[1:], argv[2:]))
-    assert ("--ro-bind", str(overlay), "/etc/codex") in triples
-    overlay_index = argv.index(str(overlay))
-    tmp_index = argv.index("/tmp")
-    assert overlay_index < tmp_index
+    assert ("--ro-bind", "/etc", str(CODEX_ETC_MIRROR)) in triples
+    assert ("--ro-bind", str(overlay), "/etc") in triples
+    assert "/etc/codex" not in argv
+    assert argv.index("/tmp") < argv.index(str(CODEX_ETC_MIRROR)) < argv.index(str(overlay))

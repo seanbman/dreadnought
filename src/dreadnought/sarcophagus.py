@@ -9,7 +9,7 @@ import os
 import shutil
 import subprocess
 
-from .codex_compat import codex_system_requirements_overlay
+from .codex_compat import CODEX_ETC_MIRROR, codex_system_requirements_overlay
 
 
 class IsolationBackend(StrEnum):
@@ -64,7 +64,7 @@ class Sarcophagus:
             if candidate == self.workspace or self.workspace in candidate.parents:
                 raise ValueError("writable paths must not include the canonical workspace")
 
-    def plan(self, command: Sequence[str], *, codex_system_dir: Path | None = None) -> ExecutionPlan:
+    def plan(self, command: Sequence[str], *, codex_etc_overlay: Path | None = None) -> ExecutionPlan:
         self.validate()
         if not command or not all(isinstance(item, str) and item for item in command):
             raise ValueError("command must be a non-empty string sequence")
@@ -80,13 +80,15 @@ class Sarcophagus:
             "--proc", "/proc",
             "--dev", "/dev",
             "--ro-bind", "/", "/",
-        ]
-        # The compatibility overlay is created under the host temporary
-        # directory, so bind it before replacing /tmp in the sandbox.
-        if codex_system_dir is not None:
-            argv.extend(("--ro-bind", str(codex_system_dir), "/etc/codex"))
-        argv.extend((
             "--tmpfs", "/tmp",
+        ]
+        if codex_etc_overlay is not None:
+            argv.extend((
+                "--dir", str(CODEX_ETC_MIRROR),
+                "--ro-bind", "/etc", str(CODEX_ETC_MIRROR),
+                "--ro-bind", str(codex_etc_overlay), "/etc",
+            ))
+        argv.extend((
             "--ro-bind", str(self.workspace), str(self.workspace),
             "--bind", str(self.scratch), str(self.scratch),
             "--chdir", str(self.workspace),
@@ -118,8 +120,8 @@ class Sarcophagus:
 
     def run(self, command: Sequence[str], *, timeout: int = 300) -> subprocess.CompletedProcess[str]:
         overlay_context = codex_system_requirements_overlay() if self._is_codex_command(command) else nullcontext(None)
-        with overlay_context as codex_system_dir:
-            plan = self.plan(command, codex_system_dir=codex_system_dir)
+        with overlay_context as codex_etc_overlay:
+            plan = self.plan(command, codex_etc_overlay=codex_etc_overlay)
             return subprocess.run(
                 plan.argv,
                 cwd=plan.cwd,

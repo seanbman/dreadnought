@@ -1,0 +1,31 @@
+{
+  "id": "handoff-codex-apps-mcp-dreadnought-2026-09-08",
+  "type": "failure",
+  "title": "Codex Apps MCP fails only under Dreadnought kernel",
+  "status": "current",
+  "provenance": {
+    "actor_id": "chatgpt",
+    "actor_kind": "agent",
+    "source": "chat",
+    "integrity": "declared",
+    "recorded_at": "2026-09-08T08:30:00+00:00"
+  },
+  "semantic": {
+    "branch": "fix/codex-etc-mountpoint",
+    "observed": [
+      "Dreadnought v0.2.0b5 originally failed with: bwrap: Can't mkdir /etc/codex: Read-only file system.",
+      "Branch fix/codex-etc-mountpoint changes the Codex requirements mount strategy so the kernel can start without requiring a host /etc/codex directory.",
+      "After that fix, Codex starts inside Dreadnought but codex_apps MCP fails during initialize against https://chatgpt.com/backend-api/ps/mcp with an HTTP request transport error.",
+      "Launching plain codex outside Dreadnought on the same machine loads successfully, so the remaining MCP failure is specific to the Dreadnought kernel environment rather than a general Codex outage."
+    ],
+    "next_action": "Compare the environment and network-visible runtime between plain Codex and PrimaryKernel. In particular verify proxy/TLS-related environment variables and DNS/CA visibility before changing policy. Preserve Dreadnought's outer Bubblewrap authority boundary and do not re-enable Codex UnifiedExec.",
+    "related_files": [
+      "src/dreadnought/kernel.py",
+      "src/dreadnought/codex_compat.py",
+      "src/dreadnought/sarcophagus.py",
+      "tests/test_codex_compat.py",
+      "tests/test_kernel_boundaries.py"
+    ],
+    "known_separate_issue": "src/dreadnought/__init__.py still hardcodes __version__ = 0.2.0b3, causing installed b5 to report the stale installed version. This is independent of the MCP runtime failure."
+  }
+}

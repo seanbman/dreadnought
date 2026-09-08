@@ -10,6 +10,8 @@ from typing import Iterator
 
 
 CODEX_SYSTEM_DIR = Path("/etc/codex")
+CODEX_ETC_DIR = Path("/etc")
+CODEX_ETC_MIRROR = Path("/tmp/.dreadnought-host-etc")
 _FEATURE_SECTION = re.compile(r"^\s*\[features\]\s*(?:#.*)?$")
 _TABLE_HEADER = re.compile(r"^\s*\[")
 _UNIFIED_EXEC = re.compile(r"^(?P<indent>\s*)unified_exec\s*=.*$")
@@ -87,16 +89,31 @@ def pin_unified_exec_requirement(contents: str) -> str:
 
 @contextmanager
 def codex_system_requirements_overlay() -> Iterator[Path]:
-    """Yield a private /etc/codex overlay with UnifiedExec authoritatively disabled."""
+    """Yield a private /etc view with managed Codex requirements injected.
+
+    Bubblewrap cannot create /etc/codex after the host root has been mounted
+    read-only when that directory does not already exist. Build a complete /etc
+    facade instead: every host /etc entry except codex points at a read-only
+    mirror mounted by the caller, while /etc/codex is a private copy containing
+    the managed UnifiedExec requirement.
+    """
 
     with tempfile.TemporaryDirectory(prefix="dreadnought-codex-etc-") as raw:
-        overlay = Path(raw) / "codex"
-        if CODEX_SYSTEM_DIR.is_dir():
-            shutil.copytree(CODEX_SYSTEM_DIR, overlay, symlinks=True)
-        else:
-            overlay.mkdir(parents=True)
+        overlay = Path(raw) / "etc"
+        overlay.mkdir(parents=True)
 
-        requirements = overlay / "requirements.toml"
+        for entry in CODEX_ETC_DIR.iterdir():
+            if entry.name == "codex":
+                continue
+            (overlay / entry.name).symlink_to(CODEX_ETC_MIRROR / entry.name)
+
+        codex = overlay / "codex"
+        if CODEX_SYSTEM_DIR.is_dir():
+            shutil.copytree(CODEX_SYSTEM_DIR, codex, symlinks=True)
+        else:
+            codex.mkdir(parents=True)
+
+        requirements = codex / "requirements.toml"
         existing = requirements.read_text(encoding="utf-8") if requirements.is_file() else ""
         requirements.write_text(pin_unified_exec_requirement(existing), encoding="utf-8")
         yield overlay
