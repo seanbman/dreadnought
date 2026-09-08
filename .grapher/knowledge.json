@@ -877,6 +877,69 @@
         "change": "Primary Codex now receives an automatic bootstrap turn and both primary/minion Codex runtimes bypass their internal approval+sandbox layer because Dreadnought/Sarcophagus are the external security boundary.",
         "component": "src/dreadnought/kernel.py"
       }
+    },
+    "implementation-codex-unified-exec-kernel-compatibility": {
+      "id": "implementation-codex-unified-exec-kernel-compatibility",
+      "type": "implementation",
+      "title": "Codex unified exec is disabled inside Dreadnought external kernels",
+      "content": "{\"change\": \"Primary and minion Codex launches force features.unified_exec=false while Dreadnought/Sarcophagus own the external Bubblewrap security boundary, avoiding unified-exec CreateProcess failures under the enclosing kernel.\", \"component\": \"src/dreadnought/kernel.py; src/dreadnought/agent.py\"}",
+      "path": "src/dreadnought/kernel.py",
+      "tags": [
+        "kernel",
+        "codex",
+        "bubblewrap",
+        "unified-exec",
+        "project-arm"
+      ],
+      "meta": {},
+      "created_at": "2026-09-08T07:11:53+00:00",
+      "updated_at": "2026-09-08T07:11:53+00:00",
+      "stage": "maintaining",
+      "status": "current",
+      "workflow_state": "completed",
+      "verification": "verified",
+      "evidence": [
+        {
+          "type": "document",
+          "ref": "src/dreadnought/kernel.py",
+          "summary": "Primary Codex compatibility override and conflict rejection"
+        },
+        {
+          "type": "document",
+          "ref": "src/dreadnought/agent.py",
+          "summary": "Codex minion compatibility override"
+        },
+        {
+          "type": "document",
+          "ref": "tests/test_kernel_boundaries.py",
+          "summary": "Repeated child-process and provider-argument regressions"
+        },
+        {
+          "type": "document",
+          "ref": "tests/test_minion.py",
+          "summary": "Minion launch regression"
+        }
+      ],
+      "source_refs": [
+        "tests/test_kernel_boundaries.py",
+        "tests/test_minion.py",
+        "docs/ARCHITECTURE.md"
+      ],
+      "owners": [],
+      "scope": {
+        "project_id": "dreadnought"
+      },
+      "provenance": {
+        "actor_id": "chatgpt",
+        "actor_kind": "agent",
+        "source": "github-actions",
+        "integrity": "declared",
+        "recorded_at": "2026-09-08T07:11:53+00:00"
+      },
+      "semantic": {
+        "change": "Primary and minion Codex launches force features.unified_exec=false while Dreadnought/Sarcophagus own the external Bubblewrap security boundary, avoiding unified-exec CreateProcess failures under the enclosing kernel.",
+        "component": "src/dreadnought/kernel.py; src/dreadnought/agent.py"
+      }
     }
   },
   "edges": [

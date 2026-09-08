@@ -117,10 +117,16 @@ def test_primary_kernel_builds_read_only_workspace_and_strips_git_credentials(tm
 
 def test_primary_codex_uses_outer_dreadnought_sandbox() -> None:
     assert PrimaryKernel._provider_args("codex", ["--model", "x"]) == [
-        "--dangerously-bypass-approvals-and-sandbox", "--model", "x"
+        "--dangerously-bypass-approvals-and-sandbox",
+        "-c",
+        "features.unified_exec=false",
+        "--model",
+        "x",
     ]
     with pytest.raises(ValueError, match="externally sandboxed"):
         PrimaryKernel._provider_args("codex", ["--sandbox", "danger-full-access"])
+    with pytest.raises(ValueError, match="unified exec"):
+        PrimaryKernel._provider_args("codex", ["-c", "features.unified_exec=true"])
     assert PrimaryKernel._provider_args("custom", ["--sandbox", "workspace-write"]) == [
         "--sandbox", "workspace-write"
     ]
@@ -148,6 +154,24 @@ def test_primary_kernel_cannot_write_canonical_workspace(tmp_path: Path) -> None
 
 def test_primary_codex_uses_external_sandbox_bypass() -> None:
     args = PrimaryKernel._provider_args("codex", ["--model", "x"])
-    assert args[:3] == ["--dangerously-bypass-approvals-and-sandbox", "--model", "x"]
+    assert args[:3] == [
+        "--dangerously-bypass-approvals-and-sandbox",
+        "-c",
+        "features.unified_exec=false",
+    ]
+    assert args.count("--dangerously-bypass-approvals-and-sandbox") == 1
     with pytest.raises(ValueError, match="externally sandboxed"):
         PrimaryKernel._provider_args("codex", ["--sandbox", "danger-full-access"])
+
+
+def test_primary_kernel_can_spawn_repeated_child_processes(tmp_path: Path) -> None:
+    kernel = PrimaryKernel(tmp_path)
+    if not kernel.doctor()["available"]:
+        pytest.skip("bubblewrap sandbox is not operational")
+    command = [
+        "-c",
+        "set -eu; i=0; while [ $i -lt 50 ]; do /bin/true; i=$((i+1)); done; "
+        "printf child-processes-ok > /tmp/dreadnought-child-smoke; "
+        "test \"$(cat /tmp/dreadnought-child-smoke)\" = child-processes-ok",
+    ]
+    assert kernel.run(agent_type="custom", executable="/bin/sh", args=command) == 0

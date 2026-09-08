@@ -33,6 +33,26 @@ def _configure_mission(root: Path, max_minions: int | None) -> Mission:
     return mission
 
 
+def test_codex_minion_disables_unified_exec_inside_sarcophagus(tmp_path: Path) -> None:
+    adapter = CodexMinionAdapter()
+    order = Order.draft(
+        doctrine_ref="doctrine-1",
+        campaign_ref="campaign-1",
+        operation_ref="operation-1",
+        objective="Run bounded work.",
+    )
+    command = adapter.command(
+        order=order,
+        order_path=tmp_path / "order.json",
+        result_path=tmp_path / "result.jsonl",
+        scratch=tmp_path / "scratch",
+        workspace=tmp_path,
+    )
+    assert "--dangerously-bypass-approvals-and-sandbox" in command
+    idx = command.index("-c")
+    assert command[idx + 1] == "features.unified_exec=false"
+
+
 def test_codex_adapter_parses_turn_completed_usage() -> None:
     adapter = CodexMinionAdapter()
     report = adapter.usage_from_output(

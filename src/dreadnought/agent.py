@@ -117,6 +117,8 @@ class CodexMinionAdapter:
             "--ephemeral",
             "--json",
             "--dangerously-bypass-approvals-and-sandbox",
+            "-c",
+            "features.unified_exec=false",
             prompt,
         ]
 

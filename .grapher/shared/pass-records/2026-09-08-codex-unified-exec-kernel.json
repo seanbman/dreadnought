@@ -1,0 +1,22 @@
+{
+  "id": "pass-codex-unified-exec-kernel-2026-09-08",
+  "type": "verification",
+  "title": "Codex process execution under Dreadnought kernel",
+  "status": "current",
+  "provenance": {
+    "actor_id": "chatgpt",
+    "actor_kind": "agent",
+    "source": "github-actions",
+    "recorded_at": "2026-09-08T07:11:53+00:00"
+  },
+  "semantic": {
+    "graph_node": "implementation-codex-unified-exec-kernel-compatibility",
+    "claims": [
+      "Primary Codex forces features.unified_exec=false inside the external Dreadnought kernel",
+      "Codex minions force the same override inside Sarcophagus",
+      "Bubblewrap child-process smoke test spawns 50 children successfully",
+      "Full pytest suite passed three consecutive times and kernel/minion regressions passed ten additional consecutive runs",
+      "Codex 0.153.4 accepts the override on interactive and exec CLI surfaces"
+    ]
+  }
+}

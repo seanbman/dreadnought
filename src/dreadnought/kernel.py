@@ -93,14 +93,23 @@ class PrimaryKernel:
         rendered = list(args)
         if agent_type != "codex":
             return rendered
-        if "--dangerously-bypass-approvals-and-sandbox" in rendered:
-            return rendered
         for arg in rendered:
             if arg in {"--sandbox", "-s"} or arg.startswith("--sandbox="):
                 raise ValueError(
                     "Codex primary is externally sandboxed by Dreadnought; remove inner --sandbox options"
                 )
-        return ["--dangerously-bypass-approvals-and-sandbox", *rendered]
+            if arg.startswith("features.unified_exec=") and arg != "features.unified_exec=false":
+                raise ValueError(
+                    "Codex unified exec is incompatible with Dreadnought's external process sandbox; "
+                    "features.unified_exec must remain false"
+                )
+        rendered = [arg for arg in rendered if arg != "--dangerously-bypass-approvals-and-sandbox"]
+        return [
+            "--dangerously-bypass-approvals-and-sandbox",
+            "-c",
+            "features.unified_exec=false",
+            *rendered,
+        ]
 
     def _provider_writable_paths(self, agent_type: str, env: dict[str, str]) -> list[Path]:
         """Return narrowly scoped provider runtime paths that must remain writable."""
