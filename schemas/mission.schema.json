@@ -37,7 +37,7 @@
         "git_push": {"type": "boolean"},
         "network": {"enum": ["none", "brokered", "unrestricted"]},
         "shell": {"enum": ["none", "restricted", "unrestricted"]},
-        "max_minions": {"type": "integer", "minimum": 0}
+        "max_minions": {"type": ["integer", "null"], "minimum": 0}
       },
       "additionalProperties": false
     },

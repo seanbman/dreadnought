@@ -57,7 +57,9 @@ class CapabilitySet:
     git_push: bool = False
     network: str = "brokered"
     shell: str = "restricted"
-    max_minions: int = 0
+    # None means the mission does not impose a numerical delegation cap.
+    # Zero is reserved for an explicit prohibition on minion delegation.
+    max_minions: int | None = None
 
 
 @dataclass
@@ -93,8 +95,8 @@ class Mission:
             errors.append("workspace must not be empty")
         if not self.actor_id.strip():
             errors.append("actor_id must not be empty")
-        if self.capabilities.max_minions < 0:
-            errors.append("max_minions must be >= 0")
+        if self.capabilities.max_minions is not None and self.capabilities.max_minions < 0:
+            errors.append("max_minions must be >= 0 when supplied")
         if self.capabilities.network not in {"none", "brokered", "unrestricted"}:
             errors.append("network must be one of: none, brokered, unrestricted")
         if self.capabilities.shell not in {"none", "restricted", "unrestricted"}:

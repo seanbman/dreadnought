@@ -1,0 +1,60 @@
+{
+  "content": "{\"actor_id\": \"dreadnought:bootstrap-repair\", \"created_at\": \"2026-09-08T04:43:57.712838+00:00\", \"data\": {\"audience\": \"human\", \"text\": \"Verified bootstrap repair: unspecified delegation no longer becomes a zero-minion prohibition; Dreadnought exposes first-class Codex/Cursor minion commissioning through Project Arm/Sarcophagus; network and provider usage are adapter-aware; native primary chats are recorded as unmetered rather than falsely represented as measured zero-token activity.\"}, \"doctrine_ref\": null, \"evidence_refs\": [], \"id\": \"record-f062d950bcb1\", \"kind\": \"note\", \"mission_ref\": null, \"order_ref\": null, \"perspective\": \"observer\", \"schema_version\": 1, \"subject_ref\": \"delegation-and-usage-accounting\"}",
+  "created_at": "2026-09-08T04:43:57+00:00",
+  "evidence": [
+    {
+      "ref": "record-f062d950bcb1",
+      "type": "protocol_record"
+    }
+  ],
+  "id": "record-f062d950bcb1",
+  "meta": {
+    "protocol": {
+      "actor_id": "dreadnought:bootstrap-repair",
+      "created_at": "2026-09-08T04:43:57.712838+00:00",
+      "data": {
+        "audience": "human",
+        "text": "Verified bootstrap repair: unspecified delegation no longer becomes a zero-minion prohibition; Dreadnought exposes first-class Codex/Cursor minion commissioning through Project Arm/Sarcophagus; network and provider usage are adapter-aware; native primary chats are recorded as unmetered rather than falsely represented as measured zero-token activity."
+      },
+      "doctrine_ref": null,
+      "evidence_refs": [],
+      "id": "record-f062d950bcb1",
+      "kind": "note",
+      "mission_ref": null,
+      "order_ref": null,
+      "perspective": "observer",
+      "schema_version": 1,
+      "subject_ref": "delegation-and-usage-accounting"
+    },
+    "schema_version": 1,
+    "submitted_by": "dreadnought:bootstrap-repair",
+    "submitted_perspective": "observer"
+  },
+  "owners": [
+    "dreadnought:bootstrap-repair"
+  ],
+  "path": "dreadnought://protocol",
+  "provenance": {
+    "actor_id": "dreadnought:control-plane",
+    "actor_kind": "system_tool",
+    "actor_role": "control-plane",
+    "integrity": "declared",
+    "source": "dreadnought-protocol"
+  },
+  "scope": {
+    "project_id": "dreadnought"
+  },
+  "source_refs": [],
+  "stage": "developing",
+  "status": "current",
+  "tags": [
+    "dreadnought-protocol",
+    "observer",
+    "note"
+  ],
+  "title": "note: delegation-and-usage-accounting",
+  "type": "dreadnought_note",
+  "updated_at": "2026-09-08T04:43:57+00:00",
+  "verification": "unverified",
+  "workflow_state": "active"
+}

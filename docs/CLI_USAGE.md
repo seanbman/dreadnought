@@ -8,6 +8,7 @@
 - [Grapher brain commands](#grapher-brain-commands)
 - [Mission-to-order commands](#mission-to-order-commands)
 - [Protocol commands](#protocol-commands)
+- [Minion commissioning](#minion-commissioning)
 - [Project Arm dispatch](#project-arm-dispatch)
 - [Command reference](#command-reference)
 - [Exit codes and authority notes](#exit-codes-and-authority-notes)
@@ -151,6 +152,16 @@ dreadnought protocol ingest /path/to/record.json --root /path/to/workspace
 
 An agent-authored claim remains agent testimony. Ingestion does not convert it into observer evidence or an evaluation verdict.
 
+## Minion commissioning
+
+When a Mission permits delegation, commission a configured Codex or Cursor subordinate through Dreadnought:
+
+```bash
+dreadnought minion commission /path/to/order.json --root /path/to/workspace
+```
+
+Use `--agent codex` or `--agent cursor` to override the configured primary agent for the subordinate. Bootstrap Missions use `capabilities.max_minions: null`, meaning the Mission imposes no numerical delegation cap. `0` is reserved for an explicit operator prohibition. Minions execute through Project Arm / Sarcophagus, receive the canonical project read-only plus external writable scratch, and return typed testimony to Dreadnought rather than writing Grapher directly.
+
 ## Project Arm dispatch
 
 Scratch must live outside the canonical managed project/workspace boundary:
@@ -195,6 +206,7 @@ The Project Arm writes newline-delimited typed protocol records to the result ch
 | `dreadnought order init/validate/show` | Create or inspect Project Arm Orders |
 | `dreadnought protocol validate/show` | Validate or inspect ProtocolRecords |
 | `dreadnought protocol ingest <path>` | Admit a typed record through Dreadnought into the managed Grapher brain |
+| `dreadnought minion commission <order> ...` | Commission a configured Codex/Cursor subordinate through Project Arm/Sarcophagus |
 | `dreadnought arm dispatch <order> ...` | Execute one bounded Order through Sarcophagus/Project Arm dispatch |
 
 ## Exit codes and authority notes
@@ -207,6 +219,7 @@ Authority rules:
 - Grapher remains independently usable outside that execution boundary.
 - inherited Grapher nodes are preserved during adoption; they are not silently rewritten as current truth;
 - `grapher query` and `grapher get` are read-only broker surfaces;
+- absent an explicit Mission prohibition, delegation is available; `max_minions: null` is not a zero-agent cap;
 - Project Arms return testimony/evidence; they do not gain canonical write authority;
 - successful process exit is evidence, not acceptance;
 - scratch is disposable writable space outside the canonical workspace/project;
