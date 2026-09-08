@@ -893,9 +893,9 @@
       ],
       "meta": {},
       "created_at": "2026-09-08T07:11:53+00:00",
-      "updated_at": "2026-09-08T07:11:53+00:00",
+      "updated_at": "2026-09-08T07:57:37+00:00",
       "stage": "maintaining",
-      "status": "current",
+      "status": "superseded",
       "workflow_state": "completed",
       "verification": "verified",
       "evidence": [
@@ -939,7 +939,13 @@
       "semantic": {
         "change": "Primary and minion Codex launches force features.unified_exec=false while Dreadnought/Sarcophagus own the external Bubblewrap security boundary, avoiding unified-exec CreateProcess failures under the enclosing kernel.",
         "component": "src/dreadnought/kernel.py; src/dreadnought/agent.py"
-      }
+      },
+      "integrity": {
+        "algorithm": "sha256",
+        "scheme": "grapher-semantic-v1",
+        "semantic_hash": "5e7fedbc74eaaef0971d9c7140ce05d99af5f57a07a1d76d6eb844193dd8e66c"
+      },
+      "finalized_at": "2026-09-08T07:57:37+00:00"
     },
     "implementation-release-0.2.0b4": {
       "id": "implementation-release-0.2.0b4",
@@ -998,6 +1004,96 @@
         "component": "Dreadnought beta distribution v0.2.0b4",
         "change": "Publish the Codex unified-exec compatibility repair and corrected public beta marker so normal install/update paths receive the fixed Dreadnought build."
       }
+    },
+    "implementation-codex-managed-unified-exec-compatibility": {
+      "id": "implementation-codex-managed-unified-exec-compatibility",
+      "type": "implementation",
+      "title": "Codex UnifiedExec is disabled by managed requirements inside Dreadnought kernels",
+      "content": "{\"change\":\"Primary and Sarcophagus Codex runtimes preserve existing system policy and receive a private /etc/codex/requirements.toml overlay that authoritatively pins features.unified_exec=false before Codex config normalization.\",\"component\":\"src/dreadnought/codex_compat.py; src/dreadnought/kernel.py; src/dreadnought/sarcophagus.py\"}",
+      "path": "src/dreadnought/codex_compat.py",
+      "tags": [
+        "codex",
+        "unified-exec",
+        "bubblewrap",
+        "kernel",
+        "sarcophagus",
+        "compatibility"
+      ],
+      "meta": {},
+      "created_at": "2026-09-08T07:57:37+00:00",
+      "updated_at": "2026-09-08T07:57:37+00:00",
+      "stage": "maintaining",
+      "status": "current",
+      "workflow_state": "completed",
+      "verification": "verified",
+      "evidence": [
+        {
+          "type": "document",
+          "ref": "docs/FAILURE_LEDGER.md",
+          "summary": "F-0004 records the live integration failure and corrected compatibility boundary"
+        },
+        {
+          "type": "test",
+          "ref": "tests/test_codex_compat.py",
+          "summary": "Managed requirements overlay and Bubblewrap mount-order regressions"
+        }
+      ],
+      "source_refs": [
+        "docs/FAILURE_LEDGER.md",
+        "tests/test_codex_compat.py"
+      ],
+      "owners": [],
+      "scope": {
+        "project_id": "dreadnought"
+      },
+      "provenance": {
+        "actor_id": "chatgpt",
+        "actor_kind": "agent",
+        "source": "github-actions",
+        "integrity": "declared",
+        "recorded_at": "2026-09-08T07:57:37+00:00"
+      },
+      "semantic": {
+        "change": "Primary and Sarcophagus Codex runtimes preserve existing system policy and receive a private /etc/codex/requirements.toml overlay that authoritatively pins features.unified_exec=false before Codex config normalization.",
+        "component": "src/dreadnought/codex_compat.py; src/dreadnought/kernel.py; src/dreadnought/sarcophagus.py"
+      }
+    },
+    "status-transition-codex-unified-exec-is-disabled-b3fb1a8d": {
+      "id": "status-transition-codex-unified-exec-is-disabled-b3fb1a8d",
+      "type": "status_transition",
+      "title": "Status transition: Codex unified exec is disabled inside Dreadnought external kernels → superseded",
+      "content": "{\"from_status\": \"current\", \"operation_id\": \"repair-codex-managed-unified-exec-20260908\", \"reason\": \"Supersede false-positive b4 compatibility conclusion with managed-requirements implementation\", \"subject_hash\": \"5e7fedbc74eaaef0971d9c7140ce05d99af5f57a07a1d76d6eb844193dd8e66c\", \"to_status\": \"superseded\"}",
+      "path": null,
+      "tags": [],
+      "meta": {},
+      "created_at": "2026-09-08T07:57:37+00:00",
+      "updated_at": "2026-09-08T07:57:37+00:00",
+      "status": "current",
+      "workflow_state": "not_applicable",
+      "verification": "not_applicable",
+      "evidence": [],
+      "source_refs": [],
+      "owners": [],
+      "provenance": {
+        "actor_id": "chatgpt",
+        "actor_kind": "agent",
+        "source": "github-actions"
+      },
+      "semantic": {
+        "from_status": "current",
+        "operation_id": "repair-codex-managed-unified-exec-20260908",
+        "reason": "Supersede false-positive b4 compatibility conclusion with managed-requirements implementation",
+        "subject_hash": "5e7fedbc74eaaef0971d9c7140ce05d99af5f57a07a1d76d6eb844193dd8e66c",
+        "to_status": "superseded"
+      },
+      "stage": null,
+      "scope": {},
+      "integrity": {
+        "algorithm": "sha256",
+        "scheme": "grapher-semantic-v1",
+        "semantic_hash": "57217fc476acac9f526d308aa832124eae8eca18ff9c0f3799b97ae96ffbc771"
+      },
+      "finalized_at": "2026-09-08T07:57:37+00:00"
     }
   },
   "edges": [
@@ -1048,6 +1144,20 @@
       "to": "design-code-linked-architecture-docs",
       "rel": "supports",
       "created_at": "2026-09-07T00:06:00+00:00"
+    },
+    {
+      "from": "implementation-codex-managed-unified-exec-compatibility",
+      "to": "implementation-codex-unified-exec-kernel-compatibility",
+      "rel": "supersedes",
+      "created_at": "2026-09-08T07:57:37+00:00",
+      "note": "Live primary-agent execution disproved the b4 CLI-only UnifiedExec disable claim"
+    },
+    {
+      "from": "implementation-codex-unified-exec-kernel-compatibility",
+      "to": "status-transition-codex-unified-exec-is-disabled-b3fb1a8d",
+      "rel": "status_changed_by",
+      "created_at": "2026-09-08T07:57:37+00:00",
+      "note": "immutable truth-status transition"
     }
   ]
 }
