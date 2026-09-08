@@ -2,7 +2,7 @@
 
 Dreadnought is an experimental agent control plane for turning human intent into bounded, inspectable agent work. It separates mission authority, execution, agent testimony, independent observation, verification, and durable knowledge instead of treating an agent's prose as trusted state.
 
-**Current public beta: v0.2.0b4**  
+**Current public beta: v0.2.0b5**  
 **Matched Grapher compatibility line: v0.7.0b1**
 
 ## Index
@@ -129,7 +129,7 @@ Interactive release checks are best-effort and quiet for automation. Updates are
 
 ## Current beta boundary
 
-v0.2.0b2 adds guided Mission Builder, mission review/readiness flows, `dreadnought update`, local-checkout installation, and an explicit `--version` surface. The current development line adds workspace bootstrap, nested-project Grapher routing, inherited-brain adoption, and generated instructions while retaining the v0.2.0b1 Mission/Doctrine/Campaign/Order model, typed protocol, Project Arm infrastructure, Sarcophagus isolation, Grapher mediation, interactive CLI, token accounting, and Linux distribution baseline.
+v0.2.0b5 preserves Dreadnought's outer Bubblewrap authority while applying the managed Codex requirement needed to keep UnifiedExec disabled inside primary and Sarcophagus Codex runtimes. The current line retains guided Mission Builder, workspace bootstrap, nested-project Grapher routing, inherited-brain adoption, generated instructions, the Mission/Doctrine/Campaign/Order model, typed protocol, Project Arm infrastructure, Sarcophagus isolation, Grapher mediation, interactive CLI, token accounting, and the Linux distribution baseline.
 
 ## Documentation and governance
 

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+from contextlib import nullcontext
 import os
 from pathlib import Path
 import shutil
@@ -9,6 +10,7 @@ import sys
 import tempfile
 from uuid import uuid4
 
+from .codex_compat import codex_system_requirements_overlay
 from .config import load_config
 from .control import CONTROL_SOCKET_ENV, PRIMARY_SCRATCH_ENV, ControlPlaneBroker
 from .usage import TokenUsageLedger
@@ -77,6 +79,7 @@ class PrimaryKernel:
             "minion_channel": "control_plane",
             "git_credentials_exposed": False,
             "private_tmp": True,
+            "codex_unified_exec": "managed_disabled",
         }
 
     def _scratch(self) -> Path:
@@ -157,7 +160,8 @@ class PrimaryKernel:
         writable_paths = self._provider_writable_paths(agent_type, env)
         env["TMPDIR"] = "/tmp"
 
-        with ControlPlaneBroker(self.workspace, scratch) as broker:
+        overlay_context = codex_system_requirements_overlay() if agent_type == "codex" else nullcontext(None)
+        with overlay_context as codex_system_dir, ControlPlaneBroker(self.workspace, scratch) as broker:
             env[CONTROL_SOCKET_ENV] = str(broker.socket_path)
             env[PRIMARY_SCRATCH_ENV] = str(scratch)
             env["DREADNOUGHT_KERNEL"] = "primary"
@@ -168,11 +172,17 @@ class PrimaryKernel:
                 "--proc", "/proc",
                 "--dev", "/dev",
                 "--ro-bind", "/", "/",
+            ]
+            # The overlay source lives in the host temporary directory. Bind it
+            # before replacing /tmp so Bubblewrap can still resolve the source.
+            if codex_system_dir is not None:
+                argv.extend(("--ro-bind", str(codex_system_dir), "/etc/codex"))
+            argv.extend((
                 "--tmpfs", "/tmp",
                 "--ro-bind", str(self.workspace), str(self.workspace),
                 "--bind", str(scratch), str(scratch),
                 "--chdir", str(self.workspace),
-            ]
+            ))
             for path in writable_paths:
                 argv.extend(("--bind", str(path), str(path)))
             for kind, path in self._credential_masks():

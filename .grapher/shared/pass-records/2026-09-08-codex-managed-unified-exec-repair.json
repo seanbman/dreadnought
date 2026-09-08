@@ -1,0 +1,23 @@
+{
+  "id": "pass-codex-managed-unified-exec-repair-2026-09-08",
+  "type": "verification",
+  "title": "Codex managed UnifiedExec compatibility repair",
+  "status": "current",
+  "provenance": {
+    "actor_id": "chatgpt",
+    "actor_kind": "agent",
+    "source": "github-actions",
+    "recorded_at": "2026-09-08T00:00:00+00:00"
+  },
+  "semantic": {
+    "graph_node": "implementation-codex-managed-unified-exec-compatibility",
+    "supersedes": "implementation-codex-unified-exec-kernel-compatibility",
+    "claims": [
+      "Codex ordinary CLI feature overrides are not authoritative for disabling UnifiedExec",
+      "Dreadnought preserves existing /etc/codex managed policy while pinning features.unified_exec=false in a private system requirements overlay",
+      "The overlay is mounted read-only inside PrimaryKernel and Sarcophagus before private /tmp hides its host source",
+      "The outer Bubblewrap authority boundary and read-only canonical workspace are preserved",
+      "The v0.2.0b4 UnifiedExec compatibility claim is superseded because it tested argument construction rather than effective Codex tool execution"
+    ]
+  }
+}

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from contextlib import nullcontext
 from dataclasses import dataclass, field
 from enum import StrEnum
 from pathlib import Path
@@ -7,6 +8,8 @@ from typing import Sequence
 import os
 import shutil
 import subprocess
+
+from .codex_compat import codex_system_requirements_overlay
 
 
 class IsolationBackend(StrEnum):
@@ -61,7 +64,7 @@ class Sarcophagus:
             if candidate == self.workspace or self.workspace in candidate.parents:
                 raise ValueError("writable paths must not include the canonical workspace")
 
-    def plan(self, command: Sequence[str]) -> ExecutionPlan:
+    def plan(self, command: Sequence[str], *, codex_system_dir: Path | None = None) -> ExecutionPlan:
         self.validate()
         if not command or not all(isinstance(item, str) and item for item in command):
             raise ValueError("command must be a non-empty string sequence")
@@ -77,11 +80,17 @@ class Sarcophagus:
             "--proc", "/proc",
             "--dev", "/dev",
             "--ro-bind", "/", "/",
+        ]
+        # The compatibility overlay is created under the host temporary
+        # directory, so bind it before replacing /tmp in the sandbox.
+        if codex_system_dir is not None:
+            argv.extend(("--ro-bind", str(codex_system_dir), "/etc/codex"))
+        argv.extend((
             "--tmpfs", "/tmp",
             "--ro-bind", str(self.workspace), str(self.workspace),
             "--bind", str(self.scratch), str(self.scratch),
             "--chdir", str(self.workspace),
-        ]
+        ))
         if self.policy.network is NetworkPolicy.NONE:
             argv.append("--unshare-net")
         for raw in self.policy.writable_paths:
@@ -103,14 +112,20 @@ class Sarcophagus:
             environment=environment,
         )
 
+    @staticmethod
+    def _is_codex_command(command: Sequence[str]) -> bool:
+        return bool(command) and Path(command[0]).name == "codex"
+
     def run(self, command: Sequence[str], *, timeout: int = 300) -> subprocess.CompletedProcess[str]:
-        plan = self.plan(command)
-        return subprocess.run(
-            plan.argv,
-            cwd=plan.cwd,
-            env=plan.environment,
-            capture_output=True,
-            text=True,
-            timeout=timeout,
-            check=False,
-        )
+        overlay_context = codex_system_requirements_overlay() if self._is_codex_command(command) else nullcontext(None)
+        with overlay_context as codex_system_dir:
+            plan = self.plan(command, codex_system_dir=codex_system_dir)
+            return subprocess.run(
+                plan.argv,
+                cwd=plan.cwd,
+                env=plan.environment,
+                capture_output=True,
+                text=True,
+                timeout=timeout,
+                check=False,
+            )
