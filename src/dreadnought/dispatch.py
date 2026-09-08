@@ -129,7 +129,8 @@ class ProjectArmDispatcher:
 
         usage_id = self._record_usage_if_reported(usage_path, order, adapter.id)
         if usage_id is None:
-            report = adapter.usage_from_output(completed.stdout)
+            parser = getattr(adapter, "usage_from_output", None)
+            report = parser(completed.stdout) if callable(parser) else None
             if report is not None:
                 usage_id = self._record_usage_report(report, order, adapter.id, source="structured_stdout")
         return DispatchResult(

@@ -88,3 +88,16 @@ def test_command_adapter_exposes_usage_report_template(tmp_path: Path) -> None:
         workspace=tmp_path,
     )
     assert command[-1] == str(result_path.with_suffix(".usage.json"))
+
+def test_primary_cli_chat_records_unmetered_session(tmp_path: Path, monkeypatch) -> None:
+    configure_agent(tmp_path, agent_type="codex", executable="codex", primary=True)
+    monkeypatch.setattr("dreadnought.cli.subprocess.call", lambda command, cwd: 0)
+
+    from dreadnought.cli import _launch_agent_chat
+
+    assert _launch_agent_chat(tmp_path, "codex") == 0
+    stats = TokenUsageLedger(tmp_path).stats()
+    assert stats["metering"]["complete"] is False
+    assert stats["metering"]["unmetered_sessions"] == 1
+    assert stats["metering"]["unmetered_by_role"]["primary"] == 1
+
