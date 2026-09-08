@@ -41,7 +41,9 @@ class Sarcophagus:
     """Build and execute a Linux sandbox with the canonical workspace read-only.
 
     This prototype deliberately supports only Bubblewrap. It fails closed when
-    the backend is unavailable rather than silently executing on the host.
+    the backend is unavailable rather than silently executing on the host. Each
+    sandbox receives a private writable /tmp so provider runtimes can create
+    ephemeral files without exposing the host temporary directory.
     """
 
     def __init__(self, workspace: Path, scratch: Path, policy: SarcophagusPolicy | None = None) -> None:
@@ -75,6 +77,7 @@ class Sarcophagus:
             "--proc", "/proc",
             "--dev", "/dev",
             "--ro-bind", "/", "/",
+            "--tmpfs", "/tmp",
             "--ro-bind", str(self.workspace), str(self.workspace),
             "--bind", str(self.scratch), str(self.scratch),
             "--chdir", str(self.workspace),
@@ -92,6 +95,7 @@ class Sarcophagus:
             for key, value in os.environ.items()
             if key in self.policy.environment_allowlist
         }
+        environment["TMPDIR"] = "/tmp"
         return ExecutionPlan(
             backend=IsolationBackend.BWRAP,
             argv=tuple(argv),

@@ -30,19 +30,20 @@ def test_plan_fails_closed_without_bubblewrap(tmp_path: Path, monkeypatch: pytes
         Sarcophagus(workspace, tmp_path / "scratch").plan(["true"])
 
 
-def test_plan_is_read_only_and_network_isolated_by_default(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_plan_is_read_only_network_isolated_and_has_private_tmp_by_default(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     workspace = tmp_path / "workspace"
     workspace.mkdir()
     scratch = tmp_path / "scratch"
     monkeypatch.setattr("dreadnought.sarcophagus.shutil.which", lambda _: "/usr/bin/bwrap")
     plan = Sarcophagus(workspace, scratch).plan(["python", "-V"])
     argv = list(plan.argv)
+    triples = list(zip(argv, argv[1:], argv[2:]))
     assert "--unshare-net" in argv
-    assert ["--ro-bind", str(workspace.resolve()), str(workspace.resolve())] == argv[
-        argv.index(str(workspace.resolve())) - 1 : argv.index(str(workspace.resolve())) + 2
-    ]
+    assert ("--tmpfs", "/tmp") in list(zip(argv, argv[1:]))
+    assert ("--ro-bind", str(workspace.resolve()), str(workspace.resolve())) in triples
     assert "--bind" in argv
     assert str(scratch.resolve()) in argv
+    assert plan.environment["TMPDIR"] == "/tmp"
 
 
 def test_host_network_must_be_explicit(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:

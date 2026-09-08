@@ -695,6 +695,69 @@
         "change": "After each Project Arm minion exits, Dreadnought now independently evaluates verifiable claims, rolls them up against Order acceptance criteria, emits evaluation verdicts, and marks the Order accepted only when the final verdict is supported.",
         "component": "src/dreadnought/evaluation.py"
       }
+    },
+    "implementation-private-tmp-runtime": {
+      "id": "implementation-private-tmp-runtime",
+      "type": "implementation",
+      "title": "Sandbox runtimes receive private writable temporary storage",
+      "content": "{\"change\": \"PrimaryKernel and Sarcophagus mount a private tmpfs at /tmp and normalize TMPDIR to /tmp so provider runtimes and MCP servers can create ephemeral state without exposing the host temp directory.\", \"component\": \"src/dreadnought/kernel.py; src/dreadnought/sarcophagus.py\"}",
+      "path": "src/dreadnought/kernel.py",
+      "tags": [
+        "kernel",
+        "sarcophagus",
+        "bubblewrap",
+        "tmpfs",
+        "mcp",
+        "codex"
+      ],
+      "meta": {},
+      "created_at": "2026-09-08T06:30:39+00:00",
+      "updated_at": "2026-09-08T06:30:39+00:00",
+      "stage": "maintaining",
+      "status": "current",
+      "workflow_state": "completed",
+      "verification": "unverified",
+      "evidence": [
+        {
+          "type": "document",
+          "ref": "src/dreadnought/kernel.py",
+          "summary": "Primary kernel private tmpfs"
+        },
+        {
+          "type": "document",
+          "ref": "src/dreadnought/sarcophagus.py",
+          "summary": "Project Arm private tmpfs"
+        },
+        {
+          "type": "document",
+          "ref": "tests/test_private_tmp_runtime.py",
+          "summary": "Primary runtime regression coverage"
+        },
+        {
+          "type": "document",
+          "ref": "tests/test_sarcophagus.py",
+          "summary": "Sarcophagus regression coverage"
+        }
+      ],
+      "source_refs": [
+        "tests/test_private_tmp_runtime.py",
+        "tests/test_sarcophagus.py"
+      ],
+      "owners": [],
+      "scope": {
+        "project_id": "dreadnought"
+      },
+      "provenance": {
+        "actor_id": "chatgpt",
+        "actor_kind": "agent",
+        "source": "github-actions",
+        "integrity": "declared",
+        "recorded_at": "2026-09-08T06:30:39+00:00"
+      },
+      "semantic": {
+        "change": "PrimaryKernel and Sarcophagus mount a private tmpfs at /tmp and normalize TMPDIR to /tmp so provider runtimes and MCP servers can create ephemeral state without exposing the host temp directory.",
+        "component": "src/dreadnought/kernel.py; src/dreadnought/sarcophagus.py"
+      }
     }
   },
   "edges": [

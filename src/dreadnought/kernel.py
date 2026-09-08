@@ -28,9 +28,10 @@ _BLOCKED_ENV = {
 class PrimaryKernel:
     """Launch the primary agent with the canonical workspace read-only.
 
-    The agent receives writable scratch and a Unix-domain control socket. Canonical
-    mutation and minion commissioning remain host-side Dreadnought operations.
-    Provider-owned runtime state is selectively rebound writable when required.
+    The agent receives writable scratch, a private writable /tmp, and a Unix-domain
+    control socket. Canonical mutation and minion commissioning remain host-side
+    Dreadnought operations. Provider-owned runtime state is selectively rebound
+    writable when required.
     """
 
     def __init__(self, workspace: Path | str):
@@ -47,6 +48,7 @@ class PrimaryKernel:
                     "--uid", "0",
                     "--gid", "0",
                     "--ro-bind", "/", "/",
+                    "--tmpfs", "/tmp",
                     "--", "/bin/true",
                 ],
                 stdout=subprocess.DEVNULL,
@@ -74,6 +76,7 @@ class PrimaryKernel:
             "canonical_workspace": "read_only",
             "minion_channel": "control_plane",
             "git_credentials_exposed": False,
+            "private_tmp": True,
         }
 
     def _scratch(self) -> Path:
@@ -128,6 +131,7 @@ class PrimaryKernel:
         scratch.mkdir(parents=True, exist_ok=True)
         env = self._provider_env(agent_type)
         writable_paths = self._provider_writable_paths(agent_type, env)
+        env["TMPDIR"] = "/tmp"
 
         with ControlPlaneBroker(self.workspace, scratch) as broker:
             env[CONTROL_SOCKET_ENV] = str(broker.socket_path)
@@ -140,6 +144,7 @@ class PrimaryKernel:
                 "--proc", "/proc",
                 "--dev", "/dev",
                 "--ro-bind", "/", "/",
+                "--tmpfs", "/tmp",
                 "--ro-bind", str(self.workspace), str(self.workspace),
                 "--bind", str(scratch), str(scratch),
                 "--chdir", str(self.workspace),
