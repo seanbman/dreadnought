@@ -2,7 +2,7 @@
 
 Dreadnought is an experimental agent control plane for turning human intent into bounded, inspectable agent work. It separates mission authority, execution, agent testimony, independent observation, verification, and durable knowledge instead of treating an agent's prose as trusted state.
 
-**Current public beta: v0.2.0b2**  
+**Current public beta: v0.2.0b4**  
 **Matched Grapher compatibility line: v0.7.0b1**
 
 ## Index
