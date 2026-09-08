@@ -95,18 +95,30 @@ def _update_command(argv: list[str]) -> int | None:
 
 
 def _print_help() -> int:
-    from dreadnought.cli import build_parser
-
-    build_parser().print_help()
     print(
-        "\nBootstrap:\n"
-        "  dreadnought initialize [brief]  initialize/adopt a workspace and generate instructions\n"
-        "  dreadnought init [brief]        alias for initialize\n"
-        "\nInteractive controls:\n"
+        "Dreadnought agent control plane\n\n"
+        "Usage:\n"
+        "  dreadnought                          open the interactive workspace menu\n"
+        "  dreadnought initialize [brief]       initialize/adopt a workspace and generate instructions\n"
+        "  dreadnought init [brief]             alias for initialize\n"
+        "  dreadnought mission <command>        build or inspect missions\n"
+        "  dreadnought doctrine <command>       normalize authoritative intent\n"
+        "  dreadnought campaign <command>       plan doctrine as bounded operations\n"
+        "  dreadnought order <command>          issue a Project Arm order\n"
+        "  dreadnought grapher <command>        broker managed Grapher access\n"
+        "  dreadnought protocol <command>       validate or ingest typed testimony\n"
+        "  dreadnought arm dispatch ...         execute a bounded Project Arm order\n"
+        "  dreadnought agent <command>          configure/open an agent adapter\n"
+        "  dreadnought usage <command>          record or summarize token usage\n"
+        "  dreadnought config <command>         inspect/change project configuration\n"
+        "  dreadnought update                   update the managed installation\n"
+        "  dreadnought --version                print the installed version\n\n"
+        "Run `dreadnought <command> --help` for command-specific options.\n\n"
+        "Interactive controls:\n"
         "  ↑/↓ or 1..N  select menu items\n"
         "  q            back / exit a menu\n"
-        "  Esc, Ctrl-C  cancel the current prompt and exit cleanly\n"
-        "\nManual:\n"
+        "  Esc, Ctrl-C  cancel the current prompt and exit cleanly\n\n"
+        "Manual:\n"
         "  man dreadnought"
     )
     return 0
@@ -121,7 +133,7 @@ def main() -> int:
     if actual == ["--version"]:
         print(__version__)
         return 0
-    if actual == ["help"]:
+    if actual in (["help"], ["--help"], ["-h"]):
         return _print_help()
     if not actual and interactive:
         return run_home_menu()
