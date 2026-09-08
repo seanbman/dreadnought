@@ -15,38 +15,72 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Enforce Grapher publication evidence
+      - name: Determine changed files
         shell: bash
         run: |
           set -euo pipefail
           if [[ "${{ github.event_name }}" == "pull_request" ]]; then
             BASE="${{ github.event.pull_request.base.sha }}"
-            git diff --name-only "$BASE"...HEAD > /tmp/dreadnought-changed-files
           else
-            git diff --name-only HEAD^ HEAD > /tmp/dreadnought-changed-files
+            BASE="HEAD^"
           fi
+          echo "$BASE" > /tmp/dreadnought-base
+          git diff --name-only "$BASE"...HEAD > /tmp/dreadnought-changed-files
           echo "Changed files:"
           cat /tmp/dreadnought-changed-files
-          grep -q '^\.grapher/shared/' /tmp/dreadnought-changed-files || {
-            echo 'ERROR: every substantive Dreadnought change must publish Grapher evidence under .grapher/shared/' >&2
+      - run: python -m pip install --upgrade pip pytest
+      - run: python -m pip install -e .
+      - name: Enforce actual Grapher mutation
+        shell: bash
+        run: |
+          set -euo pipefail
+          CHANGED=/tmp/dreadnought-changed-files
+          grep -qx '.grapher/knowledge.json' "$CHANGED" || {
+            echo 'ERROR: every repository change must mutate canonical .grapher/knowledge.json through Grapher' >&2
             exit 1
           }
-          PASS_RECORD=$(grep '^\.grapher/shared/pass-records/.*\.json$' /tmp/dreadnought-changed-files | head -n1 || true)
+          grep -qx '.grapher/history.jsonl' "$CHANGED" || {
+            echo 'ERROR: every repository change must append canonical .grapher/history.jsonl through Grapher' >&2
+            exit 1
+          }
+          grep -q '^\.grapher/shared/' "$CHANGED" || {
+            echo 'ERROR: publish Grapher evidence under .grapher/shared/' >&2
+            exit 1
+          }
+          PASS_RECORD=$(grep '^\.grapher/shared/pass-records/.*\.json$' "$CHANGED" | head -n1 || true)
           [[ -n "$PASS_RECORD" ]] || {
             echo 'ERROR: add a Grapher pass record under .grapher/shared/pass-records/' >&2
             exit 1
           }
+
+          grapher validate --graph .grapher/knowledge.json --json
+
+          BASE=$(cat /tmp/dreadnought-base)
+          git show "$BASE:.grapher/history.jsonl" > /tmp/dreadnought-base-history
           python - "$PASS_RECORD" <<'PY'
           import json, sys
           from pathlib import Path
-          data = json.loads(Path(sys.argv[1]).read_text())
+
+          pass_record = json.loads(Path(sys.argv[1]).read_text())
           for key in ("id", "type", "title", "status", "provenance"):
-              assert data.get(key), f"missing pass-record field: {key}"
-          assert data["status"] != "unclassified", "pass record needs explicit status"
-          assert data.get("semantic") or data.get("content"), "pass record needs semantic/content payload"
-          assert data["provenance"].get("actor_id"), "pass record needs provenance.actor_id"
-          assert data["provenance"].get("source"), "pass record needs provenance.source"
+              assert pass_record.get(key), f"missing pass-record field: {key}"
+          assert pass_record["status"] != "unclassified", "pass record needs explicit status"
+          assert pass_record.get("semantic") or pass_record.get("content"), "pass record needs semantic/content payload"
+          assert pass_record["provenance"].get("actor_id"), "pass record needs provenance.actor_id"
+          assert pass_record["provenance"].get("source"), "pass record needs provenance.source"
+
+          before = Path('/tmp/dreadnought-base-history').read_text(encoding='utf-8')
+          after = Path('.grapher/history.jsonl').read_text(encoding='utf-8')
+          assert after.startswith(before), '.grapher/history.jsonl must be append-only'
+          appended = [line for line in after[len(before):].splitlines() if line.strip()]
+          assert appended, 'Grapher history did not advance'
+          events = [json.loads(line) for line in appended]
+          canonical = [event for event in events if event.get('action') and event.get('operation_id') and event.get('target') and event.get('transitions')]
+          assert canonical, 'no structured Grapher mutation event found; hand-authored evidence is not a substitute for invoking Grapher'
+          assert any(event.get('result') == 'succeeded' or event.get('operation_result') == 'succeeded' for event in canonical), 'Grapher mutation did not record success'
+
+          graph = json.loads(Path('.grapher/knowledge.json').read_text(encoding='utf-8'))
+          nodes = graph.get('nodes') or {}
+          assert any(event.get('target') in nodes for event in canonical), 'Grapher history target is not present in canonical knowledge state'
           PY
-      - run: python -m pip install --upgrade pip pytest
-      - run: python -m pip install -e .
       - run: pytest -q
