@@ -1,0 +1,56 @@
+name: temporary-release-grapher
+
+on:
+  push:
+    branches: [release/0.2.0b3-delegation-repair]
+
+permissions:
+  contents: write
+
+jobs:
+  finalize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: release/0.2.0b3-delegation-repair
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install --upgrade pip pytest
+      - run: python -m pip install -e .
+      - run: pytest -q
+      - name: Record release through Dreadnought Grapher
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from dreadnought.grapher import GrapherControlPlane
+          from dreadnought.protocol import Perspective, ProtocolRecord, RecordKind
+
+          root = Path('.').resolve()
+          record = ProtocolRecord.create(
+              kind=RecordKind.NOTE,
+              perspective=Perspective.OBSERVER,
+              actor_id='dreadnought:release',
+              subject_ref='release-v0.2.0b3',
+              data={
+                  'audience': 'human',
+                  'text': 'Release 0.2.0b3 packages the verified delegation, first-class minion commissioning, provider-aware dispatch, and honest primary/minion usage accounting repair from PR #27.'
+              },
+          )
+          result = GrapherControlPlane(root).write_record(record)
+          graph = json.loads(result.graph_path.read_text(encoding='utf-8'))
+          pass_path = root / '.grapher' / 'shared' / 'pass-records' / '2026-09-08-release-0.2.0b3.json'
+          pass_path.parent.mkdir(parents=True, exist_ok=True)
+          pass_path.write_text(json.dumps(graph['nodes'][record.id], indent=2, sort_keys=True) + '\n', encoding='utf-8')
+          PY
+      - name: Commit release evidence and remove temporary workflow
+        run: |
+          git config user.name "dreadnought-control-plane"
+          git config user.email "dreadnought@users.noreply.github.com"
+          git rm .github/workflows/_release_grapher.yml
+          git add .grapher/knowledge.json .grapher/history.jsonl .grapher/shared/pass-records/2026-09-08-release-0.2.0b3.json
+          git commit -m "Record 0.2.0b3 release in Grapher"
+          git push origin HEAD:release/0.2.0b3-delegation-repair
