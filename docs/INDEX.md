@@ -3,6 +3,7 @@
 ## Index
 
 - [Start here](#start-here)
+- [Research](#research)
 - [Architecture](#architecture)
 - [Ledgers](#ledgers)
 - [Machine-readable counterparts](#machine-readable-counterparts)
@@ -29,6 +30,11 @@ This is the canonical durable documentation map. **New users should begin with t
 - [`README.md`](README.md) — research-record conventions.
 - [`DIAGRAM_STANDARD.md`](DIAGRAM_STANDARD.md) — documentation/diagram provenance contract.
 - [`ROADMAP.md`](ROADMAP.md) — milestone sequence and deferred work.
+
+## Research
+
+- [`research/001-granite-instruct-code-training.md`](research/001-granite-instruct-code-training.md) — IBM Granite IF+code training (**clean re-author** from public sources; not Digga restore).
+- [`research/002-granite-dreadnought-autonomy.md`](research/002-granite-dreadnought-autonomy.md) — Granite inside Dreadnought; wrapper-first via CommandAgentAdapter.
 
 ## Architecture
 
