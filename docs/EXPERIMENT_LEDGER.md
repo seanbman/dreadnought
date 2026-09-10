@@ -5,6 +5,7 @@
 - [Experiment discipline](#experiment-discipline)
 - [E-0001 — Typed protocol can make agent claims mechanically testable](#e-0001--typed-protocol-can-make-agent-claims-mechanically-testable)
 - [E-0002 — Authority mediation can make Grapher protocol difficult to bypass](#e-0002--authority-mediation-can-make-grapher-protocol-difficult-to-bypass)
+- [E-0003 — Granite wrapper-first autonomy via CommandAgentAdapter](#e-0003--granite-wrapper-first-autonomy-via-commandagentadapter)
 - [Appendix — Process flow](#appendix--process-flow)
 
 ## Experiment discipline
@@ -32,6 +33,20 @@ Experiments should state falsifiable hypotheses where possible. Agent opinions m
 **Initial procedure:** Prototype a read-only canonical workspace plus writable scratch/overlay and require Dreadnought mediation for authoritative changes.
 
 **Success criterion:** An agent lacking control-plane credentials cannot mutate canonical project state without traversing the recorded Dreadnought path. [Process map](#appendix--process-flow)
+
+
+## E-0003 — Granite wrapper-first autonomy via CommandAgentAdapter
+
+**Date opened:** 2026-09-10  
+**Status:** planned
+
+**Hypothesis:** A thin Granite CLI wrapped through existing `CommandAgentAdapter` / `dreadnought arm dispatch` can satisfy Order → scratch work → agent-perspective protocol JSONL → Dreadnought evaluation without first adding a first-class `GraniteMinionAdapter`, and without teaching the model to write Grapher or observer/verdict records.
+
+**Initial procedure:** Land research briefs [`research/001-granite-instruct-code-training.md`](research/001-granite-instruct-code-training.md) (IF+code competence) and [`research/002-granite-dreadnought-autonomy.md`](research/002-granite-dreadnought-autonomy.md) (control-plane contracts). Implement a disposable-workspace wrapper that consumes `{order}` / `{scratch}` / `{result}` tokens, then compare schema-valid testimony rates against a prompt-pack baseline. Keep minion `control commission` on codex|cursor until Phase 1 evidence exists.
+
+**Success criterion:** On a real disposable workspace, a Granite wrapper produces evaluable agent JSONL for at least one Order with deterministic verifiers, while malicious observer/verdict perspectives are rejected by `AgentResultChannel`. Scratch artifact success ≠ canonical-tree landing (no scratch→canonical broker). No results recorded yet — experiment opened only.
+
+**Research:** [`research/002-granite-dreadnought-autonomy.md`](research/002-granite-dreadnought-autonomy.md). [Process map](#appendix--process-flow)
 
 ## Appendix — Process flow
 
