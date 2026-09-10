@@ -7,6 +7,7 @@
 - [Doctrine, Campaign Plan, and Project Arm Orders](#2026-09-06--doctrine-campaign-plan-and-project-arm-orders)
 - [Typed protocol verified and Grapher write boundary begun](#2026-09-06--typed-protocol-verified-and-grapher-write-boundary-begun)
 - [Primary agent kernel boundary and project minion policy](#2026-09-08--primary-agent-kernel-boundary-and-project-minion-policy)
+- [Granite research briefs 001 and 002](#2026-09-10--granite-research-briefs-001-and-002)
 - [Appendix — Process flow](#appendix--process-flow)
 
 Chronological record of Dreadnought's development. Entries describe what was actually done and why, with evidence references where possible. [Process map](#appendix--process-flow)
@@ -125,6 +126,26 @@ Token statistics also expose currently active native primary sessions that lack 
 ### Boundary under test
 
 The intended authority path is now `human → Dreadnought primary → Dreadnought control plane → Project Arm/minion → Sarcophagus`, with canonical mutation returning through Dreadnought-owned admission paths. Tests cover legacy config migration, project-scoped minion capacity, active usage coverage, credential stripping, and read-only canonical filesystem behavior. [Process map](#appendix--process-flow)
+
+
+## 2026-09-10 — Granite research briefs 001 and 002
+
+**Time:** approximately 17:30 MT / 23:30 UTC  
+**Branch:** `dev` @ `63abbee86ce9d949bfd33671971dae61d3b0e654`  
+**Actor:** Loreboy (research landing)
+
+### What landed
+
+Opened `docs/research/` with two clean briefs (no Digga/Seeka restore):
+
+1. [`docs/research/001-granite-instruct-code-training.md`](research/001-granite-instruct-code-training.md) — IBM Granite IF+code training; HF/IBM checkpoint IDs verified via public pages on 2026-09-10.
+2. [`docs/research/002-granite-dreadnought-autonomy.md`](research/002-granite-dreadnought-autonomy.md) — Granite×Dreadnought autonomy; **wrapper-first** via `CommandAgentAdapter` / `arm dispatch`.
+
+Also indexed under [`INDEX.md`](INDEX.md), opened Experiment **E-0003**, and recorded Grapher decision nodes via CLI.
+
+### Deliberate non-actions
+
+No first-class Granite adapter code in this change. No Digga 001 content restored. No git commit (left for Kommit). [Process map](#appendix--process-flow)
 
 ## Appendix — Process flow
 
