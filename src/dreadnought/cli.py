@@ -16,6 +16,7 @@ from .grapher import GrapherControlPlane
 from .mission import Mission
 from .order import Order
 from .protocol import ProtocolRecord
+from .training import TrainingCorpus
 from .usage import TokenUsage, TokenUsageLedger
 
 
@@ -187,6 +188,55 @@ def cmd_usage_record(args: argparse.Namespace) -> int:
 def cmd_usage_stats(args: argparse.Namespace) -> int:
     stats = TokenUsageLedger(Path(args.root).resolve()).stats(project_id=args.project, task_id=args.task, agent_role=args.role)
     print(json.dumps(stats, indent=2, sort_keys=True))
+    return 0
+
+
+def cmd_training_stats(args: argparse.Namespace) -> int:
+    print(json.dumps(TrainingCorpus(Path(args.root).resolve()).stats(), indent=2, sort_keys=True))
+    return 0
+
+
+def cmd_training_toggle(args: argparse.Namespace) -> int:
+    root = Path(args.root).resolve()
+    config = load_config(root)
+    training = dict(config.get("training_data") or {})
+    training["enabled"] = bool(args.enabled)
+    training.setdefault("record_dispatches", True)
+    config["training_data"] = training
+    save_config(root, config)
+    if args.enabled:
+        TrainingCorpus(root).ensure_local_storage()
+    print(json.dumps(training, indent=2, sort_keys=True))
+    return 0
+
+
+def cmd_training_feedback(args: argparse.Namespace) -> int:
+    try:
+        payload = TrainingCorpus(Path(args.root).resolve()).record_feedback(
+            args.episode,
+            rating=args.rating,
+            comment=args.comment,
+            actor_id=args.actor,
+        )
+    except (OSError, ValueError) as exc:
+        print(f"training feedback failed: {exc}", file=sys.stderr)
+        return 2
+    print(json.dumps(payload, indent=2, sort_keys=True))
+    return 0
+
+
+def cmd_training_export(args: argparse.Namespace) -> int:
+    try:
+        result = TrainingCorpus(Path(args.root).resolve()).export(
+            args.output,
+            mode=args.mode,
+            eval_percent=args.eval_percent,
+            split_seed=args.split_seed,
+        )
+    except (OSError, ValueError) as exc:
+        print(f"training export failed: {exc}", file=sys.stderr)
+        return 2
+    print(json.dumps(result, indent=2, sort_keys=True))
     return 0
 
 
@@ -413,6 +463,32 @@ def build_parser() -> argparse.ArgumentParser:
     ustats.add_argument("--task")
     ustats.add_argument("--role", choices=["primary", "minion"])
     ustats.set_defaults(func=cmd_usage_stats)
+
+    training = sub.add_parser("training", help="inspect, annotate, and export normalized training episodes")
+    training_sub = training.add_subparsers(dest="training_command", required=True)
+    tstats = training_sub.add_parser("stats", help="summarize the local training corpus")
+    tstats.add_argument("--root", default=".")
+    tstats.set_defaults(func=cmd_training_stats)
+    tenable = training_sub.add_parser("enable", help="opt this workspace into normalized dispatch episode recording")
+    tenable.add_argument("--root", default=".")
+    tenable.set_defaults(func=cmd_training_toggle, enabled=True)
+    tdisable = training_sub.add_parser("disable", help="stop normalized dispatch episode recording")
+    tdisable.add_argument("--root", default=".")
+    tdisable.set_defaults(func=cmd_training_toggle, enabled=False)
+    tfeedback = training_sub.add_parser("feedback", help="append human feedback to an execution episode")
+    tfeedback.add_argument("episode")
+    tfeedback.add_argument("--root", default=".")
+    tfeedback.add_argument("--rating", choices=["accept", "reject", "revise"], required=True)
+    tfeedback.add_argument("--comment", required=True)
+    tfeedback.add_argument("--actor", default="human:user")
+    tfeedback.set_defaults(func=cmd_training_feedback)
+    texport = training_sub.add_parser("export", help="export model-agnostic JSONL from normalized episodes")
+    texport.add_argument("output")
+    texport.add_argument("--root", default=".")
+    texport.add_argument("--mode", choices=["eligible", "accepted", "all"], default="eligible")
+    texport.add_argument("--eval-percent", type=int, default=0)
+    texport.add_argument("--split-seed", default="dreadnought-v1")
+    texport.set_defaults(func=cmd_training_export)
 
     mission = sub.add_parser("mission", help="create and inspect normalized mission records")
     mission_sub = mission.add_subparsers(dest="mission_command", required=True)

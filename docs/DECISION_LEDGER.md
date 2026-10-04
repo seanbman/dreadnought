@@ -17,6 +17,7 @@
 - [D-0013 — Repository changes update canonical Grapher state](#d-0013--repository-changes-update-canonical-grapher-state)
 - [D-0014 — Every repository change must actually use Grapher](#d-0014--every-repository-change-must-actually-use-grapher)
 - [D-0015 — Primary agents have no direct project mutation authority](#d-0015--primary-agents-have-no-direct-project-mutation-authority)
+- [D-0016 — Training data is a derived layered corpus](#d-0016--training-data-is-a-derived-layered-corpus)
 - [Appendix — Process flow](#appendix--process-flow)
 
 Architectural decisions are recorded as decisions, not rewritten later as if inevitable. Superseded decisions remain in history. [Process map](#appendix--process-flow)
@@ -155,6 +156,23 @@ Architectural decisions are recorded as decisions, not rewritten later as if ine
 **Implementation:** `src/dreadnought/kernel.py`, `src/dreadnought/control.py`, `src/dreadnought/project_policy.py`, `src/dreadnought/limits.py`, `src/dreadnought/secure_bootstrap.py`, `src/dreadnought/minion.py`, and `src/dreadnought/usage.py`. Initial implementation commit: `1b03ab95241518552672051fc0eedc604670c756`.
 
 **Grapher evidence:** `record-08d4a9469adc`; pass record `pass-primary-kernel-boundaries-2026-09-08`.
+
+## D-0016 — Training data is a derived layered corpus
+
+**Date:** 2026-10-03
+**Status:** current
+
+**Decision:** Preserve model-training material as three distinct layers: raw authoritative execution evidence, normalized Training Episodes, and later model-specific exports. Grapher remains Dreadnought's durable project brain and must not be flattened directly into SFT data.
+
+**Rationale:** Grapher intentionally contains mixed record types, truth statuses, provenance, supersession, notes, and durable project knowledge. Training requires a stable execution-shaped unit that keeps Order → agent testimony → independent verification → human feedback relationships explicit while remaining independent of any one model's chat template.
+
+**Safety:** Dispatch episode recording is opt-in. Normalization strips raw process output, structurally redacts managed absolute paths, preserves failed/corrected episodes, and stores human feedback append-only.
+
+**Pilot:** Koffer is the first intended real development case study for this corpus.
+
+**Implementation:** `src/dreadnought/training.py`, `schemas/training_episode.schema.json`, `src/dreadnought/dispatch.py`, and [`TRAINING_DATA.md`](TRAINING_DATA.md).
+
+**Grapher evidence:** `decision-training-episode-derived-corpus`, `implementation-training-episode-v1`.
 
 ## Appendix — Process flow
 

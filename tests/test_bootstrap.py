@@ -88,6 +88,9 @@ def test_bootstrap_adopts_nested_project_and_generates_instructions(tmp_path: Pa
     assert "Continue the Plumbing Track site overhaul" in instructions
     assert "sole authority that mutates Grapher" in instructions
     assert "Every substantive repository change must invoke Grapher" in instructions
+    assert "not** a flat model-training dataset" in instructions
+    assert "Training Episode capture is disabled by default" in instructions
+    assert "do not scrape `.grapher/knowledge.json` into training text" in instructions
     assert "max_minions: null" in instructions
     assert "does **not** mean zero" in instructions
     assert "must commission the work through the Project Arm / Sarcophagus path" in instructions

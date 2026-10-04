@@ -145,6 +145,7 @@ def _print_help() -> int:
         "  dreadnought arm dispatch ...         execute a bounded Project Arm order\n"
         "  dreadnought agent <command>          configure/open a kernel-isolated primary adapter\n"
         "  dreadnought usage <command>          record or summarize token usage\n"
+        "  dreadnought training <command>       inspect, annotate, or export training episodes\n"
         "  dreadnought config <command>         inspect/change project configuration\n"
         "  dreadnought update                   update the managed installation\n"
         "  dreadnought --version                print the installed version\n\n"

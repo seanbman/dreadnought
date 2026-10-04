@@ -110,7 +110,7 @@ Build an **operational instruction pack** (system + few-shot) for Dreadnought co
 4. Include allowed control verbs: `dreadnought control query|get|usage|commission` and Unix-socket JSON `{"method","params"}` shape (`control.py`).
 5. Explicit negatives: no Grapher hand-edit; no observer/verdict authorship; no claiming `max_minions: null` means zero; no config mutation from inside kernel.
 
-Optional later SFT: synthesize Order→scratch diff→JSONL→eval traces from the Rank-1 harness; keep license/serving choices in 001.
+Optional later SFT: export reviewed Training Episode v1 rows rather than scraping Grapher; convert those Order→testimony→eval→feedback traces to the pinned Granite chat template only at export/training time. Keep license/serving choices in 001.
 
 ## Runtime topology
 
@@ -154,7 +154,7 @@ Minimum fixtures (to implement outside this brief):
 ## Phased plan and non-goals
 
 1. **Phase 0:** Land clean `docs/research/001` (IF+code) and `002` (this autonomy brief) — no Digga/Seeka 001 restore (re-author only).
-2. **Phase 1:** Wrapper CLI + `arm dispatch` demo on disposable workspace; Experiment Ledger **E-0003**.
+2. **Phase 1:** Wrapper CLI + `arm dispatch` demo, then the Koffer live case study with Training Episode v1 capture; Experiment Ledgers **E-0003/E-0004**.
 3. **Phase 2:** Optional primary custom agent with Granite boot-prompt patch — today the automatic initial prompt in `src/dreadnought/kernel.py` `run_kernel_cli` is **Codex-only**; extend that path (or equivalent) for Granite. Still commission Granite arms via host `arm dispatch` until Phase 3.
 4. **Phase 3:** First-class adapter + env allowlist + CLI choices after Phase 1 evidence.
 5. **Phase 4:** Optional contract SFT — only with 001 competence + Rank-1 harness evidence.

@@ -1,0 +1,295 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/seanbman/dreadnought/schemas/training_episode.schema.json",
+  "title": "Dreadnought Training Episode",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "episode_id",
+    "created_at",
+    "project",
+    "dreadnought",
+    "agent",
+    "order",
+    "execution",
+    "lineage",
+    "agent_testimony",
+    "evaluation",
+    "artifacts",
+    "usage",
+    "feedback_refs",
+    "dataset"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "episode_id": {
+      "type": "string",
+      "pattern": "^episode-"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "project": {
+      "type": "object",
+      "required": [
+        "id",
+        "root_name",
+        "repository",
+        "branch",
+        "commit_before",
+        "commit_after"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "root_name": {
+          "type": "string"
+        },
+        "commit_before": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "commit_after": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "repository": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "branch": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "dreadnought": {
+      "type": "object",
+      "required": [
+        "version",
+        "revision",
+        "protocol_schema_version",
+        "prompt_profile",
+        "instructions_sha256"
+      ],
+      "properties": {
+        "version": {
+          "type": "string"
+        },
+        "revision": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "protocol_schema_version": {
+          "const": 1
+        },
+        "prompt_profile": {
+          "type": "string"
+        },
+        "instructions_sha256": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "agent": {
+      "type": "object",
+      "required": [
+        "adapter_id",
+        "provider",
+        "model"
+      ],
+      "properties": {
+        "adapter_id": {
+          "type": "string"
+        },
+        "provider": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "model": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "order": {
+      "type": "object"
+    },
+    "execution": {
+      "type": "object",
+      "required": [
+        "exit_code",
+        "duration_ms",
+        "network_policy",
+        "observation_id",
+        "failure_category"
+      ],
+      "properties": {
+        "exit_code": {
+          "type": "integer"
+        },
+        "duration_ms": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "network_policy": {
+          "type": "string"
+        },
+        "observation_id": {
+          "type": "string"
+        },
+        "failure_category": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "agent_testimony": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "evaluation": {
+      "type": "object",
+      "required": [
+        "accepted",
+        "status",
+        "acceptance",
+        "verdicts"
+      ],
+      "properties": {
+        "accepted": {
+          "type": "boolean"
+        },
+        "status": {
+          "type": "string"
+        },
+        "acceptance": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "verdicts": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "artifacts": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "usage": {
+      "type": [
+        "object",
+        "null"
+      ]
+    },
+    "feedback_refs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "dataset": {
+      "type": "object",
+      "required": [
+        "eligible",
+        "redacted",
+        "redaction_policy",
+        "split",
+        "exclusion_reasons"
+      ],
+      "properties": {
+        "eligible": {
+          "type": "boolean"
+        },
+        "redacted": {
+          "const": true
+        },
+        "redaction_policy": {
+          "type": "string"
+        },
+        "split": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "enum": [
+            "train",
+            "eval",
+            null
+          ]
+        },
+        "exclusion_reasons": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "lineage": {
+      "type": "object",
+      "required": [
+        "parent_episode_id",
+        "retry_index"
+      ],
+      "properties": {
+        "parent_episode_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "retry_index": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false
+    },
+    "human_feedback": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    }
+  },
+  "additionalProperties": false
+}

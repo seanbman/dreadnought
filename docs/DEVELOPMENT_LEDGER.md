@@ -8,6 +8,7 @@
 - [Typed protocol verified and Grapher write boundary begun](#2026-09-06--typed-protocol-verified-and-grapher-write-boundary-begun)
 - [Primary agent kernel boundary and project minion policy](#2026-09-08--primary-agent-kernel-boundary-and-project-minion-policy)
 - [Granite research briefs 001 and 002](#2026-09-10--granite-research-briefs-001-and-002)
+- [Training Episode v1 and Koffer pilot instrumentation](#2026-10-03--training-episode-v1-and-koffer-pilot-instrumentation)
 - [Appendix — Process flow](#appendix--process-flow)
 
 Chronological record of Dreadnought's development. Entries describe what was actually done and why, with evidence references where possible. [Process map](#appendix--process-flow)
@@ -146,6 +147,21 @@ Also indexed under [`INDEX.md`](INDEX.md), opened Experiment **E-0003**, and rec
 ### Deliberate non-actions
 
 No first-class Granite adapter code in this change. No Digga 001 content restored. No git commit (left for Kommit). [Process map](#appendix--process-flow)
+
+## 2026-10-03 — Training Episode v1 and Koffer pilot instrumentation
+
+**Branch:** `dev`
+**Base snapshot:** `6d31200b4684feec139ae4efef5d6cf32f9c728d`
+
+Dreadnought now has an opt-in, append-only normalized training corpus separate from Grapher. Each recorded Project Arm dispatch can produce one Training Episode containing the bounded Order, adapter/provider metadata, project and Dreadnought revisions, structured testimony, deterministic evaluation verdicts, artifact references, and token usage when available.
+
+The recorder deliberately excludes raw dispatch stdout/stderr and strips command-verifier stdout/stderr into SHA-256/length evidence. Managed project/workspace/scratch paths are structurally redacted, small reported artifacts receive content hashes without copying source contents, prompt/instruction revisions and retry/failure lineage are retained, and exports can assign a stable held-out split. Human feedback is appended to a separate ledger and joined only at export time. Generated corpus files are Git-ignored by default.
+
+Koffer is designated as the first intended live development case study because its living manual already supplies strong product constraints and failure-oriented acceptance criteria. The immediate research goal is to collect successful, failed, and corrected episodes before any small Granite fine-tuning experiment.
+
+Verification of this change also exposed pre-existing Grapher v0.7 validation debt in `dev`. The base and working graph both initially reported the same eight errors and three warnings. Legacy Dreadnought vocabulary was registered in Grapher config and obsolete evidence labels were normalized through Grapher mutation history; the pinned validator now reports a clean graph. See `FAILURE_LEDGER.md` F-0005.
+
+**Grapher evidence:** `implementation-training-episode-v1`, `implementation-grapher-validation-compatibility`, `failure-legacy-grapher-validation-v07`.
 
 ## Appendix — Process flow
 

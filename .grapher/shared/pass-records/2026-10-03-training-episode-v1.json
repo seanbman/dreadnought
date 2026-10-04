@@ -1,0 +1,37 @@
+{
+  "id": "pass-training-episode-v1-2026-10-03",
+  "type": "verification",
+  "title": "Training Episode v1 and Koffer corpus instrumentation",
+  "status": "current",
+  "provenance": {
+    "actor_id": "openai:gpt-5.6-sol",
+    "actor_kind": "agent",
+    "source": "chatgpt-github",
+    "recorded_at": "2026-10-04T04:10:54Z"
+  },
+  "semantic": {
+    "base_commit": "6d31200b4684feec139ae4efef5d6cf32f9c728d",
+    "claims": [
+      "Training Episode capture is opt-in and disabled by default.",
+      "Normalized episodes are separate from Grapher and retain Order, testimony, independent evaluation, execution lineage, artifact fingerprints, and usage metadata.",
+      "Human feedback is append-only and joins episodes only at export time.",
+      "Reviewed exports can assign a reproducible train/eval split without mutating historical episodes.",
+      "Generated Dreadnought workspace instructions explicitly preserve the Grapher-versus-training-data boundary.",
+      "Koffer is documented as the first intended live development case study before any Granite weight update.",
+      "Pinned Grapher v0.7 validation debt discovered during verification was normalized through Grapher history and now validates cleanly.",
+      "Generated .dreadnought/training corpus rows are Git-ignored by default and require explicit operator publication."
+    ],
+    "graph_nodes": [
+      "decision-training-episode-derived-corpus",
+      "implementation-training-episode-v1",
+      "implementation-grapher-validation-compatibility",
+      "failure-legacy-grapher-validation-v07"
+    ],
+    "verification": {
+      "pytest": "103 passed, 2 skipped",
+      "grapher_validate": "valid=true, error_count=0, warning_count=0",
+      "schema_json": "valid JSON",
+      "git_diff_check": "clean"
+    }
+  }
+}

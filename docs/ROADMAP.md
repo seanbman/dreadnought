@@ -7,6 +7,7 @@
 - [Milestone 7 — Sarcophagus](#milestone-7--sarcophagus)
 - [Milestone 8 — Project Arm dispatch](#milestone-8--project-arm-dispatch)
 - [Milestone 9 — Closure and audit semantics](#milestone-9--closure-and-audit-semantics)
+- [Milestone 10 — Training corpus instrumentation](#milestone-10--training-corpus-instrumentation)
 - [Deferred](#deferred)
 - [Appendix — Process flow](#appendix--process-flow)
 
@@ -46,9 +47,13 @@ PR #11 established the typed scratch-resident agent result channel and merged at
 
 Separate claimed completion, deterministic verification, authority acceptance, and closure. Produce inspection reports tracing Doctrine → Operation → Order → Project Arm → PR → evidence/discrepancies. Correct the early Mission lifecycle so execution state does not conflate completion, acceptance, and closure. [Process map](#appendix--process-flow)
 
+## Milestone 10 — Training corpus instrumentation
+
+Training Episode v1 adds an opt-in normalized execution corpus, append-only human feedback, structural sanitization, model-agnostic export, and the Koffer first-live-case-study plan. This milestone instruments data collection; it does **not** claim that a sufficient corpus exists for model training yet.
+
 ## Deferred
 
-Multi-Project-Arm orchestration, model training, automatic taxonomy expansion, generalized multi-provider autonomy, sophisticated inference, and broad policy engines.
+Actual model weight training, automatic taxonomy expansion, generalized multi-provider autonomy, sophisticated inference, and broad policy engines remain deferred until evidence and corpus quality justify them.
 
 ## Appendix — Process flow
 

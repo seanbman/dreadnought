@@ -6,6 +6,7 @@
 - [E-0001 — Typed protocol can make agent claims mechanically testable](#e-0001--typed-protocol-can-make-agent-claims-mechanically-testable)
 - [E-0002 — Authority mediation can make Grapher protocol difficult to bypass](#e-0002--authority-mediation-can-make-grapher-protocol-difficult-to-bypass)
 - [E-0003 — Granite wrapper-first autonomy via CommandAgentAdapter](#e-0003--granite-wrapper-first-autonomy-via-commandagentadapter)
+- [E-0004 — Koffer Training Episode corpus](#e-0004--koffer-training-episode-corpus)
 - [Appendix — Process flow](#appendix--process-flow)
 
 ## Experiment discipline
@@ -47,6 +48,21 @@ Experiments should state falsifiable hypotheses where possible. Agent opinions m
 **Success criterion:** On a real disposable workspace, a Granite wrapper produces evaluable agent JSONL for at least one Order with deterministic verifiers, while malicious observer/verdict perspectives are rejected by `AgentResultChannel`. Scratch artifact success ≠ canonical-tree landing (no scratch→canonical broker). No results recorded yet — experiment opened only.
 
 **Research:** [`research/002-granite-dreadnought-autonomy.md`](research/002-granite-dreadnought-autonomy.md). [Process map](#appendix--process-flow)
+
+## E-0004 — Koffer Training Episode corpus
+
+**Date opened:** 2026-10-03
+**Status:** planned
+
+**Hypothesis:** A real application developed from explicit product documentation can generate a higher-quality future fine-tuning corpus when Dreadnought records each bounded execution as Order + testimony + deterministic evaluation + human correction, rather than treating successful code or Grapher state alone as training data.
+
+**Initial procedure:** Use Koffer's documented Linux-desktop requirements as the first live case study. Enable Training Episode capture, issue bounded Orders with deterministic acceptance criteria, preserve all outcomes, add human `accept|reject|revise` feedback, and export a reviewed corpus after enough episodes accumulate.
+
+**Success criterion:** The corpus contains reproducible accepted examples, failed/contradicted examples, and corrected examples with explicit provenance, no dependency on a Granite chat template, and no requirement to reinterpret Grapher as flat training text.
+
+**Training gate:** Do not begin weight updates merely because the recorder exists. Accumulate and review a meaningful corpus first, reserve a held-out evaluation set, then run a small LoRA/QLoRA experiment against the Granite research plan.
+
+**Grapher evidence:** `decision-training-episode-derived-corpus`, `implementation-training-episode-v1`.
 
 ## Appendix — Process flow
 

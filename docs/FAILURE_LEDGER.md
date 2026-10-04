@@ -7,6 +7,7 @@
 - [F-0002 — Voluntary Grapher use is not enforcement](#f-0002--voluntary-grapher-use-is-not-enforcement)
 - [F-0003 — Verification infrastructure was absent during PR #3 development](#f-0003--verification-infrastructure-was-absent-during-pr-3-development)
 - [F-0004 — Codex UnifiedExec repair passed the wrong integration boundary](#f-0004--codex-unifiedexec-repair-passed-the-wrong-integration-boundary)
+- [F-0005 — Legacy Grapher metadata failed the pinned v0.7 validator](#f-0005--legacy-grapher-metadata-failed-the-pinned-v07-validator)
 - [Appendix — Process flow](#appendix--process-flow)
 
 ## Failure discipline
@@ -53,6 +54,18 @@ Failures are retained because they are design evidence. Do not clean them out of
 **Response:** Dreadnought now creates a private Codex system-requirements overlay that preserves existing `/etc/codex` policy while pinning `[features] unified_exec = false`, then mounts that overlay read-only inside the outer Bubblewrap boundary for both primary and Sarcophagus Codex runtimes. The canonical workspace remains read-only and Dreadnought remains the external sandbox authority.
 
 **Lesson carried forward:** Provider compatibility claims must be tested through the provider's actual tool execution path. Constructing provider arguments or proving that an unrelated `/bin/sh` child can spawn is not sufficient integration evidence. [Process map](#appendix--process-flow)
+
+## F-0005 — Legacy Grapher metadata failed the pinned v0.7 validator
+
+**Date recorded:** 2026-10-03
+
+**Observed failure:** While verifying Training Episode v1, `grapher validate --graph .grapher/knowledge.json --json` reported eight errors and three warnings. Re-running the same pinned Grapher v0.7.0b1 validator against the pre-change `dev` graph produced the identical legacy issue set: historical `design`/`knowledge` node types and the `supports` relation were not registered as custom vocabulary, and four old evidence entries used obsolete `pull_request` / `protocol_record` evidence labels.
+
+**Response:** The legacy vocabulary is now declared explicitly in `.grapher/config.json`. Obsolete evidence labels were normalized through Grapher mutation operations, preserving the historical node contents and recording the compatibility repair in append-only Grapher history. No historical conclusion was silently deleted or rewritten.
+
+**Verification:** The pinned validator now reports `valid: true`, 0 errors, and 0 warnings. Grapher node `implementation-grapher-validation-compatibility` records the repair.
+
+**Lesson carried forward:** Repository-level Grapher validation is part of the executable governance boundary. New feature work should compare validation failures with the base graph when legacy state is suspected, then repair compatibility through explicit Grapher history rather than weakening CI or hand-editing canonical history. [Process map](#appendix--process-flow)
 
 ## Appendix — Process flow
 

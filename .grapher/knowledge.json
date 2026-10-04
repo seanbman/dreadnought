@@ -228,11 +228,11 @@
         "pr": 12
       },
       "created_at": "2026-09-06T23:45:00+00:00",
-      "updated_at": "2026-09-06T23:45:00+00:00",
+      "updated_at": "2026-10-04T04:05:50+00:00",
+      "stage": "developing",
       "status": "current",
       "workflow_state": "completed",
       "verification": "unverified",
-      "stage": "developing",
       "evidence": [
         {
           "type": "commit",
@@ -240,8 +240,8 @@
           "summary": "CI enforcement implementation"
         },
         {
-          "type": "pull_request",
-          "ref": "12",
+          "type": "external_artifact",
+          "ref": "https://github.com/seanbman/dreadnought/pull/12",
           "summary": "Documentation provenance and Grapher CI enforcement"
         }
       ],
@@ -254,11 +254,12 @@
         "project_id": "dreadnought"
       },
       "provenance": {
-        "actor_id": "human:user",
-        "actor_kind": "human",
-        "source": "chat",
+        "actor_id": "openai:gpt-5.6-sol",
+        "actor_kind": "agent",
+        "actor_role": "repository-maintainer",
+        "source": "chatgpt-github",
         "integrity": "declared",
-        "recorded_at": "2026-09-06T23:45:00+00:00"
+        "recorded_at": "2026-10-04T04:05:50+00:00"
       }
     },
     "design-code-linked-architecture-docs": {
@@ -447,14 +448,14 @@
         "submitted_perspective": "observer"
       },
       "created_at": "2026-09-08T04:43:57+00:00",
-      "updated_at": "2026-09-08T04:43:57+00:00",
+      "updated_at": "2026-10-04T04:05:50+00:00",
       "stage": "developing",
       "status": "current",
       "workflow_state": "active",
       "verification": "unverified",
       "evidence": [
         {
-          "type": "protocol_record",
+          "type": "grapher_state",
           "ref": "record-f062d950bcb1"
         }
       ],
@@ -466,11 +467,12 @@
         "project_id": "dreadnought"
       },
       "provenance": {
-        "actor_id": "dreadnought:control-plane",
-        "actor_kind": "system_tool",
-        "actor_role": "control-plane",
-        "source": "dreadnought-protocol",
-        "integrity": "declared"
+        "actor_id": "openai:gpt-5.6-sol",
+        "actor_kind": "agent",
+        "actor_role": "repository-maintainer",
+        "source": "chatgpt-github",
+        "integrity": "declared",
+        "recorded_at": "2026-10-04T04:05:50+00:00"
       }
     },
     "record-01ca224dc948": {
@@ -507,14 +509,14 @@
         "submitted_perspective": "observer"
       },
       "created_at": "2026-09-08T04:47:04+00:00",
-      "updated_at": "2026-09-08T04:47:04+00:00",
+      "updated_at": "2026-10-04T04:05:50+00:00",
       "stage": "developing",
       "status": "current",
       "workflow_state": "active",
       "verification": "unverified",
       "evidence": [
         {
-          "type": "protocol_record",
+          "type": "grapher_state",
           "ref": "record-01ca224dc948"
         }
       ],
@@ -526,11 +528,12 @@
         "project_id": "dreadnought"
       },
       "provenance": {
-        "actor_id": "dreadnought:control-plane",
-        "actor_kind": "system_tool",
-        "actor_role": "control-plane",
-        "source": "dreadnought-protocol",
-        "integrity": "declared"
+        "actor_id": "openai:gpt-5.6-sol",
+        "actor_kind": "agent",
+        "actor_role": "repository-maintainer",
+        "source": "chatgpt-github",
+        "integrity": "declared",
+        "recorded_at": "2026-10-04T04:05:50+00:00"
       }
     },
     "record-08d4a9469adc": {
@@ -567,14 +570,14 @@
         "submitted_perspective": "observer"
       },
       "created_at": "2026-09-08T05:02:44+00:00",
-      "updated_at": "2026-09-08T05:02:44+00:00",
+      "updated_at": "2026-10-04T04:05:50+00:00",
       "stage": "developing",
       "status": "current",
       "workflow_state": "active",
       "verification": "unverified",
       "evidence": [
         {
-          "type": "protocol_record",
+          "type": "grapher_state",
           "ref": "record-08d4a9469adc"
         }
       ],
@@ -586,11 +589,12 @@
         "project_id": "dreadnought"
       },
       "provenance": {
-        "actor_id": "dreadnought:control-plane",
-        "actor_kind": "system_tool",
-        "actor_role": "control-plane",
-        "source": "dreadnought-protocol",
-        "integrity": "declared"
+        "actor_id": "openai:gpt-5.6-sol",
+        "actor_kind": "agent",
+        "actor_role": "repository-maintainer",
+        "source": "chatgpt-github",
+        "integrity": "declared",
+        "recorded_at": "2026-10-04T04:05:50+00:00"
       }
     },
     "implementation-primary-kernel-runtime-state": {
@@ -1234,6 +1238,219 @@
       },
       "stage": null,
       "scope": {}
+    },
+    "decision-training-episode-derived-corpus": {
+      "id": "decision-training-episode-derived-corpus",
+      "type": "decision",
+      "title": "Training data is a derived layered corpus",
+      "content": "{\"decision\":\"Keep Grapher as durable project knowledge and derive model-training data as raw execution evidence, normalized Training Episode v1 records, and later model-specific exports; capture is opt-in, feedback is append-only, and Koffer is the first live case study.\",\"rationale\":\"Grapher intentionally mixes durable truth, history, notes, provenance, and supersession; model training needs an execution-shaped unit that preserves Order, testimony, independent verification, and human feedback without coupling evidence to one model template.\"}",
+      "path": "docs/TRAINING_DATA.md",
+      "tags": [
+        "training-data",
+        "training-episode",
+        "koffer",
+        "granite",
+        "provenance"
+      ],
+      "meta": {},
+      "created_at": "2026-10-04T03:57:10+00:00",
+      "updated_at": "2026-10-04T03:57:10+00:00",
+      "stage": "developing",
+      "status": "current",
+      "workflow_state": "completed",
+      "verification": "verified",
+      "evidence": [
+        {
+          "type": "document",
+          "ref": "docs/TRAINING_DATA.md"
+        },
+        {
+          "type": "test",
+          "ref": "tests/test_training.py"
+        }
+      ],
+      "source_refs": [
+        "docs/DECISION_LEDGER.md",
+        "docs/EXPERIMENT_LEDGER.md",
+        "docs/research/002-granite-dreadnought-autonomy.md"
+      ],
+      "owners": [],
+      "scope": {
+        "project_id": "dreadnought"
+      },
+      "provenance": {
+        "actor_id": "openai:gpt-5.6-sol",
+        "actor_kind": "agent",
+        "actor_role": "repository-maintainer",
+        "source": "chatgpt-github",
+        "integrity": "declared",
+        "recorded_at": "2026-10-04T03:57:10+00:00"
+      },
+      "semantic": {
+        "decision": "Keep Grapher as durable project knowledge and derive model-training data as raw execution evidence, normalized Training Episode v1 records, and later model-specific exports; capture is opt-in, feedback is append-only, and Koffer is the first live case study.",
+        "rationale": "Grapher intentionally mixes durable truth, history, notes, provenance, and supersession; model training needs an execution-shaped unit that preserves Order, testimony, independent verification, and human feedback without coupling evidence to one model template."
+      }
+    },
+    "implementation-training-episode-v1": {
+      "id": "implementation-training-episode-v1",
+      "type": "implementation",
+      "title": "Training Episode v1 recorder and export pipeline",
+      "content": "{\"component\":\"src/dreadnought/training.py; schemas/training_episode.schema.json; src/dreadnought/dispatch.py; src/dreadnought/bootstrap.py; src/dreadnought/cli.py\",\"change\":\"Record opt-in sanitized Project Arm executions as normalized episodes with safe repository/branch and revision identity, instruction hashes, timing/failure/retry lineage, scratch/project artifact fingerprints, append-only human feedback, reproducible held-out split export, generated workspace guidance, and Git-ignored local corpus storage by default.\"}",
+      "path": "src/dreadnought/training.py",
+      "tags": [
+        "training-data",
+        "implementation",
+        "project-arm",
+        "koffer",
+        "bootstrap",
+        "privacy"
+      ],
+      "meta": {},
+      "created_at": "2026-10-04T03:57:10+00:00",
+      "updated_at": "2026-10-04T04:09:01+00:00",
+      "stage": "developing",
+      "status": "current",
+      "workflow_state": "completed",
+      "verification": "verified",
+      "evidence": [
+        {
+          "type": "file",
+          "ref": "src/dreadnought/training.py"
+        },
+        {
+          "type": "file",
+          "ref": "schemas/training_episode.schema.json"
+        },
+        {
+          "type": "file",
+          "ref": "src/dreadnought/bootstrap.py"
+        },
+        {
+          "type": "test",
+          "ref": "tests/test_training.py"
+        },
+        {
+          "type": "test",
+          "ref": "tests/test_bootstrap.py"
+        }
+      ],
+      "source_refs": [
+        "docs/TRAINING_DATA.md",
+        "docs/DEVELOPMENT_LEDGER.md",
+        "docs/CLI_USAGE.md"
+      ],
+      "owners": [],
+      "scope": {
+        "project_id": "dreadnought"
+      },
+      "provenance": {
+        "actor_id": "openai:gpt-5.6-sol",
+        "actor_kind": "agent",
+        "actor_role": "repository-maintainer",
+        "source": "chatgpt-github",
+        "integrity": "declared",
+        "recorded_at": "2026-10-04T04:09:01+00:00"
+      },
+      "semantic": {
+        "component": "src/dreadnought/training.py; schemas/training_episode.schema.json; src/dreadnought/dispatch.py; src/dreadnought/bootstrap.py; src/dreadnought/cli.py",
+        "change": "Record opt-in sanitized Project Arm executions as normalized episodes with safe repository/branch and revision identity, instruction hashes, timing/failure/retry lineage, scratch/project artifact fingerprints, append-only human feedback, reproducible held-out split export, generated workspace guidance, and Git-ignored local corpus storage by default."
+      }
+    },
+    "implementation-grapher-validation-compatibility": {
+      "id": "implementation-grapher-validation-compatibility",
+      "type": "implementation",
+      "title": "Legacy Grapher validation compatibility normalized",
+      "content": "{\"change\":\"Register legacy Dreadnought design/knowledge types and supports relation in Grapher config, and normalize obsolete pull_request/protocol_record evidence labels through Grapher while preserving historical node content.\",\"component\":\".grapher/config.json; .grapher/knowledge.json; .grapher/history.jsonl\"}",
+      "path": ".grapher/config.json",
+      "tags": [
+        "grapher",
+        "validation",
+        "compatibility",
+        "governance"
+      ],
+      "meta": {},
+      "created_at": "2026-10-04T04:05:50+00:00",
+      "updated_at": "2026-10-04T04:05:50+00:00",
+      "stage": "maintaining",
+      "status": "current",
+      "workflow_state": "completed",
+      "verification": "verified",
+      "evidence": [
+        {
+          "type": "command",
+          "ref": "grapher validate --graph .grapher/knowledge.json --json"
+        }
+      ],
+      "source_refs": [
+        ".github/workflows/test.yml",
+        "AGENTS.md"
+      ],
+      "owners": [],
+      "scope": {
+        "project_id": "dreadnought"
+      },
+      "provenance": {
+        "actor_id": "openai:gpt-5.6-sol",
+        "actor_kind": "agent",
+        "actor_role": "repository-maintainer",
+        "source": "chatgpt-github",
+        "integrity": "declared",
+        "recorded_at": "2026-10-04T04:05:50+00:00"
+      },
+      "semantic": {
+        "change": "Register legacy Dreadnought design/knowledge types and supports relation in Grapher config, and normalize obsolete pull_request/protocol_record evidence labels through Grapher while preserving historical node content.",
+        "component": ".grapher/config.json; .grapher/knowledge.json; .grapher/history.jsonl"
+      }
+    },
+    "failure-legacy-grapher-validation-v07": {
+      "id": "failure-legacy-grapher-validation-v07",
+      "type": "failure",
+      "title": "Legacy Grapher metadata failed pinned v0.7 validation",
+      "content": "{\"failure\":\"Pinned Grapher v0.7.0b1 rejected legacy Dreadnought graph vocabulary/evidence during Training Episode v1 verification.\",\"observed_behavior\":\"The working graph and pre-change dev graph both produced the same eight validation errors and three warnings: unregistered design/knowledge types, supports relation warnings, and obsolete pull_request/protocol_record evidence labels.\"}",
+      "path": "docs/FAILURE_LEDGER.md",
+      "tags": [
+        "grapher",
+        "validation",
+        "legacy",
+        "ci"
+      ],
+      "meta": {},
+      "created_at": "2026-10-04T04:06:36+00:00",
+      "updated_at": "2026-10-04T04:06:36+00:00",
+      "stage": "maintaining",
+      "status": "current",
+      "workflow_state": "completed",
+      "verification": "verified",
+      "evidence": [
+        {
+          "type": "command",
+          "ref": "grapher validate --graph .grapher/knowledge.json --json"
+        },
+        {
+          "type": "document",
+          "ref": "docs/FAILURE_LEDGER.md"
+        }
+      ],
+      "source_refs": [
+        ".github/workflows/test.yml",
+        ".grapher/config.json"
+      ],
+      "owners": [],
+      "scope": {
+        "project_id": "dreadnought"
+      },
+      "provenance": {
+        "actor_id": "openai:gpt-5.6-sol",
+        "actor_kind": "agent",
+        "actor_role": "repository-maintainer",
+        "source": "chatgpt-github",
+        "integrity": "declared",
+        "recorded_at": "2026-10-04T04:06:36+00:00"
+      },
+      "semantic": {
+        "failure": "Pinned Grapher v0.7.0b1 rejected legacy Dreadnought graph vocabulary/evidence during Training Episode v1 verification.",
+        "observed_behavior": "The working graph and pre-change dev graph both produced the same eight validation errors and three warnings: unregistered design/knowledge types, supports relation warnings, and obsolete pull_request/protocol_record evidence labels."
+      }
     }
   },
   "edges": [
@@ -1298,6 +1515,18 @@
       "rel": "status_changed_by",
       "created_at": "2026-09-08T07:57:37+00:00",
       "note": "immutable truth-status transition"
+    },
+    {
+      "from": "implementation-training-episode-v1",
+      "to": "decision-training-episode-derived-corpus",
+      "rel": "implements",
+      "created_at": "2026-10-04T03:57:10+00:00"
+    },
+    {
+      "from": "implementation-grapher-validation-compatibility",
+      "to": "failure-legacy-grapher-validation-v07",
+      "rel": "fixes",
+      "created_at": "2026-10-04T04:06:36+00:00"
     }
   ]
 }

@@ -4,6 +4,7 @@ import subprocess
 from grapher.store import load_graph
 
 from dreadnought.agent import CommandAgentAdapter
+from dreadnought.config import default_config, save_config
 from dreadnought.dispatch import ProjectArmDispatcher
 from dreadnought.order import Order
 from dreadnought.project_factory import create_project
@@ -68,6 +69,9 @@ def test_command_adapter_renders_only_explicit_tokens(tmp_path: Path) -> None:
 def test_dispatch_writes_order_packet_observation_and_evaluation(tmp_path: Path) -> None:
     workspace = tmp_path / "workspace"
     workspace.mkdir()
+    config = default_config(workspace)
+    config["training_data"]["enabled"] = True
+    save_config(workspace, config)
     scratch = tmp_path / "scratch"
     runner = FakeSarcophagus()
     graph = FakeGrapher()
@@ -104,6 +108,10 @@ def test_dispatch_writes_order_packet_observation_and_evaluation(tmp_path: Path)
     assert verdict.actor_id == "dreadnought:evaluator"
     assert verdict.subject_ref == order.id
     assert verdict.data["status"] == "supported"
+    assert result.episode_id is not None
+    corpus_path = workspace / ".dreadnought" / "training" / "episodes.jsonl"
+    assert corpus_path.is_file()
+    assert result.episode_id in corpus_path.read_text(encoding="utf-8")
 
 
 def test_dispatch_routes_explicit_project_without_switching_workspace_default(tmp_path: Path) -> None:

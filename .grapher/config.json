@@ -26,9 +26,13 @@
     "dreadnought_requirement",
     "dreadnought_risk",
     "dreadnought_note",
-    "dreadnought_verdict"
+    "dreadnought_verdict",
+    "design",
+    "knowledge"
   ],
-  "custom_relations": {},
+  "custom_relations": {
+    "supports": "Legacy support relation retained for Dreadnought graph compatibility"
+  },
   "custom_kinds": [],
   "stage_aliases": {},
   "status_rank_weights": {},

@@ -10,6 +10,7 @@
 - [Protocol commands](#protocol-commands)
 - [Minion commissioning](#minion-commissioning)
 - [Project Arm dispatch](#project-arm-dispatch)
+- [Training corpus](#training-corpus)
 - [Command reference](#command-reference)
 - [Exit codes and authority notes](#exit-codes-and-authority-notes)
 - [Appendix — Process flow](#appendix--process-flow)
@@ -189,6 +190,29 @@ Adapter syntax is provider-specific. Supported Dreadnought template tokens are d
 
 The Project Arm writes newline-delimited typed protocol records to the result channel in scratch. Observer/evaluation kinds are reserved and rejected from the agent result channel.
 
+## Training corpus
+
+Training capture is disabled by default and must be opted in per workspace:
+
+```bash
+dreadnought training enable --root .
+dreadnought training stats --root .
+```
+
+Append human review without rewriting an episode:
+
+```bash
+dreadnought training feedback episode-... --root . --rating revise --comment "Keep scanning off the UI thread."
+```
+
+Export normalized model-agnostic JSONL:
+
+```bash
+dreadnought training export ./training/eligible.jsonl --root . --mode eligible --eval-percent 20 --split-seed koffer-v1
+```
+
+Use `dreadnought training disable --root .` to stop new episode recording. See [`TRAINING_DATA.md`](TRAINING_DATA.md). Grapher remains the durable project brain; the training corpus is a derived research dataset.
+
 ## Command reference
 
 | Command | Purpose |
@@ -208,6 +232,10 @@ The Project Arm writes newline-delimited typed protocol records to the result ch
 | `dreadnought protocol ingest <path>` | Admit a typed record through Dreadnought into the managed Grapher brain |
 | `dreadnought minion commission <order> ...` | Commission a configured Codex/Cursor subordinate through Project Arm/Sarcophagus |
 | `dreadnought arm dispatch <order> ...` | Execute one bounded Order through Sarcophagus/Project Arm dispatch |
+| dreadnought training enable/disable | Opt a workspace in or out of normalized dispatch-episode capture |
+| dreadnought training stats | Summarize local normalized episodes and feedback |
+| dreadnought training feedback <episode> | Append human accept/reject/revise feedback |
+| dreadnought training export <output> | Export model-agnostic JSONL from eligible/accepted/all episodes |
 
 ## Exit codes and authority notes
 

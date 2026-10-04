@@ -13,6 +13,7 @@ Dreadnought is an experimental agent control plane for turning human intent into
 - [Mission Builder](#mission-builder)
 - [Mental model](#mental-model)
 - [Updating](#updating)
+- [Training data](#training-data)
 - [Current beta boundary](#current-beta-boundary)
 - [Documentation and governance](#documentation-and-governance)
 - [Appendix — Process flow](#appendix--process-flow)
@@ -47,6 +48,7 @@ dreadnought initialize
 | Look up commands | [`docs/CLI_USAGE.md`](docs/CLI_USAGE.md) |
 | Understand architecture/trust boundaries | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) |
 | Understand Dreadnought ↔ Grapher brokering | [`docs/GRAPHER_INTEGRATION.md`](docs/GRAPHER_INTEGRATION.md) |
+| Capture auditable model-training episodes | [docs/TRAINING_DATA.md](docs/TRAINING_DATA.md) |
 | Browse all durable documentation | [`docs/INDEX.md`](docs/INDEX.md) |
 
 ## Workspace bootstrap
@@ -126,6 +128,10 @@ curl -fsSL https://raw.githubusercontent.com/seanbman/dreadnought/main/install.s
 ```
 
 Interactive release checks are best-effort and quiet for automation. Updates are explicit; they are never installed automatically.
+
+## Training data
+
+Dreadnought can opt a workspace into normalized execution-episode capture with dreadnought training enable. The episode corpus is separate from Grapher: Grapher remains durable project knowledge while Training Episode v1 packages Orders, testimony, independent evaluation, artifacts, and usage into model-neutral JSONL for later reviewed export. Koffer is the first intended live development case study. See [docs/TRAINING_DATA.md](docs/TRAINING_DATA.md).
 
 ## Current beta boundary
 

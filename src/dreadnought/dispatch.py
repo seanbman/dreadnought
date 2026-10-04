@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import time
 from pathlib import Path
 import json
 
@@ -12,6 +13,7 @@ from .order import Order
 from .protocol import ObservationType, Perspective, ProtocolRecord, RecordKind
 from .result_channel import AgentResultChannel
 from .sarcophagus import NetworkPolicy, Sarcophagus, SarcophagusPolicy
+from .training import TrainingCorpus, git_revision
 from .usage import TokenUsage, TokenUsageLedger
 
 
@@ -30,6 +32,7 @@ class DispatchResult:
     verification_status: str = "not_yet_verified"
     accepted: bool = False
     usage_id: str | None = None
+    episode_id: str | None = None
 
 
 class ProjectArmDispatcher:
@@ -88,6 +91,7 @@ class ProjectArmDispatcher:
             if stale.exists():
                 stale.unlink()
 
+        project_commit_before = git_revision(project_workspace)
         command = adapter.command(
             order=order,
             order_path=order_path,
@@ -95,7 +99,9 @@ class ProjectArmDispatcher:
             scratch=project_scratch,
             workspace=project_workspace,
         )
+        started = time.monotonic()
         completed = sarcophagus.run(command, timeout=timeout)
+        duration_ms = int((time.monotonic() - started) * 1000)
         policy = getattr(sarcophagus, "policy", None)
         network = getattr(policy, "network", None)
         network_policy = getattr(network, "value", "custom")
@@ -148,6 +154,34 @@ class ProjectArmDispatcher:
             report = parser(completed.stdout) if callable(parser) else None
             if report is not None:
                 usage_id = self._record_usage_report(report, order, adapter.id, source="structured_stdout")
+
+        usage_payload = None
+        if usage_id is not None:
+            for row in reversed(TokenUsageLedger(self.control_workspace).entries()):
+                if row.get("id") == usage_id:
+                    usage_payload = row
+                    break
+
+        episode_id = None
+        training_config = dict(load_config(self.control_workspace).get("training_data") or {})
+        if bool(training_config.get("enabled", True)) and bool(training_config.get("record_dispatches", True)):
+            episode = TrainingCorpus(self.control_workspace).record_dispatch(
+                order=order,
+                project_root=project_workspace,
+                scratch_root=project_scratch,
+                adapter_id=adapter.id,
+                network_policy=network_policy,
+                exit_code=completed.returncode,
+                duration_ms=duration_ms,
+                observation_id=observation.id,
+                agent_records=agent_records,
+                evaluation=evaluation,
+                usage=usage_payload,
+                project_commit_before=project_commit_before,
+                project_commit_after=git_revision(project_workspace),
+            )
+            episode_id = str(episode["episode_id"])
+
         return DispatchResult(
             order_id=order.id,
             project_arm=order.project_arm,
@@ -162,6 +196,7 @@ class ProjectArmDispatcher:
             verification_status=evaluation.status.value,
             accepted=evaluation.accepted,
             usage_id=usage_id,
+            episode_id=episode_id,
         )
 
     def _record_usage_if_reported(self, usage_path: Path, order: Order, adapter_id: str) -> str | None:

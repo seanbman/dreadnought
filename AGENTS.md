@@ -6,6 +6,7 @@
 - [CLI usage](#cli-usage)
 - [Grapher](#grapher)
 - [Research ledgers](#research-ledgers)
+- [Training data discipline](#training-data-discipline)
 - [Epistemic rule](#epistemic-rule)
 - [Appendix — Process flow](#appendix--process-flow)
 
@@ -28,6 +29,12 @@ CI must reject substantive changes when canonical Grapher state and structured G
 ## Research ledgers
 
 For substantive changes, update the appropriate file in `docs/`: `DEVELOPMENT_LEDGER.md`, `DECISION_LEDGER.md`, `EXPERIMENT_LEDGER.md`, `FAILURE_LEDGER.md`, and any specialized ledger listed in [`docs/INDEX.md`](docs/INDEX.md). New durable Markdown must be indexed, contain its own index, and include a provenance-bearing Mermaid process-flow appendix. Architecture-bearing documents must also include an architecture diagram linked to the root architecture. Process nodes representing implementation must identify concrete `code:` paths in addition to `inception:` and `current:` hashes. Use UTC and local time when practical. Reference commit hashes, PRs, Grapher node IDs, and external evidence where available. Do not invent missing timestamps or provenance. [Process map](#appendix--process-flow)
+
+## Training data discipline
+
+Grapher is **not** the model-training dataset. Preserve three layers: authoritative/raw execution evidence, normalized Training Episodes, and model-specific exports. Training capture is opt-in and must use `src/dreadnought/training.py`; do not scrape `.grapher/knowledge.json` into SFT data. Preserve failed and corrected episodes rather than deleting inconvenient outcomes. Human corrections are append-only feedback, not retrospective rewrites.
+
+Do not copy raw process stdout/stderr, credentials, absolute managed-project paths, or source-file contents into normalized episodes merely because they are available. Keep generated `.dreadnought/training/` corpus files Git-ignored by default. Structural sanitization is necessary but does not replace corpus review before external distribution or weight training. See [`docs/TRAINING_DATA.md`](docs/TRAINING_DATA.md). [Process map](#appendix--process-flow)
 
 ## Epistemic rule
 

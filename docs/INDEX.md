@@ -30,6 +30,7 @@ This is the canonical durable documentation map. **New users should begin with t
 - [`README.md`](README.md) — research-record conventions.
 - [`DIAGRAM_STANDARD.md`](DIAGRAM_STANDARD.md) — documentation/diagram provenance contract.
 - [`ROADMAP.md`](ROADMAP.md) — milestone sequence and deferred work.
+- [TRAINING_DATA.md](TRAINING_DATA.md) — Training Episode v1, sanitization, human feedback, export, and the Koffer pilot.
 
 ## Research
 

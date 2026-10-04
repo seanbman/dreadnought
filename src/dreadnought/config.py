@@ -26,6 +26,7 @@ def default_config(workspace: Path) -> dict[str, Any]:
         "agents": {},
         "ui": {"interactive_menu": True},
         "token_usage": {"enabled": True},
+        "training_data": {"enabled": False, "record_dispatches": True},
         "kernel": {"primary_isolation": True, "minion_channel": "control_plane"},
     }
 
@@ -69,6 +70,7 @@ def load_config(workspace: Path) -> dict[str, Any]:
     }
     base["projects"] = dict(data.get("projects") or {})
     base["project_policies"] = dict(data.get("project_policies") or {})
+    base["training_data"] = {**default_config(workspace)["training_data"], **dict(data.get("training_data") or {})}
     base["kernel"] = {**default_config(workspace)["kernel"], **dict(data.get("kernel") or {})}
     return base
 
