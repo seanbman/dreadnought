@@ -1451,6 +1451,60 @@
         "failure": "Pinned Grapher v0.7.0b1 rejected legacy Dreadnought graph vocabulary/evidence during Training Episode v1 verification.",
         "observed_behavior": "The working graph and pre-change dev graph both produced the same eight validation errors and three warnings: unregistered design/knowledge types, supports relation warnings, and obsolete pull_request/protocol_record evidence labels."
       }
+    },
+    "implementation-release-0.2.0b6": {
+      "id": "implementation-release-0.2.0b6",
+      "type": "implementation",
+      "title": "Release v0.2.0b6 aligns runtime and package versions",
+      "content": "{\"component\":\"pyproject.toml; src/dreadnought/__init__.py; README.md; tests/test_version.py\",\"change\":\"Bump the public beta to v0.2.0b6 after Training Episode v1 landed, align runtime __version__ with package metadata, document the new beta boundary, and add a regression test so installed version reporting cannot silently drift again.\"}",
+      "path": "pyproject.toml",
+      "tags": [
+        "release",
+        "version",
+        "training-data",
+        "beta"
+      ],
+      "meta": {},
+      "created_at": "2026-10-04T04:21:02+00:00",
+      "updated_at": "2026-10-04T04:21:02+00:00",
+      "stage": "launching",
+      "status": "current",
+      "workflow_state": "completed",
+      "verification": "verified",
+      "evidence": [
+        {
+          "type": "file",
+          "ref": "pyproject.toml"
+        },
+        {
+          "type": "file",
+          "ref": "src/dreadnought/__init__.py"
+        },
+        {
+          "type": "test",
+          "ref": "tests/test_version.py"
+        }
+      ],
+      "source_refs": [
+        "README.md",
+        "docs/TRAINING_DATA.md"
+      ],
+      "owners": [],
+      "scope": {
+        "project_id": "dreadnought"
+      },
+      "provenance": {
+        "actor_id": "openai:gpt-5.6-sol",
+        "actor_kind": "agent",
+        "actor_role": "repository-maintainer",
+        "source": "chatgpt-github",
+        "integrity": "declared",
+        "recorded_at": "2026-10-04T04:21:02+00:00"
+      },
+      "semantic": {
+        "component": "pyproject.toml; src/dreadnought/__init__.py; README.md; tests/test_version.py",
+        "change": "Bump the public beta to v0.2.0b6 after Training Episode v1 landed, align runtime __version__ with package metadata, document the new beta boundary, and add a regression test so installed version reporting cannot silently drift again."
+      }
     }
   },
   "edges": [
